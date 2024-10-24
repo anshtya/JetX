@@ -52,7 +52,7 @@ fun JetXApp(
                 .padding(innerPadding)
         ) {
             JetXNavigation(
-                navHostController = appState.navController,
+                navController = appState.navController,
                 hasOnboarded = hasOnboarded,
             )
         }

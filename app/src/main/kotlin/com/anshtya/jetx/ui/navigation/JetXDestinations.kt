@@ -21,7 +21,16 @@ sealed interface Graph {
 
 sealed interface Route {
 
-    @Serializable data object Onboarding
+    @Serializable
+    data object Onboarding
+
+    sealed interface AuthGraph : Route {
+        @Serializable
+        data object SignIn : Route
+
+        @Serializable
+        data object SignUp : Route
+    }
 
     sealed interface MainGraph : Route {
         @Serializable

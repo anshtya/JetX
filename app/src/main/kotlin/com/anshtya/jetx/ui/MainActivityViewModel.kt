@@ -43,7 +43,7 @@ class MainActivityViewModel @Inject constructor() : ViewModel() {
 
     private fun checkOnboardingStatus() {
         viewModelScope.launch {
-            hasOnboarded = flow { emit(true) }.first()
+            hasOnboarded = flow { emit(false) }.first()
         }
     }
 }
