@@ -4,7 +4,7 @@ import android.util.Log
 import com.anshtya.jetx.data.datastore.TokenManager
 import com.anshtya.jetx.data.model.Result
 import com.anshtya.jetx.data.network.ApiService
-import com.anshtya.jetx.data.network.model.auth.AuthRequest
+import com.anshtya.jetx.data.model.auth.AuthRequest
 import com.anshtya.jetx.util.onNetworkResponse
 import javax.inject.Inject
 

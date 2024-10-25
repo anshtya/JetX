@@ -1,4 +1,4 @@
-package com.anshtya.jetx.data.network.model.auth
+package com.anshtya.jetx.data.model.auth
 
 import com.squareup.moshi.JsonClass
 

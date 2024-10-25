@@ -1,7 +1,7 @@
 package com.anshtya.jetx.data.network
 
-import com.anshtya.jetx.data.network.model.auth.AuthRequest
-import com.anshtya.jetx.data.network.model.auth.AuthResponse
+import com.anshtya.jetx.data.model.auth.AuthRequest
+import com.anshtya.jetx.data.model.auth.AuthResponse
 import com.anshtya.jetx.util.Constants
 import retrofit2.Response
 import retrofit2.http.Body

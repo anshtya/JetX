@@ -1,8 +1,8 @@
-package com.anshtya.jetx.data.network.model
+package com.anshtya.jetx.data.model
 
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class ErrorResponse(
-    val error: String
+    val message: String
 )
