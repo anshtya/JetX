@@ -5,7 +5,7 @@ import com.anshtya.jetx.data.datastore.TokenManager
 import com.anshtya.jetx.data.model.Result
 import com.anshtya.jetx.data.network.ApiService
 import com.anshtya.jetx.data.model.auth.AuthRequest
-import com.anshtya.jetx.util.onNetworkResponse
+import com.anshtya.jetx.util.safeResult
 import javax.inject.Inject
 
 interface AuthRepository {
@@ -28,29 +28,23 @@ class AuthRepositoryImpl @Inject constructor(
         username: String,
         password: String
     ): Result<Unit> {
-        val authRequest = AuthRequest(username = username, password = password)
-        val response = apiService.login(authRequest)
-
-        return response.onNetworkResponse(
-            onSuccess = { body ->
-                Log.d("foo", body!!.token)
-//                tokenManager.saveToken(body!!.token)
-            }
-        ) { _ -> }
+        return safeResult {
+            val authRequest = AuthRequest(username = username, password = password)
+            val response = apiService.login(authRequest)
+            Log.d("foo", response.token)
+//            tokenManager.saveToken(body!!.token)
+        }
     }
 
     override suspend fun signup(
         username: String,
         password: String
     ): Result<Unit> {
-        val authRequest = AuthRequest(username = username, password = password)
-        val response = apiService.signup(authRequest)
-
-        return response.onNetworkResponse(
-            onSuccess = { body ->
-                Log.d("foo", body!!.token)
-//                tokenManager.saveToken(body!!.token)
-            }
-        ) { _ -> }
+        return safeResult {
+            val authRequest = AuthRequest(username = username, password = password)
+            val response = apiService.signup(authRequest)
+            Log.d("foo", response.token)
+//            tokenManager.saveToken(body!!.token)
+        }
     }
 }
