@@ -1,12 +1,13 @@
 package com.anshtya.jetx.ui.features.auth.signin
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.data.model.Result
 import com.anshtya.jetx.data.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -14,18 +15,58 @@ import javax.inject.Inject
 class SignInViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
-    init {
-        viewModelScope.launch {
-            delay(3000L)
+    private val _uiState = MutableStateFlow(SignInUiState())
+    val uiState = _uiState.asStateFlow()
 
-            val result = authRepository.login(username = "ansh", password = "ansh")
-            when (result) {
+    fun changeUsername(username: String) {
+        _uiState.update {
+            it.copy(username = username)
+        }
+    }
+
+    fun changePassword(password: String) {
+        _uiState.update {
+            it.copy(password = password)
+        }
+    }
+
+    fun changePasswordVisibility() {
+        _uiState.update {
+            it.copy(passwordVisible = !(_uiState.value.passwordVisible))
+        }
+    }
+
+    fun errorShown() {
+        _uiState.update {
+            it.copy(errorMessage = null)
+        }
+    }
+
+    fun signIn() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(signInButtonEnabled = false)
+            }
+
+            val authResponse = authRepository.login(
+                username = _uiState.value.username,
+                password = _uiState.value.password
+            )
+
+            when(authResponse) {
                 is Result.Success -> {
-                    Log.d("foo", "done")
+                    _uiState.update {
+                        it.copy(signInSuccessful = true)
+                    }
                 }
 
                 is Result.Error -> {
-                    Log.d("foo", result.errorMessage ?: "shit")
+                    _uiState.update {
+                        it.copy(
+                            signInButtonEnabled = true,
+                            errorMessage = authResponse.errorMessage
+                        )
+                    }
                 }
             }
         }

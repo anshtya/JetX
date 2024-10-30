@@ -21,10 +21,10 @@ sealed interface Graph {
 
 sealed interface Route {
 
-    @Serializable
-    data object Onboarding
-
     sealed interface AuthGraph : Route {
+        @Serializable
+        data object Onboarding : Route
+
         @Serializable
         data object SignIn : Route
 
