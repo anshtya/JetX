@@ -13,8 +13,18 @@ suspend fun <T> safeResult(
         Result.Success(work())
     } catch(e: Exception) {
         when (e) {
-            is HttpException -> { Result.Error(e.getErrorMessage()) }
-            else -> { Result.Error(errorMessage) }
+            is HttpException -> {
+                Result.Error(
+                    statusCode = e.code(),
+                    errorMessage = e.getErrorMessage()
+                )
+            }
+            else -> {
+                Result.Error(
+                    statusCode = null,
+                    errorMessage = errorMessage
+                )
+            }
         }
     }
 }

@@ -1,10 +1,9 @@
 package com.anshtya.jetx.data.repository
 
-import android.util.Log
-import com.anshtya.jetx.data.datastore.TokenManager
+import com.anshtya.jetx.data.datastore.AuthTokenManager
 import com.anshtya.jetx.data.model.Result
-import com.anshtya.jetx.data.network.ApiService
 import com.anshtya.jetx.data.model.auth.AuthRequest
+import com.anshtya.jetx.data.network.service.AuthService
 import com.anshtya.jetx.util.safeResult
 import javax.inject.Inject
 
@@ -21,8 +20,8 @@ interface AuthRepository {
 }
 
 class AuthRepositoryImpl @Inject constructor(
-    private val apiService: ApiService,
-    private val tokenManager: TokenManager
+    private val authService: AuthService,
+    private val authTokenManager: AuthTokenManager
 ) : AuthRepository {
     override suspend fun login(
         username: String,
@@ -30,9 +29,8 @@ class AuthRepositoryImpl @Inject constructor(
     ): Result<Unit> {
         return safeResult {
             val authRequest = AuthRequest(username = username, password = password)
-            val response = apiService.login(authRequest)
-            Log.d("foo", response.token)
-//            tokenManager.saveToken(body!!.token)
+            val response = authService.login(authRequest)
+            authTokenManager.saveToken(response.accessToken, response.refreshToken)
         }
     }
 
@@ -42,9 +40,8 @@ class AuthRepositoryImpl @Inject constructor(
     ): Result<Unit> {
         return safeResult {
             val authRequest = AuthRequest(username = username, password = password)
-            val response = apiService.signup(authRequest)
-            Log.d("foo", response.token)
-//            tokenManager.saveToken(body!!.token)
+            val response = authService.signup(authRequest)
+            authTokenManager.saveToken(response.accessToken, response.refreshToken)
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.anshtya.jetx.ui.navigation
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -9,6 +8,7 @@ import androidx.navigation.compose.navigation
 import com.anshtya.jetx.ui.features.OnboardingScreen
 import com.anshtya.jetx.ui.features.auth.signin.SignInRoute
 import com.anshtya.jetx.ui.features.auth.signup.SignUpRoute
+import com.anshtya.jetx.ui.features.chats.ChatRoute
 
 @Composable
 fun JetXNavigation(
@@ -56,7 +56,7 @@ fun JetXNavigation(
             startDestination = Route.MainGraph.Chats
         ) {
             composable<Route.MainGraph.Chats> {
-                Text("hi")
+                ChatRoute()
             }
 
             composable<Route.MainGraph.Camera> { }
