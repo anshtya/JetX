@@ -2,6 +2,7 @@ package com.anshtya.jetx.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -43,13 +44,13 @@ fun JetXApp(
                     onNavigateToDestination = appState::navigateToTopLevelDestination
                 )
             }
-        },
-        modifier = Modifier.fillMaxSize()
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
         ) {
             JetXNavigation(
                 navController = appState.navController,
