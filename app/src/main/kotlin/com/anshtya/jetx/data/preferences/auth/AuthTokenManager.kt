@@ -1,6 +1,10 @@
-package com.anshtya.jetx.data.datastore
+package com.anshtya.jetx.data.preferences.auth
+
+import kotlinx.coroutines.flow.Flow
 
 interface AuthTokenManager {
+    val authenticated: Flow<Boolean>
+
     suspend fun saveToken(accessToken: String, refreshToken: String)
 
     suspend fun getAccessToken(): String?

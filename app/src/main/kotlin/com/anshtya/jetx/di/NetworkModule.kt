@@ -1,7 +1,7 @@
 package com.anshtya.jetx.di
 
 import com.anshtya.jetx.BuildConfig
-import com.anshtya.jetx.data.datastore.AuthTokenManager
+import com.anshtya.jetx.data.preferences.auth.AuthTokenManager
 import com.anshtya.jetx.data.network.interceptor.AuthorizationInterceptor
 import com.anshtya.jetx.data.network.authenticator.TokenRefreshAuthenticator
 import com.anshtya.jetx.data.network.interceptor.httpLoggingInterceptor

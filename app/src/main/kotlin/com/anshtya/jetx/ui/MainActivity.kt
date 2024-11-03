@@ -43,9 +43,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             JetXTheme {
                 if (uiState is MainActivityUiState.Success) {
-                    val hasOnboarded = viewModel.hasOnboarded
+                    val uiState = uiState as MainActivityUiState.Success
+                    val authenticated = uiState.authenticated
+                    val showMainGraph = uiState.showMainGraph
+
                     JetXApp(
-                        hasOnboarded = hasOnboarded
+                        authenticated = authenticated,
+                        showMainGraph = showMainGraph
                     )
                 }
             }

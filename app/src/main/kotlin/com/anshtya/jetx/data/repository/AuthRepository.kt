@@ -1,6 +1,6 @@
 package com.anshtya.jetx.data.repository
 
-import com.anshtya.jetx.data.datastore.AuthTokenManager
+import com.anshtya.jetx.data.preferences.auth.AuthTokenManager
 import com.anshtya.jetx.data.model.Result
 import com.anshtya.jetx.data.model.auth.AuthRequest
 import com.anshtya.jetx.data.network.service.AuthService

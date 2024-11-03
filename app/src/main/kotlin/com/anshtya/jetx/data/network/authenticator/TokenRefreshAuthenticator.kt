@@ -1,6 +1,6 @@
 package com.anshtya.jetx.data.network.authenticator
 
-import com.anshtya.jetx.data.datastore.AuthTokenManager
+import com.anshtya.jetx.data.preferences.auth.AuthTokenManager
 import com.anshtya.jetx.data.model.Result
 import com.anshtya.jetx.data.network.service.RefreshTokenService
 import com.anshtya.jetx.util.safeResult

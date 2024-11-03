@@ -13,11 +13,11 @@ import com.anshtya.jetx.ui.features.chats.ChatRoute
 @Composable
 fun JetXNavigation(
     navController: NavHostController,
-    hasOnboarded: Boolean
+    showMainGraph: Boolean
 ) {
     NavHost(
         navController = navController,
-        startDestination = if (hasOnboarded) {
+        startDestination = if (showMainGraph) {
             Graph.MainGraph
         } else {
             Graph.AuthGraph

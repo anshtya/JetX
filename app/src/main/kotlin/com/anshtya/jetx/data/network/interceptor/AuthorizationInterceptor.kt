@@ -1,6 +1,6 @@
 package com.anshtya.jetx.data.network.interceptor
 
-import com.anshtya.jetx.data.datastore.AuthTokenManager
+import com.anshtya.jetx.data.preferences.auth.AuthTokenManager
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
