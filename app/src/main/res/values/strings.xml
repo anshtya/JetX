@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">JetX</string>
+    <string name="chats">Chats</string>
+    <string name="Camera">Camera</string>
+    <string name="Groups">Groups</string>
+    <string name="create_account">Create an account</string>
+    <string name="sign_in">Sign in</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="show_password">Show password</string>
+    <string name="back">Back</string>
+    <string name="sign_up">Sign up</string>
 </resources>
