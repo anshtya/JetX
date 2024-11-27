@@ -17,7 +17,7 @@
         android:theme="@style/Theme.JetX"
         tools:targetApi="31">
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".activity.main.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.JetX"
             android:windowSoftInputMode="adjustResize">
