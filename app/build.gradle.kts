@@ -44,6 +44,18 @@ android {
             isDebuggable = false
         }
     }
+
+    flavorDimensions += "version"
+    productFlavors {
+        create("demo") {
+            dimension = "version"
+            applicationIdSuffix = ".demo"
+        }
+        create("prod") {
+            dimension = "version"
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

@@ -5,10 +5,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
-import com.anshtya.jetx.ui.features.OnboardingScreen
-import com.anshtya.jetx.ui.features.auth.signin.SignInRoute
-import com.anshtya.jetx.ui.features.auth.signup.SignUpRoute
-import com.anshtya.jetx.ui.features.chats.ChatRoute
+import com.anshtya.jetx.chats.ui.ChatsRoute
+import com.anshtya.jetx.onboarding.OnboardingScreen
+import com.anshtya.jetx.auth.ui.signin.SignInRoute
+import com.anshtya.jetx.auth.ui.signup.SignUpRoute
 
 @Composable
 fun JetXNavigation(
@@ -56,7 +56,7 @@ fun JetXNavigation(
             startDestination = Route.MainGraph.Chats
         ) {
             composable<Route.MainGraph.Chats> {
-                ChatRoute()
+                ChatsRoute()
             }
 
             composable<Route.MainGraph.Camera> { }
