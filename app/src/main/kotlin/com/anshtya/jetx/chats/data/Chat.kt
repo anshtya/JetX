@@ -6,5 +6,6 @@ data class Chat(
     val id: Int,
     val name: String,
     @DrawableRes val picture: Int?,
-    val message: String
+    val message: String,
+    val timeStamp: String
 )
