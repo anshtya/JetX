@@ -13,6 +13,7 @@ import com.anshtya.jetx.chats.ui.components.ChatItem
 
 @Composable
 fun ChatsRoute(
+    onNavigateToSettings: () -> Unit,
     viewModel: ChatListViewModel = hiltViewModel()
 ) {
     val chatList by viewModel.chatList.collectAsStateWithLifecycle()
