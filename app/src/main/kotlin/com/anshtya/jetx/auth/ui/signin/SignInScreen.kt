@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SignInRoute(
-    onSignInSuccessful: () -> Unit,
+    onNavigateToHome: () -> Unit,
     onBackClick: () -> Unit,
     viewModel: SignInViewModel = hiltViewModel()
 ) {
@@ -46,7 +46,7 @@ fun SignInRoute(
         onPasswordVisibilityChange = viewModel::changePasswordVisibility,
         onErrorShown = viewModel::errorShown,
         onSignInClick = viewModel::signIn,
-        onSignInSuccessful = onSignInSuccessful,
+        onSignInSuccessful = onNavigateToHome,
         onBackClick = onBackClick
     )
 }

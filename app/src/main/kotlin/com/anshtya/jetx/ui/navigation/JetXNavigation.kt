@@ -3,15 +3,13 @@ package com.anshtya.jetx.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
-import com.anshtya.jetx.chats.ui.ChatsRoute
-import com.anshtya.jetx.onboarding.OnboardingScreen
-import com.anshtya.jetx.auth.ui.signin.SignInRoute
-import com.anshtya.jetx.auth.ui.signup.SignUpRoute
 import androidx.navigation.compose.rememberNavController
+import com.anshtya.jetx.auth.ui.navigation.authGraph
+import com.anshtya.jetx.auth.ui.navigation.navigateToAuth
+import com.anshtya.jetx.auth.ui.navigation.navigateToCreateProfile
 import com.anshtya.jetx.home.navigation.Home
 import com.anshtya.jetx.home.navigation.home
+import com.anshtya.jetx.home.navigation.navigateToHome
 
 @Composable
 fun JetXNavigation(
@@ -21,8 +19,20 @@ fun JetXNavigation(
         navController = navController,
         startDestination = Home
     ) {
+        authGraph(
+            navController = navController,
+            onNavigateToHome = navController::navigateToHome
+        )
 
-
-        home()
+        home(
+            onNavigateToAuth = navController::navigateToAuth,
+            onNavigateToCreateProfile = {
+                navController.navigateToCreateProfile {
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = true
+                    }
+                }
+            }
+        )
     }
 }

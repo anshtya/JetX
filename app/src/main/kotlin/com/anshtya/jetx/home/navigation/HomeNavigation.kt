@@ -15,9 +15,15 @@ import kotlin.reflect.KClass
 @Serializable
 data object Home
 
-fun NavGraphBuilder.home() {
+fun NavGraphBuilder.home(
+    onNavigateToAuth: () -> Unit,
+    onNavigateToCreateProfile: () -> Unit
+) {
     composable<Home> {
-        Home()
+        Home(
+            onNavigateToAuth = onNavigateToAuth,
+            onNavigateToCreateProfile = onNavigateToCreateProfile,
+        )
     }
 }
 

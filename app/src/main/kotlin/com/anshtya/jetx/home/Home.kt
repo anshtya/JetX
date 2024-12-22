@@ -1,6 +1,5 @@
 package com.anshtya.jetx.home
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -12,13 +11,15 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -34,13 +35,32 @@ import com.anshtya.jetx.settings.ui.navigation.settings
 
 @Composable
 fun Home(
-    navController: NavHostController = rememberNavController()
+    onNavigateToAuth: () -> Unit,
+    onNavigateToCreateProfile: () -> Unit,
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    if (state.authenticated == true && state.profileCreated == true) {
+        Home()
+    } else if (state.authenticated == false) {
+        LaunchedEffect(Unit) {
+            onNavigateToAuth()
+        }
+    } else if (state.profileCreated == false) {
+        LaunchedEffect(Unit) {
+            onNavigateToCreateProfile()
+        }
+    }
+
+}
+
+@Composable
+private fun Home() {
+    val navController = rememberNavController()
     val topLevelDestinations = remember { TopLevelHomeDestination.entries }
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = currentBackStackEntry?.destination
-
-    Log.d("foo", "${currentDestination?.route}")
 
     val showBottomBar = remember(currentDestination) {
         topLevelDestinations.any {
