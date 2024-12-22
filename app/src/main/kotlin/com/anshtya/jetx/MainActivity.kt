@@ -1,18 +1,20 @@
-package com.anshtya.jetx.activity.main
+package com.anshtya.jetx
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.anshtya.jetx.ui.JetXApp
+import com.anshtya.jetx.ui.navigation.JetXNavigation
 import com.anshtya.jetx.ui.theme.JetXTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -21,39 +23,47 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainActivityViewModel by viewModels()
+    private var useDarkTheme: Boolean? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        var uiState: MainActivityUiState by mutableStateOf(MainActivityUiState.Loading)
-
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect {
-                    uiState = it
+                viewModel.state.collect {
+                    useDarkTheme = it.useDarkTheme
                 }
             }
         }
 
         splashScreen.setKeepOnScreenCondition {
-            uiState is MainActivityUiState.Loading
+            useDarkTheme == null
         }
 
         setContent {
-            JetXTheme {
-                if (uiState is MainActivityUiState.Success) {
-                    val uiState = uiState as MainActivityUiState.Success
-                    val authenticated = uiState.authenticated
-                    val showMainGraph = uiState.showMainGraph
-
-                    JetXApp(
-                        authenticated = authenticated,
-                        showMainGraph = showMainGraph
-                    )
+            val useDarkTheme = shouldUseDarkTheme(useDarkTheme)
+            JetXTheme(
+                darkTheme = useDarkTheme
+            ) {
+                Surface(Modifier.fillMaxSize()) {
+                    JetXNavigation()
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun shouldUseDarkTheme(
+    useDarkTheme: Boolean?
+): Boolean {
+    return if (useDarkTheme == null) {
+        isSystemInDarkTheme()
+    } else if (useDarkTheme) {
+        true
+    } else {
+        false
     }
 }
