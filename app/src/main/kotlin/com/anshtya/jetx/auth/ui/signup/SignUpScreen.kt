@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
+import com.anshtya.jetx.auth.ui.AuthUiState
 import com.anshtya.jetx.auth.ui.components.AuthForm
 import com.anshtya.jetx.common.ui.BackButton
 import kotlinx.coroutines.launch
@@ -54,7 +55,7 @@ fun SignUpRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SignUpScreen(
-    uiState: SignUpUiState,
+    uiState: AuthUiState,
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onPasswordVisibilityChange: () -> Unit,
@@ -63,8 +64,8 @@ private fun SignUpScreen(
     onContinueClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    LaunchedEffect(uiState.signUpSuccessful) {
-        if (uiState.signUpSuccessful) {
+    LaunchedEffect(uiState.authSuccessful) {
+        if (uiState.authSuccessful) {
             onContinueClick()
         }
     }
@@ -104,12 +105,12 @@ private fun SignUpScreen(
             )
             Spacer(Modifier.height(40.dp))
             AuthForm(
-                username = uiState.username,
+                email = uiState.email,
                 password = uiState.password,
                 passwordVisible = uiState.passwordVisible,
-                authButtonEnabled = uiState.signUpButtonEnabled,
+                authButtonEnabled = uiState.authButtonEnabled,
                 authButtonText = stringResource(id = R.string.sign_up),
-                onUsernameChange = onUsernameChange,
+                onEmailChange = onUsernameChange,
                 onPasswordChange = onPasswordChange,
                 onPasswordVisibilityChange = onPasswordVisibilityChange,
                 onAuthButtonClick = onSignUpClick
@@ -122,7 +123,7 @@ private fun SignUpScreen(
 @Preview(showBackground = true)
 private fun SignUpScreenPreview() {
     SignUpScreen(
-        uiState = SignUpUiState(),
+        uiState = AuthUiState(),
         onUsernameChange = {},
         onPasswordChange = {},
         onPasswordVisibilityChange = {},

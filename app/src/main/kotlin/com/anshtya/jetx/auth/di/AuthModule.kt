@@ -1,7 +1,9 @@
 package com.anshtya.jetx.auth.di
 
-import com.anshtya.jetx.auth.data.AuthTokenManager
-import com.anshtya.jetx.auth.data.AuthTokenStore
+import com.anshtya.jetx.auth.data.AuthDatastore
+import com.anshtya.jetx.auth.data.AuthDatastoreImpl
+import com.anshtya.jetx.auth.data.AuthRepository
+import com.anshtya.jetx.auth.data.AuthRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -10,10 +12,16 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class PreferencesModule {
-    @Singleton
+abstract class AuthModule {
     @Binds
-    abstract fun bindAuthTokenManager(
-        authTokenStore: AuthTokenStore
-    ) : AuthTokenManager
+    @Singleton
+    abstract fun bindAuthRepository(
+        impl: AuthRepositoryImpl
+    ): AuthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthDatastore(
+        impl: AuthDatastoreImpl
+    ) : AuthDatastore
 }

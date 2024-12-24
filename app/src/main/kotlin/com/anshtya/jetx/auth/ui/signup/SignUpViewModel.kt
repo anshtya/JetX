@@ -2,8 +2,8 @@ package com.anshtya.jetx.auth.ui.signup
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.common.Result
 import com.anshtya.jetx.auth.data.AuthRepository
+import com.anshtya.jetx.auth.ui.AuthUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,12 +15,12 @@ import javax.inject.Inject
 class SignUpViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ): ViewModel() {
-    private val _uiState = MutableStateFlow(SignUpUiState())
+    private val _uiState = MutableStateFlow(AuthUiState())
     val uiState = _uiState.asStateFlow()
 
     fun changeUsername(username: String) {
         _uiState.update {
-            it.copy(username = username)
+            it.copy(email = username)
         }
     }
 
@@ -48,32 +48,26 @@ class SignUpViewModel @Inject constructor(
                 it.copy(
                     emailError = null,
                     passwordError = null,
-                    signUpButtonEnabled = false
+                    authButtonEnabled = false
                 )
             }
 
-            val username = _uiState.value.username
-            val password = _uiState.value.password
-
-            val authResponse = authRepository.signup(
-                username = username,
-                password = password
+            val authResult = authRepository.signUp(
+                email = _uiState.value.email,
+                password = _uiState.value.password
             )
 
-            when (authResponse) {
-                is Result.Success -> {
-                    _uiState.update {
-                        it.copy(signUpSuccessful = true)
-                    }
+            if (authResult.isSuccess) {
+                _uiState.update {
+                    it.copy(authSuccessful = true)
                 }
 
-                is Result.Error -> {
-                    _uiState.update {
-                        it.copy(
-                            signUpButtonEnabled = true,
-                            errorMessage = authResponse.errorMessage
-                        )
-                    }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        authButtonEnabled = true,
+                        errorMessage = authResult.exceptionOrNull()?.message
+                    )
                 }
             }
         }

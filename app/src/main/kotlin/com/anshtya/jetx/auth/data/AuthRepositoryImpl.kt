@@ -1,34 +1,50 @@
 package com.anshtya.jetx.auth.data
 
-import com.anshtya.jetx.auth.data.model.AuthRequest
-import com.anshtya.jetx.common.Result
-import com.anshtya.jetx.common.safeResult
-import com.anshtya.jetx.network.service.AuthService
+import com.anshtya.jetx.auth.data.model.AuthStatus
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.builtin.Email
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
-    private val authService: AuthService,
-    private val authTokenManager: AuthTokenManager
+    client: SupabaseClient,
+    private val authDatastore: AuthDatastore
 ) : AuthRepository {
-    override suspend fun login(
-        username: String,
+    private val auth = client.auth
+
+    override val authStatus: Flow<AuthStatus> = authDatastore.authStatus
+
+    override suspend fun signIn(
+        email: String,
         password: String
     ): Result<Unit> {
-        return safeResult {
-            val authRequest = AuthRequest(username = username, password = password)
-            val response = authService.login(authRequest)
-            authTokenManager.saveToken(response.accessToken, response.refreshToken)
+        return kotlin.runCatching {
+            auth.signInWith(Email) {
+                this.email = email
+                this.password = password
+            }
+            authDatastore.onSignIn()
         }
     }
 
-    override suspend fun signup(
-        username: String,
+    override suspend fun signUp(
+        email: String,
         password: String
     ): Result<Unit> {
-        return safeResult {
-            val authRequest = AuthRequest(username = username, password = password)
-            val response = authService.signup(authRequest)
-            authTokenManager.saveToken(response.accessToken, response.refreshToken)
+        return kotlin.runCatching {
+            auth.signUpWith(Email) {
+                this.email = email
+                this.password = password
+            }
+            authDatastore.setAuthCompleted(true)
+        }
+    }
+
+    override suspend fun signOut(): Result<Unit> {
+        return kotlin.runCatching {
+            auth.signOut()
+            authDatastore.onSignOut()
         }
     }
 }

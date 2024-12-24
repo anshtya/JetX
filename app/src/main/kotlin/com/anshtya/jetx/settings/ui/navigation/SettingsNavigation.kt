@@ -4,7 +4,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
-import com.anshtya.jetx.settings.ui.SettingsScreen
+import com.anshtya.jetx.settings.ui.SettingsRoute
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -15,7 +15,7 @@ fun NavGraphBuilder.settings() {
         startDestination = SettingsDestinations.SettingList
     ) {
         composable<SettingsDestinations.SettingList> {
-            SettingsScreen()
+            SettingsRoute()
         }
 
         // Other screens...

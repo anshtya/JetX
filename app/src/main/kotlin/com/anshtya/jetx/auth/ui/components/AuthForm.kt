@@ -27,31 +27,31 @@ import com.anshtya.jetx.R
 
 @Composable
 fun AuthForm(
-    username: String,
+    email: String,
     password: String,
     passwordVisible: Boolean,
     authButtonEnabled: Boolean,
     authButtonText: String,
-    onUsernameChange: (String) -> Unit,
+    onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onPasswordVisibilityChange: () -> Unit,
     onAuthButtonClick: () -> Unit,
-    usernameError: String? = null,
+    emailError: String? = null,
     passwordError: String? = null
 ) {
     val focusManager = LocalFocusManager.current
 
     Column {
         OutlinedTextField(
-            value = username,
-            onValueChange = onUsernameChange,
+            value = email,
+            onValueChange = onEmailChange,
             placeholder = {
-                Text(text = stringResource(id = R.string.username))
+                Text(text = stringResource(id = R.string.email))
             },
             singleLine = true,
-            isError = usernameError != null,
+            isError = emailError != null,
             supportingText = {
-                Text(text = usernameError ?: "")
+                Text(text = emailError ?: "")
             },
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Next,

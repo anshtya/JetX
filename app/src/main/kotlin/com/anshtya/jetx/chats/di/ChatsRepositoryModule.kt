@@ -10,9 +10,9 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class DemoChatsRepositoryModule {
-    @Singleton
+abstract class ChatsRepositoryModule {
     @Binds
+    @Singleton
     abstract fun bindChatListRepository(
         impl: FakeChatsRepository
     ): ChatsRepository

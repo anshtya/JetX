@@ -1,6 +1,5 @@
 package com.anshtya.jetx.home
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -70,7 +69,7 @@ private fun Home() {
 
     Scaffold(
         bottomBar = {
-            AnimatedVisibility(showBottomBar) {
+            if (showBottomBar) {
                 BottomNavigationBar(
                     destinations = topLevelDestinations,
                     currentDestination = currentDestination,

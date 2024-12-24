@@ -1,15 +1,14 @@
 package com.anshtya.jetx.preferences
 
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import com.anshtya.jetx.preferences.values.AuthValues
-import kotlin.String
 
 object PreferencesMap {
     private val map = mapOf<String, Preferences.Key<*>>(
         // Auth values
-        AuthValues.ACCESS_TOKEN to stringPreferencesKey(AuthValues.ACCESS_TOKEN),
-        AuthValues.REFRESH_TOKEN to stringPreferencesKey(AuthValues.REFRESH_TOKEN)
+        AuthValues.AUTH_COMPLETED to booleanPreferencesKey(AuthValues.AUTH_COMPLETED),
+        AuthValues.PROFILE_CREATED to booleanPreferencesKey(AuthValues.PROFILE_CREATED),
     )
 
     @Suppress("UNCHECKED_CAST")

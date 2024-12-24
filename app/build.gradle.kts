@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "com.anshtya.jetx"
-    compileSdk = 34
+    compileSdk = 35
 
     buildFeatures {
         buildConfig = true
@@ -20,14 +20,16 @@ android {
     defaultConfig {
         applicationId = "com.anshtya.jetx"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        val baseUrl = gradleLocalProperties(rootDir, providers).getProperty("BASE_URL") ?: ""
-        buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
+        val supabaseUrl = gradleLocalProperties(rootDir, providers).getProperty("SUPABASE_URL") ?: ""
+        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
+        val supabaseKey = gradleLocalProperties(rootDir, providers).getProperty("SUPABASE_KEY") ?: ""
+        buildConfigField("String", "SUPABASE_KEY", "\"$supabaseKey\"")
     }
 
     buildTypes {
@@ -42,17 +44,6 @@ android {
                 "proguard-rules.pro"
             )
             isDebuggable = false
-        }
-    }
-
-    flavorDimensions += "version"
-    productFlavors {
-        create("demo") {
-            dimension = "version"
-            applicationIdSuffix = ".demo"
-        }
-        create("prod") {
-            dimension = "version"
         }
     }
 
@@ -97,10 +88,9 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     implementation(libs.kotlinx.serialization.json)
-    ksp(libs.moshi.kotlin.codegen)
-    implementation(libs.okhttp.logging.interceptor)
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.moshi)
+    implementation(libs.ktor.client)
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.postgrest)
 
     testImplementation(libs.junit)
 

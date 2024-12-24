@@ -11,10 +11,12 @@ import kotlin.String
 class PreferencesStoreImpl @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ): PreferencesStore {
+    override val data = dataStore.data
+
     override suspend fun <T> get(key: String): T? {
-        val key = PreferencesMap.getPreferenceKey<T>(key)
+        val preferenceKey = PreferencesMap.getPreferenceKey<T>(key)
         return dataStore.data
-            .map { preferences -> preferences[key] }
+            .map { preferences -> preferences[preferenceKey] }
             .first()
     }
 

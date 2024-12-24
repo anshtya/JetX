@@ -1,25 +1,24 @@
 [versions]
-activityCompose = "1.9.2"
-agp = "8.7.0"
+activityCompose = "1.9.3"
+agp = "8.7.3"
 androidxCoreSplashScreen = "1.0.1"
 androidxDatastore = "1.1.1"
 androidxHilt = "1.2.0"
-androidxLifecycle = "2.8.6"
-androidxNavigation = "2.8.2"
+androidxLifecycle = "2.8.7"
+androidxNavigation = "2.8.5"
 coil = "2.7.0"
-composeBom = "2024.09.03"
-coreKtx = "1.13.1"
+composeBom = "2024.12.01"
+coreKtx = "1.15.0"
 espressoCore = "3.6.1"
 hilt = "2.51"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 kotlin = "2.0.20"
 kotlinxSerializationJson = "1.7.3"
+ktor-client = "3.0.2"
 ksp = "2.0.20-1.0.25"
-moshi = "1.15.1"
-okhttp3 = "4.12.0"
-retrofit = "2.11.0"
 room = "2.6.1"
+supabase = "3.0.3"
 
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
@@ -50,10 +49,9 @@ hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref
 hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt"}
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-moshi-kotlin-codegen = { group =  "com.squareup.moshi", name = "moshi-kotlin-codegen", version.ref = "moshi" }
-okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp3" }
-retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
-retrofit-converter-moshi = { group = "com.squareup.retrofit2", name = "converter-moshi", version.ref = "retrofit" }
+ktor-client = { group = "io.ktor", name = "ktor-client-android", version.ref = "ktor-client" }
+supabase-bom = { group = "io.github.jan-tennert.supabase", name = "bom", version.ref = "supabase" }
+supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

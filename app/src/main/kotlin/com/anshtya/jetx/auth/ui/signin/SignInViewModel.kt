@@ -2,8 +2,8 @@ package com.anshtya.jetx.auth.ui.signin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.common.Result
 import com.anshtya.jetx.auth.data.AuthRepository
+import com.anshtya.jetx.auth.ui.AuthUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,12 +15,12 @@ import javax.inject.Inject
 class SignInViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(SignInUiState())
+    private val _uiState = MutableStateFlow(AuthUiState())
     val uiState = _uiState.asStateFlow()
 
     fun changeUsername(username: String) {
         _uiState.update {
-            it.copy(username = username)
+            it.copy(email = username)
         }
     }
 
@@ -45,28 +45,25 @@ class SignInViewModel @Inject constructor(
     fun signIn() {
         viewModelScope.launch {
             _uiState.update {
-                it.copy(signInButtonEnabled = false)
+                it.copy(authButtonEnabled = false)
             }
 
-            val authResponse = authRepository.login(
-                username = _uiState.value.username,
+            val authResult = authRepository.signIn(
+                email = _uiState.value.email,
                 password = _uiState.value.password
             )
 
-            when(authResponse) {
-                is Result.Success -> {
-                    _uiState.update {
-                        it.copy(signInSuccessful = true)
-                    }
+            if (authResult.isSuccess) {
+                _uiState.update {
+                    it.copy(authSuccessful = true)
                 }
 
-                is Result.Error -> {
-                    _uiState.update {
-                        it.copy(
-                            signInButtonEnabled = true,
-                            errorMessage = authResponse.errorMessage
-                        )
-                    }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        authButtonEnabled = true,
+                        errorMessage = authResult.exceptionOrNull()?.message
+                    )
                 }
             }
         }

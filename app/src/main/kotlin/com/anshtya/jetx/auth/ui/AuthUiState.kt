@@ -1,12 +1,12 @@
-package com.anshtya.jetx.auth.ui.signup
+package com.anshtya.jetx.auth.ui
 
-data class SignUpUiState(
-    val username: String = "",
+data class AuthUiState(
+    val email: String = "",
     val password: String = "",
     val passwordVisible: Boolean = false,
-    val signUpButtonEnabled: Boolean = true,
+    val authButtonEnabled: Boolean = true,
     val emailError: String? = null,
     val passwordError: String? = null,
     val errorMessage: String? = null,
-    val signUpSuccessful: Boolean = false
+    val authSuccessful: Boolean = false
 )

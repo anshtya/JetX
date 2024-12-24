@@ -1,15 +1,20 @@
 package com.anshtya.jetx.auth.data
 
-import com.anshtya.jetx.common.Result
+import com.anshtya.jetx.auth.data.model.AuthStatus
+import kotlinx.coroutines.flow.Flow
 
 interface AuthRepository {
-    suspend fun login(
-        username: String,
+    val authStatus: Flow<AuthStatus>
+
+    suspend fun signIn(
+        email: String,
         password: String
     ): Result<Unit>
 
-    suspend fun signup(
-        username: String,
+    suspend fun signUp(
+        email: String,
         password: String
     ): Result<Unit>
+
+    suspend fun signOut(): Result<Unit>
 }
