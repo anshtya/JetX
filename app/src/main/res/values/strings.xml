@@ -14,4 +14,8 @@
     <string name="starred_messages">Starred messages</string>
     <string name="settings">Settings</string>
     <string name="menu">Menu</string>
+    <string name="create_your_profile">Create your Profile</string>
+    <string name="name">Name</string>
+    <string name="username">Username</string>
+    <string name="continue_text">Continue</string>
 </resources>

@@ -91,6 +91,7 @@ dependencies {
     implementation(libs.ktor.client)
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.postgrest)
+    implementation(libs.supabase.storage)
 
     testImplementation(libs.junit)
 

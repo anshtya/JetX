@@ -2,6 +2,7 @@ package com.anshtya.jetx.auth.data.fake
 
 import com.anshtya.jetx.auth.data.AuthRepository
 import com.anshtya.jetx.auth.data.model.AuthStatus
+import com.anshtya.jetx.auth.data.model.Profile
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -22,6 +23,10 @@ class FakeAuthRepository @Inject constructor() : AuthRepository {
     }
 
     override suspend fun signOut(): Result<Unit> {
+        return Result.success(Unit)
+    }
+
+    override suspend fun createProfile(profile: Profile): Result<Unit> {
         return Result.success(Unit)
     }
 }
