@@ -1,4 +1,4 @@
-package com.anshtya.jetx.auth.data.model
+package com.anshtya.jetx.profile.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

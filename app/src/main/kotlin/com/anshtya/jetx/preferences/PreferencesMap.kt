@@ -7,7 +7,6 @@ import com.anshtya.jetx.preferences.values.AuthValues
 object PreferencesMap {
     private val map = mapOf<String, Preferences.Key<*>>(
         // Auth values
-        AuthValues.AUTH_COMPLETED to booleanPreferencesKey(AuthValues.AUTH_COMPLETED),
         AuthValues.PROFILE_CREATED to booleanPreferencesKey(AuthValues.PROFILE_CREATED),
     )
 

@@ -3,8 +3,8 @@ package com.anshtya.jetx.auth.ui.createprofile
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.auth.data.AuthRepository
-import com.anshtya.jetx.auth.data.model.Profile
+import com.anshtya.jetx.profile.model.Profile
+import com.anshtya.jetx.profile.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateProfileViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val profileRepository: ProfileRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CreateProfileUiState())
     val uiState = _uiState.asStateFlow()
@@ -55,7 +55,7 @@ class CreateProfileViewModel @Inject constructor(
                 return@launch
             }
 
-            val result = authRepository.createProfile(
+            val result = profileRepository.createProfile(
                 profile = Profile(
                     name = state.name,
                     username = state.username,

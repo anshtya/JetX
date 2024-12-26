@@ -1,4 +1,4 @@
-package com.anshtya.jetx.auth.data.model
+package com.anshtya.jetx.profile.model
 
 import androidx.compose.ui.graphics.ImageBitmap
 
