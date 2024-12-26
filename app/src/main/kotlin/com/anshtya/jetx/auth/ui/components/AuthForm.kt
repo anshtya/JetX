@@ -36,8 +36,8 @@ fun AuthForm(
     onPasswordChange: (String) -> Unit,
     onPasswordVisibilityChange: () -> Unit,
     onAuthButtonClick: () -> Unit,
-    emailError: String? = null,
-    passwordError: String? = null
+    emailError: String?,
+    passwordError: String?
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -45,11 +45,12 @@ fun AuthForm(
         OutlinedTextField(
             value = email,
             onValueChange = onEmailChange,
+            enabled = authButtonEnabled,
             placeholder = {
                 Text(text = stringResource(id = R.string.email))
             },
             singleLine = true,
-            isError = emailError != null,
+            isError = emailError != null && authButtonEnabled,
             supportingText = {
                 Text(text = emailError ?: "")
             },
@@ -63,11 +64,12 @@ fun AuthForm(
         OutlinedTextField(
             value = password,
             onValueChange = onPasswordChange,
+            enabled = authButtonEnabled,
             placeholder = {
                 Text(text = stringResource(id = R.string.password))
             },
             singleLine = true,
-            isError = passwordError != null,
+            isError = passwordError != null && authButtonEnabled,
             supportingText = {
                 Text(text = passwordError ?: "")
             },

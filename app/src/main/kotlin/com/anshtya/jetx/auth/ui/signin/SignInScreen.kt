@@ -113,7 +113,9 @@ private fun SignInScreen(
                 onEmailChange = onUsernameChange,
                 onPasswordChange = onPasswordChange,
                 onPasswordVisibilityChange = onPasswordVisibilityChange,
-                onAuthButtonClick = onSignInClick
+                onAuthButtonClick = onSignInClick,
+                emailError = uiState.emailError,
+                passwordError = uiState.passwordError
             )
         }
     }

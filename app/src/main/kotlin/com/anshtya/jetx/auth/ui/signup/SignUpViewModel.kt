@@ -3,6 +3,7 @@ package com.anshtya.jetx.auth.ui.signup
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.auth.data.AuthRepository
+import com.anshtya.jetx.auth.ui.AuthInputValidator
 import com.anshtya.jetx.auth.ui.AuthUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,9 +53,29 @@ class SignUpViewModel @Inject constructor(
                 )
             }
 
+            val state = _uiState.value
+            val inputsValid = AuthInputValidator.validateAuthInputs(
+                email = state.email,
+                password = state.password,
+                setErrors = { errorMap ->
+                    _uiState.update {
+                        it.copy(
+                            emailError = errorMap[AuthInputValidator.EMAIL_ERROR],
+                            passwordError = errorMap[AuthInputValidator.PASSWORD_ERROR]
+                        )
+                    }
+                }
+            )
+            if (!inputsValid) {
+                _uiState.update {
+                    it.copy(authButtonEnabled = true)
+                }
+                return@launch
+            }
+
             val authResult = authRepository.signUp(
-                email = _uiState.value.email,
-                password = _uiState.value.password
+                email = state.email,
+                password = state.password
             )
 
             if (authResult.isSuccess) {
