@@ -1,6 +1,5 @@
 package com.anshtya.jetx.auth.ui.createprofile
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -121,9 +120,8 @@ private fun CreateProfileScreen(
             Spacer(Modifier.height(30.dp))
             ProfilePicture(
                 image = uiState.profilePicture,
-                modifier = Modifier
-                    .size(100.dp)
-                    .clickable { pickMedia() }
+                onClick = pickMedia,
+                modifier = Modifier.size(100.dp)
             )
             Spacer(Modifier.height(30.dp))
             TextField(
