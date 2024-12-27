@@ -129,12 +129,12 @@ private fun CreateProfileScreen(
             TextField(
                 value = uiState.name,
                 onValueChange = onNameChange,
-                enabled = !uiState.continueButtonEnabled,
+                enabled = uiState.continueButtonEnabled,
                 placeholder = {
                     Text(text = stringResource(id = R.string.name))
                 },
                 singleLine = true,
-                isError = uiState.nameError != null && !uiState.continueButtonEnabled,
+                isError = uiState.nameError != null && uiState.continueButtonEnabled,
                 supportingText = {
                     Text(text = uiState.nameError ?: "")
                 },
@@ -145,12 +145,12 @@ private fun CreateProfileScreen(
             TextField(
                 value = uiState.username,
                 onValueChange = onUsernameChange,
-                enabled = !uiState.continueButtonEnabled,
+                enabled = uiState.continueButtonEnabled,
                 placeholder = {
                     Text(text = stringResource(id = R.string.username))
                 },
                 singleLine = true,
-                isError = uiState.usernameError != null && !uiState.continueButtonEnabled,
+                isError = uiState.usernameError != null && uiState.continueButtonEnabled,
                 supportingText = {
                     Text(text = uiState.usernameError ?: "")
                 },
@@ -160,7 +160,7 @@ private fun CreateProfileScreen(
             Spacer(Modifier.height(10.dp))
             Button(
                 onClick = onContinueClick,
-                enabled = !uiState.continueButtonEnabled,
+                enabled = uiState.continueButtonEnabled,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)

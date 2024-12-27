@@ -40,7 +40,11 @@ class CreateProfileViewModel @Inject constructor(
     fun createProfile() {
         viewModelScope.launch {
             _uiState.update {
-                it.copy(continueButtonEnabled = false)
+                it.copy(
+                    continueButtonEnabled = false,
+                    usernameError = null,
+                    nameError = null
+                )
             }
 
             val state = _uiState.value
@@ -76,21 +80,26 @@ class CreateProfileViewModel @Inject constructor(
     }
 
     private fun validateInputs(name: String, username: String): Boolean {
-        _uiState.update {
-            it.copy(
-                usernameError = null,
-                nameError = null
-            )
+        val errors = mutableMapOf<String, String?>()
+
+        if (name.isEmpty()) {
+            errors["nameError"] = "Name should not be empty"
+        } else if (name.length > 50) {
+            errors["nameError"] = "Name should be less than 50 characters"
         }
 
-        return if (name.length > 50 || name.isEmpty()) {
+        if (username.isEmpty()) {
+            errors["usernameError"] = "Username should not be empty"
+        } else if (username.length > 50) {
+            errors["usernameError"] = "Username should be less than 50 characters"
+        }
+
+        return if (errors.isNotEmpty()) {
             _uiState.update {
-                it.copy(nameError = "Name should be less than 50 characters")
-            }
-            false
-        } else if (username.length > 50 || username.isEmpty()) {
-            _uiState.update {
-                it.copy(nameError = "Username should be less than 50 characters")
+                it.copy(
+                    nameError = errors["nameError"],
+                    usernameError = errors["usernameError"]
+                )
             }
             false
         } else {
@@ -112,6 +121,6 @@ data class CreateProfileUiState(
     val nameError: String? = null,
     val usernameError: String? = null,
     val errorMessage: String? = null,
-    val continueButtonEnabled: Boolean = false,
+    val continueButtonEnabled: Boolean = true,
     val profileCreated: Boolean = false
 )
