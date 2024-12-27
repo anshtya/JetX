@@ -1,16 +1,19 @@
 package com.anshtya.jetx.preferences
 
-import androidx.datastore.preferences.core.Preferences
 import kotlinx.coroutines.flow.Flow
 
 interface PreferencesStore {
-    val data: Flow<Preferences>
+    suspend fun getBoolean(key: String): Boolean?
 
-    suspend fun <T> get(key: String): T?
+    fun getBooleanFlow(key: String): Flow<Boolean?>
 
-    suspend fun <T> get(key: Preferences.Key<T>): T?
+    suspend fun setBoolean(key: String, value: Boolean)
 
-    suspend fun <T> set(key: String, value: T)
+    suspend fun getString(key: String): String?
 
-    suspend fun <T> set(key: Preferences.Key<T>, value: T)
+    fun getStringFlow(key: String): Flow<String?>
+
+    suspend fun setString(key: String, value: String)
+
+    suspend fun clearPreferences()
 }

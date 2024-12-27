@@ -2,7 +2,6 @@ package com.anshtya.jetx.profile
 
 import android.graphics.Bitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
-import com.anshtya.jetx.preferences.PreferencesMap
 import com.anshtya.jetx.preferences.PreferencesStore
 import com.anshtya.jetx.preferences.values.AuthValues
 import com.anshtya.jetx.profile.model.NetworkProfile
@@ -25,12 +24,9 @@ class ProfileRepositoryImpl @Inject constructor(
     private val supabaseStorage = client.storage
     private val supabasePostgrest = client.postgrest
     private val supabaseAuth = client.auth
-    private val profileCreatedKey = PreferencesMap.getPreferenceKey<Boolean>(
-        key = AuthValues.PROFILE_CREATED
-    )
 
-    override val profileStatus: Flow<ProfileStatus> = preferencesStore.data
-        .map { it[profileCreatedKey] }
+    override val profileStatus: Flow<ProfileStatus> = preferencesStore
+        .getBooleanFlow(AuthValues.PROFILE_CREATED)
         .distinctUntilChanged()
         .map { status ->
             status?.let { created ->
@@ -64,7 +60,7 @@ class ProfileRepositoryImpl @Inject constructor(
                     profilePictureUrl = profilePicturePath
                 )
             )
-            preferencesStore.set(profileCreatedKey, true)
+            preferencesStore.setBoolean(AuthValues.PROFILE_CREATED, true)
         }
     }
 

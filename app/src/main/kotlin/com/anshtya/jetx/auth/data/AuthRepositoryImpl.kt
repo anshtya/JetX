@@ -35,7 +35,7 @@ class AuthRepositoryImpl @Inject constructor(
                 this.email = email
                 this.password = password
             }
-            preferencesStore.set(AuthValues.PROFILE_CREATED, true)
+            preferencesStore.setBoolean(AuthValues.PROFILE_CREATED, true)
         }
     }
 

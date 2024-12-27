@@ -3,33 +3,58 @@ package com.anshtya.jetx.preferences
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
-import kotlin.String
 
 class PreferencesStoreImpl @Inject constructor(
     private val dataStore: DataStore<Preferences>
-): PreferencesStore {
-    override val data = dataStore.data
-
-    override suspend fun <T> get(key: String): T? {
-        val preferenceKey = PreferencesMap.getPreferenceKey<T>(key)
-        return get(preferenceKey)
+) : PreferencesStore {
+    override suspend fun getBoolean(key: String): Boolean? {
+        val preferenceKey = PreferencesMap.getPreferenceKey<Boolean>(key)
+        val data = dataStore.data.first()
+        return data[preferenceKey]
     }
 
-    override suspend fun <T> get(key: Preferences.Key<T>): T? {
-        return dataStore.data
-            .map { preferences -> preferences[key] }
-            .first()
+    override fun getBooleanFlow(key: String): Flow<Boolean?> {
+        val preferenceKey = PreferencesMap.getPreferenceKey<Boolean>(key)
+        return dataStore.data.map { preferences ->
+            preferences[preferenceKey]
+        }
     }
 
-    override suspend fun <T> set(key: String, value: T) {
-        val preferencesKey = PreferencesMap.getPreferenceKey<T>(key)
-        set(preferencesKey, value)
+    override suspend fun setBoolean(key: String, value: Boolean) {
+        val preferenceKey = PreferencesMap.getPreferenceKey<Boolean>(key)
+        dataStore.edit { preferences ->
+            preferences[preferenceKey] = value
+        }
     }
 
-    override suspend fun <T> set(key: Preferences.Key<T>, value: T) {
-        dataStore.edit { preferences -> preferences[key] = value }
+    override suspend fun getString(key: String): String? {
+        val preferenceKey = PreferencesMap.getPreferenceKey<String>(key)
+        val data = dataStore.data.first()
+        return data[preferenceKey]
     }
+
+    override fun getStringFlow(key: String): Flow<String?> {
+        val preferenceKey = PreferencesMap.getPreferenceKey<String>(key)
+        return dataStore.data.map { preferences ->
+            preferences[preferenceKey]
+        }
+    }
+
+    override suspend fun setString(key: String, value: String) {
+        val preferenceKey = PreferencesMap.getPreferenceKey<String>(key)
+        dataStore.edit { preferences ->
+            preferences[preferenceKey] = value
+        }
+    }
+
+    override suspend fun clearPreferences() {
+        dataStore.edit {
+            it.clear()
+        }
+    }
+
 }
