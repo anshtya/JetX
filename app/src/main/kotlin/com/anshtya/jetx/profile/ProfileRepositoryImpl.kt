@@ -64,7 +64,7 @@ class ProfileRepositoryImpl @Inject constructor(
                     profilePictureUrl = profilePicturePath
                 )
             )
-            preferencesStore.set(profileCreatedKey.name, true)
+            preferencesStore.set(profileCreatedKey, true)
         }
     }
 

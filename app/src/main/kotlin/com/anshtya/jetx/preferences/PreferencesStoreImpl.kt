@@ -15,13 +15,21 @@ class PreferencesStoreImpl @Inject constructor(
 
     override suspend fun <T> get(key: String): T? {
         val preferenceKey = PreferencesMap.getPreferenceKey<T>(key)
+        return get(preferenceKey)
+    }
+
+    override suspend fun <T> get(key: Preferences.Key<T>): T? {
         return dataStore.data
-            .map { preferences -> preferences[preferenceKey] }
+            .map { preferences -> preferences[key] }
             .first()
     }
 
     override suspend fun <T> set(key: String, value: T) {
         val preferencesKey = PreferencesMap.getPreferenceKey<T>(key)
-        dataStore.edit { preferences -> preferences[preferencesKey] = value }
+        set(preferencesKey, value)
+    }
+
+    override suspend fun <T> set(key: Preferences.Key<T>, value: T) {
+        dataStore.edit { preferences -> preferences[key] = value }
     }
 }
