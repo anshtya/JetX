@@ -8,5 +8,9 @@ interface PreferencesStore {
 
     suspend fun <T> get(key: String): T?
 
+    suspend fun <T> get(key: Preferences.Key<T>): T?
+
     suspend fun <T> set(key: String, value: T)
+
+    suspend fun <T> set(key: Preferences.Key<T>, value: T)
 }

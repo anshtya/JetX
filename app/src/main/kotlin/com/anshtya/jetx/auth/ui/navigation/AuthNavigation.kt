@@ -54,7 +54,8 @@ fun NavGraphBuilder.authGraph(
             CreateProfileRoute(
                 onNavigateToHome = {
                     onNavigateToHome(navigateToHomeNavOptions())
-                }
+                },
+                onNavigateUp = navController::navigateUp
             )
         }
     }

@@ -9,7 +9,7 @@ import javax.inject.Inject
 
 class FakeAuthRepository @Inject constructor() : AuthRepository {
     override val authStatus: Flow<AuthStatus>
-        get() = flow { AuthStatus(false, false) }
+        get() = flow { AuthStatus.AUTHORIZED }
 
     override suspend fun signIn(email: String, password: String): Result<Unit> {
         delay(1000)

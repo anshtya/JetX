@@ -1,7 +1,5 @@
 package com.anshtya.jetx.auth.di
 
-import com.anshtya.jetx.auth.data.AuthDatastore
-import com.anshtya.jetx.auth.data.AuthDatastoreImpl
 import com.anshtya.jetx.auth.data.AuthRepository
 import com.anshtya.jetx.auth.data.AuthRepositoryImpl
 import dagger.Binds
@@ -18,10 +16,4 @@ abstract class AuthModule {
     abstract fun bindAuthRepository(
         impl: AuthRepositoryImpl
     ): AuthRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindAuthDatastore(
-        impl: AuthDatastoreImpl
-    ) : AuthDatastore
 }
