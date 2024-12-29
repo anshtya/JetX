@@ -89,6 +89,7 @@ private fun Home() {
                 startDestination = Chats
             ) {
                 chats(
+                    navController = navController,
                     onNavigateToSettings = navController::navigateToSettings
                 )
                 calls()

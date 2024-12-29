@@ -1,7 +1,7 @@
 package com.anshtya.jetx.chats.di
 
 import com.anshtya.jetx.chats.data.ChatsRepository
-import com.anshtya.jetx.chats.data.fake.FakeChatsRepository
+import com.anshtya.jetx.chats.data.ChatsRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -14,6 +14,6 @@ abstract class ChatsRepositoryModule {
     @Binds
     @Singleton
     abstract fun bindChatListRepository(
-        impl: FakeChatsRepository
+        impl: ChatsRepositoryImpl
     ): ChatsRepository
 }

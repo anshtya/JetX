@@ -1,4 +1,4 @@
-package com.anshtya.jetx.chats.ui
+package com.anshtya.jetx.chats.ui.chatlist
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,7 +12,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -21,24 +21,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
-import com.anshtya.jetx.chats.data.Chat
-import com.anshtya.jetx.chats.data.fake.fakeChats
 import com.anshtya.jetx.chats.ui.components.ChatItem
 import com.anshtya.jetx.chats.ui.components.MenuOption
 import com.anshtya.jetx.chats.ui.components.TopAppBarDropdownMenu
+import com.anshtya.jetx.common.model.Chat
 import com.anshtya.jetx.common.ui.ComponentPreview
 
 @Composable
-fun ChatsRoute(
-    onChatClick: (Int) -> Unit = {},
+fun ChatListRoute(
+    onNavigateToChat: (Int) -> Unit,
     onNavigateToSettings: () -> Unit,
     viewModel: ChatListViewModel = hiltViewModel()
 ) {
     val chatList by viewModel.chatList.collectAsStateWithLifecycle()
 
-    ChatsScreen(
-        chats = chatList,
-        onChatClick = onChatClick,
+    ChatListScreen(
+        chatList = chatList,
+        onChatClick = onNavigateToChat,
         onStarredMessagesClick = {},
         onSettingsClick = onNavigateToSettings
     )
@@ -46,13 +45,13 @@ fun ChatsRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ChatsScreen(
-    chats: List<Chat>,
+private fun ChatListScreen(
+    chatList: List<Chat>,
     onChatClick: (Int) -> Unit,
     onStarredMessagesClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
-    var showDropdownMenu by rememberSaveable { mutableStateOf(false) }
+    var showDropdownMenu by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -86,7 +85,7 @@ private fun ChatsScreen(
                 .padding(paddingValues)
         ) {
             items(
-                items = chats,
+                items = chatList,
                 key = { it.id }
             ) {
                 ChatItem(
@@ -102,8 +101,8 @@ private fun ChatsScreen(
 @Composable
 private fun ChatsScreenPreview() {
     ComponentPreview {
-        ChatsScreen(
-            chats = fakeChats,
+        ChatListScreen(
+            chatList = emptyList(),
             onChatClick = {},
             onStarredMessagesClick = {},
             onSettingsClick = {}

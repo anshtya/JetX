@@ -20,8 +20,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.anshtya.jetx.chats.data.Chat
-import com.anshtya.jetx.chats.data.fake.fakeChats
+import com.anshtya.jetx.common.model.Chat
+import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.DayNightPreview
 
@@ -65,7 +65,7 @@ fun ChatItem(
         }
 
         Text(
-            text = chat.timeStamp,
+            text = chat.timestamp,
             style = MaterialTheme.typography.bodySmall,
             color = Color.Gray
         )
@@ -77,7 +77,14 @@ fun ChatItem(
 private fun ChatItemPreview() {
     ComponentPreview {
         ChatItem(
-            chat = fakeChats.first(),
+            chat = Chat(
+                id = 1,
+                name = "name",
+                profilePicture = null,
+                message = "message",
+                timestamp = "",
+                status = MessageStatus.SEEN
+            ),
             onClick = {}
         )
     }
