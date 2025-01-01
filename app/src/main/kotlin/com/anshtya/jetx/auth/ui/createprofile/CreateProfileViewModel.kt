@@ -1,9 +1,9 @@
 package com.anshtya.jetx.auth.ui.createprofile
 
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.profile.model.Profile
 import com.anshtya.jetx.profile.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,11 +60,9 @@ class CreateProfileViewModel @Inject constructor(
             }
 
             val result = profileRepository.createProfile(
-                profile = Profile(
-                    name = state.name,
-                    username = state.username,
-                    profilePicture = state.profilePicture
-                )
+                name = state.name,
+                username = state.username,
+                profilePicture = state.profilePicture?.asAndroidBitmap()
             )
 
             if (result.isSuccess) {
@@ -73,7 +71,10 @@ class CreateProfileViewModel @Inject constructor(
                 }
             } else {
                 _uiState.update {
-                    it.copy(errorMessage = result.exceptionOrNull()?.message)
+                    it.copy(
+                        continueButtonEnabled = true,
+                        errorMessage = result.exceptionOrNull()?.message
+                    )
                 }
             }
         }
