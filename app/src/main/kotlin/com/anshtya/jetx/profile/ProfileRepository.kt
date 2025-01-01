@@ -1,11 +1,10 @@
 package com.anshtya.jetx.profile
 
-import com.anshtya.jetx.profile.model.ProfileStatus
 import android.graphics.Bitmap
 import kotlinx.coroutines.flow.Flow
 
 interface ProfileRepository {
-    val profileStatus: Flow<ProfileStatus>
+    val profileStatus: Flow<Boolean>
 
     suspend fun createProfile(
         name: String,

@@ -7,14 +7,12 @@ import com.anshtya.jetx.preferences.PreferencesStore
 import com.anshtya.jetx.preferences.values.ProfileValues
 import com.anshtya.jetx.profile.model.CreateProfileRequest
 import com.anshtya.jetx.profile.model.NetworkProfile
-import com.anshtya.jetx.profile.model.ProfileStatus
 import com.anshtya.jetx.profile.model.toEntity
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
@@ -28,18 +26,14 @@ class ProfileRepositoryImpl @Inject constructor(
     private val supabasePostgrest = client.postgrest
     private val supabaseAuth = client.auth
 
-    override val profileStatus: Flow<ProfileStatus> = preferencesStore
-        .getBooleanFlow(AuthValues.PROFILE_CREATED)
-        .distinctUntilChanged()
-        .map { status ->
-            status?.let { created ->
-                if (created) ProfileStatus.CREATED else ProfileStatus.NOT_CREATED
-            } ?: ProfileStatus.NOT_CREATED
-        }
     private companion object {
         const val PROFILE_TABLE = "profile"
         const val MEDIA_STORAGE = "media"
     }
+
+    override val profileStatus: Flow<Boolean> = preferencesStore
+        .getBooleanFlow(ProfileValues.PROFILE_CREATED)
+        .map { it ?: false }
 
     override suspend fun createProfile(
         name: String,

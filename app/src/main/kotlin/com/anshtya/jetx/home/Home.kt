@@ -38,20 +38,21 @@ fun Home(
     onNavigateToCreateProfile: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val userState by viewModel.userState.collectAsStateWithLifecycle()
 
-    if (state.authenticated == true && state.profileCreated == true) {
-        Home()
-    } else if (state.authenticated == false) {
-        LaunchedEffect(Unit) {
-            onNavigateToAuth()
-        }
-    } else if (state.profileCreated == false) {
-        LaunchedEffect(Unit) {
-            onNavigateToCreateProfile()
+    userState?.let {
+        if (it.authenticated && it.profileCreated) {
+            Home()
+        } else {
+            LaunchedEffect(Unit) {
+                if (!it.authenticated) {
+                    onNavigateToAuth()
+                } else {
+                    onNavigateToCreateProfile()
+                }
+            }
         }
     }
-
 }
 
 @Composable
