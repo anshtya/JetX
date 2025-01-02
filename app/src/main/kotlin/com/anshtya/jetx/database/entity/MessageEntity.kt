@@ -6,7 +6,8 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.anshtya.jetx.common.model.MessageStatus
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
+import java.util.UUID
 
 @Entity(
     tableName = "message",
@@ -40,20 +41,20 @@ import java.time.LocalDateTime
     ]
 )
 data class MessageEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int,
+    @PrimaryKey
+    val id: UUID,
     @ColumnInfo(name = "sender_id", index = true)
-    val senderId: String,
+    val senderId: UUID,
     @ColumnInfo(name = "recipient_id", index = true)
-    val recipientId: String,
+    val recipientId: UUID,
     @ColumnInfo(name = "chat_id", index = true)
     val chatId: Int,
     val text: String?,
     @ColumnInfo(name = "is_starred")
-    val isStarred: Boolean,
+    val isStarred: Boolean = false,
     @ColumnInfo(name = "attachment_uri")
-    val attachmentUri: String,
+    val attachmentUri: String?,
     @ColumnInfo(name = "created_at")
-    val createdAt: LocalDateTime,
+    val createdAt: ZonedDateTime,
     val status: MessageStatus
 )

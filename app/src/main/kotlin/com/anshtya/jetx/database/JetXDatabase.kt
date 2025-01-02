@@ -9,7 +9,8 @@ import com.anshtya.jetx.database.dao.UserProfileDao
 import com.anshtya.jetx.database.entity.ChatEntity
 import com.anshtya.jetx.database.entity.MessageEntity
 import com.anshtya.jetx.database.entity.UserProfileEntity
-import com.anshtya.jetx.database.util.LocalDateTimeConverter
+import com.anshtya.jetx.database.util.ZonedDateTimeConverter
+import com.anshtya.jetx.database.util.UUIDConverter
 
 @Database(
     entities = [
@@ -20,7 +21,8 @@ import com.anshtya.jetx.database.util.LocalDateTimeConverter
     version = 1
 )
 @TypeConverters(
-    LocalDateTimeConverter::class
+    ZonedDateTimeConverter::class,
+    UUIDConverter::class
 )
 abstract class JetXDatabase : RoomDatabase() {
     abstract fun chatDao(): ChatDao

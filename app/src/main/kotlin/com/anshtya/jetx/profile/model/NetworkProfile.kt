@@ -1,7 +1,7 @@
 package com.anshtya.jetx.profile.model
 
 import com.anshtya.jetx.database.entity.UserProfileEntity
-import com.anshtya.jetx.profile.util.UUIDSerializer
+import com.anshtya.jetx.common.util.UUIDSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.UUID
@@ -18,7 +18,7 @@ data class NetworkProfile(
 )
 
 fun NetworkProfile.toEntity() = UserProfileEntity(
-    id = userId.toString(),
+    id = userId,
     name = name,
     username = username,
     profilePicture = pictureUrl

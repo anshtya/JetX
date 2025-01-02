@@ -3,7 +3,9 @@ package com.anshtya.jetx.database.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 @Entity(
     tableName = "chat",
@@ -14,13 +16,19 @@ import androidx.room.PrimaryKey
             childColumns = ["recipient_id"],
             onDelete = ForeignKey.CASCADE
         )
+    ],
+    indices = [
+        Index(
+            value = ["recipient_id"],
+            unique = true
+        )
     ]
 )
 data class ChatEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Int,
-    @ColumnInfo(name = "recipient_id", index = true)
-    val recipientId: String?,
+    val id: Int = 0,
+    @ColumnInfo(name = "recipient_id")
+    val recipientId: UUID,
     @ColumnInfo(name = "is_archived")
-    val isArchived: Boolean
+    val isArchived: Boolean = false
 )

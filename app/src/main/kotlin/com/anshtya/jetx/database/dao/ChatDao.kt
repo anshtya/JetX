@@ -1,10 +1,13 @@
 package com.anshtya.jetx.database.dao
 
 import androidx.room.Dao
+import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
-import com.anshtya.jetx.database.model.LocalChat
+import com.anshtya.jetx.database.entity.ChatEntity
+import com.anshtya.jetx.database.model.ChatWithRecentMessage
 import kotlinx.coroutines.flow.Flow
+import java.util.UUID
 
 @Dao
 interface ChatDao {
@@ -30,9 +33,15 @@ interface ChatDao {
             ORDER BY message.created_at DESC
         """
     )
-    fun getChats(
+    fun getChatsWithRecentMessage(
         showArchivedChats: Boolean
-    ): Flow<List<LocalChat>>
+    ): Flow<List<ChatWithRecentMessage>>
+
+    @Query("SELECT * FROM chat WHERE recipient_id =:recipientId")
+    suspend fun getChat(recipientId: UUID): ChatEntity?
+
+    @Insert
+    suspend fun insertChat(chatEntity: ChatEntity): Long
 
     @Query("DELETE FROM chat WHERE id in (:chatIds)")
     suspend fun deleteChats(chatIds: List<Int>)

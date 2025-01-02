@@ -80,8 +80,7 @@ class ProfileRepositoryImpl @Inject constructor(
 
     override suspend fun deleteProfiles() {
         userProfileDao.deleteAllProfiles()
-        preferencesStore.setString(ProfileValues.USER_ID, "")
-        preferencesStore.setBoolean(ProfileValues.PROFILE_CREATED, false)
+        preferencesStore.clearPreferences()
     }
 
     private fun getByteArrayFromBitmap(imageBitmap: Bitmap): ByteArray {
@@ -92,7 +91,12 @@ class ProfileRepositoryImpl @Inject constructor(
 
     private suspend fun saveProfile(userProfileEntity: UserProfileEntity) {
         userProfileDao.upsertUserProfile(userProfileEntity)
-        preferencesStore.setString(ProfileValues.USER_ID, userProfileEntity.id)
-        preferencesStore.setBoolean(ProfileValues.PROFILE_CREATED, true)
+
+        // If there's no user logged in, then update preferences
+        val currentUserId = preferencesStore.getString(ProfileValues.USER_ID)
+        if (currentUserId == null) {
+            preferencesStore.setString(ProfileValues.USER_ID, userProfileEntity.id.toString())
+            preferencesStore.setBoolean(ProfileValues.PROFILE_CREATED, true)
+        }
     }
 }
