@@ -85,8 +85,10 @@ class ProfileRepositoryImpl @Inject constructor(
 
     private fun getByteArrayFromBitmap(imageBitmap: Bitmap): ByteArray {
         val outputStream = ByteArrayOutputStream()
-        imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-        return outputStream.toByteArray()
+        imageBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+        val byteArray = outputStream.toByteArray()
+        outputStream.close()
+        return byteArray
     }
 
     private suspend fun saveProfile(userProfileEntity: UserProfileEntity) {

@@ -9,9 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,6 +22,7 @@ import com.anshtya.jetx.common.model.Chat
 import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.DayNightPreview
+import com.anshtya.jetx.common.ui.ProfilePicture
 
 @Composable
 fun ChatItem(
@@ -37,13 +36,13 @@ fun ChatItem(
             .clickable { onClick(chat.id) }
             .padding(10.dp)
     ) {
-        Surface(
-            shape = CircleShape,
-            color = Color.Red,
+        ProfilePicture(
+            model = chat.profilePicture,
+            onClick = {},
             modifier = Modifier
                 .size(40.dp)
                 .align(Alignment.CenterVertically)
-        ) {}
+        )
 
         Column(
             modifier = Modifier.weight(1f)
@@ -83,7 +82,7 @@ private fun ChatItemPreview() {
                 profilePicture = null,
                 message = "message",
                 timestamp = "",
-                status = MessageStatus.SEEN
+                messageStatus = MessageStatus.SEEN
             ),
             onClick = {}
         )
