@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "3b1c0fe749af68581555f9e94741a9fd",
+    "identityHash": "383829d95434660651be57706da286de",
     "entities": [
       {
         "tableName": "chat",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `recipient_id` TEXT NOT NULL, `is_archived` INTEGER NOT NULL, FOREIGN KEY(`recipient_id`) REFERENCES `user_profile`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `recipient_id` TEXT NOT NULL, `is_archived` INTEGER NOT NULL, `is_favorite` INTEGER NOT NULL, FOREIGN KEY(`recipient_id`) REFERENCES `user_profile`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -23,6 +23,12 @@
           {
             "fieldPath": "isArchived",
             "columnName": "is_archived",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isFavorite",
+            "columnName": "is_favorite",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -242,7 +248,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3b1c0fe749af68581555f9e94741a9fd')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '383829d95434660651be57706da286de')"
     ]
   }
 }

@@ -1,5 +1,6 @@
 package com.anshtya.jetx.profile.model
 
+import com.anshtya.jetx.common.model.UserProfile
 import com.anshtya.jetx.database.entity.UserProfileEntity
 import com.anshtya.jetx.common.util.UUIDSerializer
 import kotlinx.serialization.SerialName
@@ -22,4 +23,11 @@ fun NetworkProfile.toEntity() = UserProfileEntity(
     name = name,
     username = username,
     profilePicture = pictureUrl
+)
+
+fun NetworkProfile.toExternalModel() = UserProfile(
+    id = userId,
+    name = name,
+    username = username,
+    pictureUrl = pictureUrl
 )

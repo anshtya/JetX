@@ -30,5 +30,7 @@ data class ChatEntity(
     @ColumnInfo(name = "recipient_id")
     val recipientId: UUID,
     @ColumnInfo(name = "is_archived")
-    val isArchived: Boolean = false
+    val isArchived: Boolean = false,
+    @ColumnInfo(name = "is_favorite")
+    val isFavorite: Boolean = false
 )

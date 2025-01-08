@@ -30,11 +30,23 @@ interface ChatDao {
                     THEN chat.is_archived = 1
                     ELSE 1
                 END
+            AND
+                CASE WHEN :showFavoriteChats
+                    THEN chat.is_favorite = 1
+                    ELSE 1
+                END
+            AND
+                CASE WHEN :showUnreadChats
+                    THEN message.status = 'RECEIVED'
+                    ELSE 1
+                END
             ORDER BY message.created_at DESC
         """
     )
     fun getChatsWithRecentMessage(
-        showArchivedChats: Boolean
+        showArchivedChats: Boolean,
+        showFavoriteChats: Boolean,
+        showUnreadChats: Boolean
     ): Flow<List<ChatWithRecentMessage>>
 
     @Query("SELECT * FROM chat WHERE recipient_id =:recipientId")

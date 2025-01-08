@@ -8,4 +8,10 @@ sealed interface ChatsDestinations {
 
     @Serializable
     data class Chat(val id: Int) : ChatsDestinations
+
+    @Serializable
+    data object ArchivedChatList: ChatsDestinations
+
+    @Serializable
+    data object Search: ChatsDestinations
 }

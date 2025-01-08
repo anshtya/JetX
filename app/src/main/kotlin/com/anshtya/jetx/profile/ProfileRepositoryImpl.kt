@@ -1,6 +1,7 @@
 package com.anshtya.jetx.profile
 
 import android.graphics.Bitmap
+import com.anshtya.jetx.common.model.UserProfile
 import com.anshtya.jetx.database.dao.UserProfileDao
 import com.anshtya.jetx.database.entity.UserProfileEntity
 import com.anshtya.jetx.preferences.PreferencesStore
@@ -8,6 +9,7 @@ import com.anshtya.jetx.preferences.values.ProfileValues
 import com.anshtya.jetx.profile.model.CreateProfileRequest
 import com.anshtya.jetx.profile.model.NetworkProfile
 import com.anshtya.jetx.profile.model.toEntity
+import com.anshtya.jetx.profile.model.toExternalModel
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
@@ -76,6 +78,20 @@ class ProfileRepositoryImpl @Inject constructor(
         } else {
             throw IllegalStateException("Profile doesn't exist")
         }
+    }
+
+    override suspend fun searchProfiles(query: String): List<UserProfile> {
+        val pattern = "%${query}%"
+        return supabasePostgrest.from(PROFILE_TABLE).select {
+            filter {
+                or {
+                    ilike(column = "username", pattern = pattern)
+                    ilike(column = "name", pattern = pattern)
+                }
+            }
+        }
+            .decodeList<NetworkProfile>()
+            .map(NetworkProfile::toExternalModel)
     }
 
     override suspend fun deleteProfiles() {

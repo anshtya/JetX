@@ -1,7 +1,6 @@
-package com.anshtya.jetx.chats.ui.components
+package com.anshtya.jetx.chats.ui.search
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,20 +17,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.anshtya.jetx.common.model.Chat
-import com.anshtya.jetx.common.model.MessageStatus
+import com.anshtya.jetx.common.model.UserProfile
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.DayNightPreview
 import com.anshtya.jetx.common.ui.ProfilePicture
-import com.anshtya.jetx.common.util.formattedString
-import java.time.ZonedDateTime
+import java.util.UUID
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ChatItem(
-    chat: Chat,
-    onClick: (Int) -> Unit,
-    onLongClick: (Int) -> Unit,
+fun SearchItem(
+    userProfile: UserProfile,
+    onClick: (UserProfile) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -39,15 +34,10 @@ fun ChatItem(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
             .fillMaxWidth()
-            .combinedClickable(
-                onClick = { onClick(chat.id) },
-                onLongClick = {
-                    // TODO: add long click support
-                }
-            )
+            .clickable { onClick(userProfile) }
     ) {
         ProfilePicture(
-            model = chat.profilePicture,
+            model = userProfile.pictureUrl,
             onClick = {
                 // TODO: add profile view
             },
@@ -59,27 +49,15 @@ fun ChatItem(
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = chat.username,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1,
-                    fontSize = 18.sp,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = chat.timestamp,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
-            }
+            Text(
+                text = userProfile.username,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+                fontSize = 18.sp
+            )
             Spacer(Modifier.height(2.dp))
             Text(
-                text = chat.message,
+                text = userProfile.name,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
                 style = MaterialTheme.typography.bodyMedium,
@@ -93,17 +71,14 @@ fun ChatItem(
 @Composable
 private fun ChatItemPreview() {
     ComponentPreview {
-        ChatItem(
-            chat = Chat(
-                id = 1,
-                username = "name",
-                profilePicture = null,
-                message = "message",
-                timestamp = ZonedDateTime.now().formattedString(),
-                messageStatus = MessageStatus.SEEN
+        SearchItem(
+            userProfile = UserProfile(
+                id = UUID.fromString("id"),
+                name = "name",
+                username = "username",
+                pictureUrl = null
             ),
-            onClick = {},
-            onLongClick = {}
+            onClick = {}
         )
     }
 }

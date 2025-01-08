@@ -76,11 +76,26 @@ class ChatsRepositoryImpl @Inject constructor(
     }
 
     override fun getChats(
-        showArchivedChats: Boolean
+        showFavoriteChats: Boolean,
+        showUnreadChats: Boolean
     ): Flow<List<Chat>> {
         return chatDao.getChatsWithRecentMessage(
-            showArchivedChats = showArchivedChats,
-        ).map { chat -> chat.map(ChatWithRecentMessage::toExternalModel) }
+            showArchivedChats = false,
+            showFavoriteChats = showFavoriteChats,
+            showUnreadChats = showUnreadChats
+        ).map { chat ->
+            chat.map(ChatWithRecentMessage::toExternalModel)
+        }
+    }
+
+    override fun getArchivedChats(): Flow<List<Chat>> {
+        return chatDao.getChatsWithRecentMessage(
+            showArchivedChats = true,
+            showFavoriteChats = false,
+            showUnreadChats = false
+        ).map { chat ->
+            chat.map(ChatWithRecentMessage::toExternalModel)
+        }
     }
 
     override suspend fun deleteChats(chatIds: List<Int>) {
