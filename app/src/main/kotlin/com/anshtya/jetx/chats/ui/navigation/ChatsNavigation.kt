@@ -29,7 +29,7 @@ fun NavGraphBuilder.chats(
             }
             ChatListRoute(
                 onNavigateToChat = {
-                    navController.navigate(ChatsDestinations.Chat(id = it))
+                    navController.navigate(ChatsDestinations.Chat(it))
                 },
                 onNavigateToArchivedChats = {
                     navController.navigate(ChatsDestinations.ArchivedChatList)
@@ -48,21 +48,25 @@ fun NavGraphBuilder.chats(
             }
             ArchivedChatListRoute(
                 onNavigateToChat = {
-                    navController.navigate(ChatsDestinations.Chat(id = it))
+                    navController.navigate(ChatsDestinations.Chat(it))
                 },
                 onBackClick = navController::navigateUp,
                 viewModel = hiltViewModel<ChatListViewModel>(parentEntry)
             )
         }
 
-        composable<ChatsDestinations.Chat> {
-            ChatRoute()
+        composable<ChatsDestinations.Chat>(
+            typeMap = ChatsDestinations.Chat.typeMap
+        ) {
+            ChatRoute(
+                onBackClick = navController::navigateUp
+            )
         }
 
         composable<ChatsDestinations.Search> {
             SearchRoute(
                 onNavigateToChat = {
-                    navController.navigate(ChatsDestinations.Chat(id = it))
+                    navController.navigate(ChatsDestinations.Chat(it))
                 },
                 onBackClick = navController::navigateUp
             )

@@ -1,13 +1,18 @@
 package com.anshtya.jetx.chats.ui.search
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -16,6 +21,7 @@ import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
@@ -24,43 +30,44 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
+import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
+import com.anshtya.jetx.chats.ui.chat.toChatUserArgs
 import com.anshtya.jetx.common.model.UserProfile
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
+import com.anshtya.jetx.common.ui.DayNightPreview
+import com.anshtya.jetx.common.ui.ProfilePicture
 import com.anshtya.jetx.common.util.Constants
+import java.util.UUID
 
 @Composable
 fun SearchRoute(
-    onNavigateToChat: (Int) -> Unit,
+    onNavigateToChat: (ChatUserArgs) -> Unit,
     onBackClick: () -> Unit,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val searchSuggestions by viewModel.searchSuggestions.collectAsStateWithLifecycle()
-    val navigateToChat by viewModel.navigateToChat.collectAsStateWithLifecycle()
-
-    LaunchedEffect(navigateToChat) {
-        if (navigateToChat) {
-            onNavigateToChat(viewModel.chatId)
-        }
-    }
 
     SearchScreen(
         searchQuery = searchQuery,
         searchSuggestions = searchSuggestions,
         onSearchQueryChange = viewModel::changeSearchQuery,
         onClearSearch = viewModel::clearSearch,
-        onProfileClick = viewModel::onProfileClick,
+        onProfileClick = onNavigateToChat,
         onBackClick = onBackClick
     )
 }
@@ -71,11 +78,17 @@ private fun SearchScreen(
     searchSuggestions: List<UserProfile>,
     onSearchQueryChange: (String) -> Unit,
     onClearSearch: () -> Unit,
-    onProfileClick: (UserProfile) -> Unit,
+    onProfileClick: (ChatUserArgs) -> Unit,
     onBackClick: () -> Unit
 ) {
-    var searchBarActive by remember { mutableStateOf(false) }
-    var searchBarExpanded by remember { mutableStateOf(false) }
+    var searchBarActive by rememberSaveable { mutableStateOf(false) }
+    var searchBarExpanded by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(searchBarActive) {
+        if (!searchBarActive) {
+            onClearSearch()
+        }
+    }
 
     Scaffold { paddingValues ->
         Box(
@@ -120,7 +133,7 @@ private fun ProfileSearchBar(
     onSearchQueryChange: (String) -> Unit,
     onActiveChange: (Boolean) -> Unit,
     onClearSearch: () -> Unit,
-    onProfileClick: (UserProfile) -> Unit,
+    onProfileClick: (ChatUserArgs) -> Unit,
     onExpandChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -135,12 +148,6 @@ private fun ProfileSearchBar(
             }
         }
     )
-
-    LaunchedEffect(searchBarActive) {
-        if (!searchBarActive) {
-            onClearSearch()
-        }
-    }
 
     SearchBar(
         inputField = {
@@ -197,6 +204,50 @@ private fun ProfileSearchBar(
     }
 }
 
+@Composable
+private fun SearchItem(
+    userProfile: UserProfile,
+    onClick: (ChatUserArgs) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick(userProfile.toChatUserArgs()) }
+    ) {
+        ProfilePicture(
+            model = userProfile.pictureUrl,
+            onClick = {
+                // TODO: add profile view
+            },
+            modifier = Modifier
+                .size(50.dp)
+                .align(Alignment.CenterVertically)
+        )
+
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = userProfile.username,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+                fontSize = 18.sp
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = userProfile.name,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun SearchScreenPreview() {
@@ -208,6 +259,22 @@ private fun SearchScreenPreview() {
             onClearSearch = {},
             onProfileClick = {},
             onBackClick = {}
+        )
+    }
+}
+
+@DayNightPreview
+@Composable
+private fun ChatItemPreview() {
+    ComponentPreview {
+        SearchItem(
+            userProfile = UserProfile(
+                id = UUID.fromString("id"),
+                name = "name",
+                username = "username",
+                pictureUrl = null
+            ),
+            onClick = {}
         )
     }
 }

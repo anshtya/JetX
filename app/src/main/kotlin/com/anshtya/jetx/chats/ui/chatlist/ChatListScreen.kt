@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
+import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
 import com.anshtya.jetx.chats.ui.components.ChatList
 import com.anshtya.jetx.chats.ui.components.EmptyChatsItem
 import com.anshtya.jetx.common.ui.ComponentPreview
@@ -44,7 +45,7 @@ import com.anshtya.jetx.common.ui.IconButtonDropdownMenu
 
 @Composable
 fun ChatListRoute(
-    onNavigateToChat: (Int) -> Unit,
+    onNavigateToChat: (ChatUserArgs) -> Unit,
     onNavigateToArchivedChats: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onNavigateToSettings: () -> Unit,
@@ -74,7 +75,7 @@ private fun ChatListScreen(
     state: ChatListState,
     archivedChatEmpty: Boolean,
     selectedFilter: FilterOption,
-    onChatClick: (Int) -> Unit,
+    onChatClick: (ChatUserArgs) -> Unit,
     onFilterOptionClick: (FilterOption) -> Unit,
     onArchivedChatsClick: () -> Unit,
     onSearchButtonClick: () -> Unit,

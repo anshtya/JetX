@@ -8,8 +8,8 @@ import com.anshtya.jetx.database.entity.UserProfileEntity
 
 @Dao
 interface UserProfileDao {
-    @Query("SELECT * FROM user_profile WHERE id = :userId")
-    suspend fun getUserProfile(userId: String): UserProfileEntity
+    @Query("SELECT * FROM user_profile WHERE username = :username")
+    suspend fun getUserProfile(username: String): UserProfileEntity?
 
     @Upsert
     suspend fun upsertUserProfile(userProfile: UserProfileEntity)

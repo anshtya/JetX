@@ -26,4 +26,6 @@
     <string name="search_bar_padding">search_bar_padding</string>
     <string name="search">Search</string>
     <string name="clear_search">Clear search</string>
+    <string name="send_message">Send message</string>
+    <string name="chatinputfield_placeholder">Message</string>
 </resources>

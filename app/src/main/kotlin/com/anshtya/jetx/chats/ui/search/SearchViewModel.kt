@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
@@ -26,19 +25,13 @@ class SearchViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
-    private val _navigateToChat = MutableStateFlow(false)
-    val navigateToChat = _navigateToChat.asStateFlow()
-
-    var chatId: Int = 0
-        private set
-
     val searchSuggestions: StateFlow<List<UserProfile>> = _searchQuery
-        .debounce(500L)
+        .debounce { if (it.isNotBlank()) 500 else 0 }
         .mapLatest {
-            if (it.isBlank()) {
-                emptyList()
-            } else {
+            if (it.isNotBlank()) {
                 profileRepository.searchProfiles(it)
+            } else {
+                emptyList()
             }
         }
         .stateIn(
@@ -46,13 +39,6 @@ class SearchViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000L),
             initialValue = emptyList()
         )
-
-    fun onProfileClick(userProfile: UserProfile) {
-        viewModelScope.launch {
-            // TODO: navigate to chat or create chat
-//            _navigateToChat.update { true }
-        }
-    }
 
     fun changeSearchQuery(searchQuery: String) {
         _searchQuery.update { searchQuery }

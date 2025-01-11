@@ -1,6 +1,8 @@
 package com.anshtya.jetx.chats.data
 
+import com.anshtya.jetx.chats.data.model.ChatInfo
 import com.anshtya.jetx.chats.data.model.NetworkMessage
+import com.anshtya.jetx.chats.data.model.toChatInfo
 import com.anshtya.jetx.chats.data.model.toEntity
 import com.anshtya.jetx.common.coroutine.DefaultScope
 import com.anshtya.jetx.common.model.Chat
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import java.util.UUID
 import javax.inject.Inject
 
 class ChatsRepositoryImpl @Inject constructor(
@@ -96,6 +99,15 @@ class ChatsRepositoryImpl @Inject constructor(
         ).map { chat ->
             chat.map(ChatWithRecentMessage::toExternalModel)
         }
+    }
+
+    override suspend fun getChatInfo(recipientId: UUID): ChatInfo? {
+        return chatDao.getChat(recipientId)?.toChatInfo()
+    }
+
+    override suspend fun createChat(recipientId: UUID): Int {
+        profileRepository.fetchAndSaveProfile(recipientId.toString())
+        return chatDao.insertChat(ChatEntity(recipientId = recipientId)).toInt()
     }
 
     override suspend fun deleteChats(chatIds: List<Int>) {

@@ -15,7 +15,7 @@ interface ChatDao {
     @Query(
         value = """
             SELECT 
-                chat.id, user_profile.username, user_profile.profile_picture, 
+                chat.id, chat.recipient_id, user_profile.username, user_profile.profile_picture, 
                 message.text, message.created_at, message.status
             FROM chat
             JOIN message ON chat.id = message.chat_id

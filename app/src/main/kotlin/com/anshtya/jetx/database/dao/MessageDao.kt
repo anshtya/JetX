@@ -11,7 +11,7 @@ import java.util.UUID
 @Dao
 interface MessageDao {
     @Query("SELECT * FROM message WHERE chat_id = :chatId")
-    fun getChatMessage(chatId: Int): Flow<List<MessageEntity>>
+    fun getChatMessages(chatId: Int): Flow<List<MessageEntity>>
 
     @Query("SELECT * FROM message WHERE id = :messageId")
     suspend fun getMessage(messageId: UUID): MessageEntity?

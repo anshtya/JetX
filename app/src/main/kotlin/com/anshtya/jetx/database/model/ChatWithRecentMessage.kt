@@ -3,11 +3,13 @@ package com.anshtya.jetx.database.model
 import androidx.room.ColumnInfo
 import com.anshtya.jetx.common.model.Chat
 import com.anshtya.jetx.common.model.MessageStatus
-import com.anshtya.jetx.common.util.formattedString
+import com.anshtya.jetx.common.util.getDateOrTime
 import java.time.ZonedDateTime
+import java.util.UUID
 
 data class ChatWithRecentMessage(
     val id: Int,
+    @ColumnInfo(name = "recipient_id") val recipientId: UUID,
     val username: String,
     @ColumnInfo(name = "profile_picture") val profilePicture: String?,
     @ColumnInfo(name = "text") val message: String,
@@ -18,10 +20,11 @@ data class ChatWithRecentMessage(
 fun ChatWithRecentMessage.toExternalModel(): Chat {
     return Chat(
         id = id,
+        recipientId = recipientId,
         username = username,
         profilePicture = profilePicture,
         message = message,
-        timestamp = createdAt.formattedString(),
+        timestamp = createdAt.getDateOrTime(),
         messageStatus = messageStatus
     )
 }

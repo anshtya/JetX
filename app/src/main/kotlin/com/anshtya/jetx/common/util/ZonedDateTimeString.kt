@@ -5,18 +5,25 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-fun ZonedDateTime.formattedString(): String {
+const val FULL_DATE = "d MMMM yyyy"
+
+fun ZonedDateTime.getDateOrTime(
+    timePattern: String = "hh:mm a",
+    datePattern: String = "dd/MM/yyyy",
+    getTimeOnly: Boolean = false,
+    getDateOnly: Boolean = false
+): String {
     val zoneId = ZoneId.systemDefault()
 
     val messageTime = ZonedDateTime.ofInstant(this.toInstant(), zoneId)
     val now = ZonedDateTime.now(zoneId)
     val duration = Duration.between(messageTime, now)
 
-    return if (duration.toDays() < 1) {
-        val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a")
+    return if ((duration.toDays() < 1 || getTimeOnly) && !getDateOnly) {
+        val timeFormatter = DateTimeFormatter.ofPattern(timePattern)
         messageTime.format(timeFormatter)
     } else {
-        val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        val dateFormatter = DateTimeFormatter.ofPattern(datePattern)
         messageTime.format(dateFormatter)
     }
 }

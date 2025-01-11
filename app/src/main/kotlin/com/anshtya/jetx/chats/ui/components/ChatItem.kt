@@ -18,19 +18,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
+import com.anshtya.jetx.chats.ui.chat.toChatUserArgs
 import com.anshtya.jetx.common.model.Chat
 import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.DayNightPreview
 import com.anshtya.jetx.common.ui.ProfilePicture
-import com.anshtya.jetx.common.util.formattedString
+import com.anshtya.jetx.common.util.getDateOrTime
 import java.time.ZonedDateTime
+import java.util.UUID
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ChatItem(
     chat: Chat,
-    onClick: (Int) -> Unit,
+    onClick: (ChatUserArgs) -> Unit,
     onLongClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -40,7 +43,7 @@ fun ChatItem(
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
-                onClick = { onClick(chat.id) },
+                onClick = { onClick(chat.toChatUserArgs()) },
                 onLongClick = {
                     // TODO: add long click support
                 }
@@ -96,10 +99,11 @@ private fun ChatItemPreview() {
         ChatItem(
             chat = Chat(
                 id = 1,
+                recipientId = UUID.fromString("hi"),
                 username = "name",
                 profilePicture = null,
                 message = "message",
-                timestamp = ZonedDateTime.now().formattedString(),
+                timestamp = ZonedDateTime.now().getDateOrTime(),
                 messageStatus = MessageStatus.SEEN
             ),
             onClick = {},

@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
+import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
 import com.anshtya.jetx.chats.ui.chatlist.ChatListState
 import com.anshtya.jetx.chats.ui.chatlist.ChatListViewModel
 import com.anshtya.jetx.chats.ui.components.ChatList
@@ -24,7 +25,7 @@ import com.anshtya.jetx.common.ui.ComponentPreview
 
 @Composable
 fun ArchivedChatListRoute(
-    onNavigateToChat: (Int) -> Unit,
+    onNavigateToChat: (ChatUserArgs) -> Unit,
     onBackClick: () -> Unit,
     viewModel: ChatListViewModel
 ) {
@@ -41,7 +42,7 @@ fun ArchivedChatListRoute(
 @Composable
 private fun ArchivedChatListScreen(
     state: ChatListState,
-    onChatClick: (Int) -> Unit,
+    onChatClick: (ChatUserArgs) -> Unit,
     onBackClick: () -> Unit
 ) {
     Scaffold(
