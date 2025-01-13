@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,7 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -39,8 +40,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,6 +54,7 @@ import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.IconButtonDropdownMenu
 import com.anshtya.jetx.common.ui.ProfilePicture
+import com.anshtya.jetx.common.ui.message.MessageItemContent
 import com.anshtya.jetx.common.util.Constants
 import com.anshtya.jetx.common.util.FULL_DATE
 import com.anshtya.jetx.common.util.getDateOrTime
@@ -94,17 +96,15 @@ private fun ChatScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(
-                    start = Constants.defaultPadding,
-                    end = Constants.defaultPadding,
-                    bottom = Constants.defaultPadding
-                )
         ) {
+            // State for adding additional top padding if message's sender changes
+            var isSenderState: Boolean? = remember { false }
+
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
+                contentPadding = PaddingValues(
+                    horizontal = Constants.defaultPadding, vertical = 2.dp
+                ),
+                modifier = Modifier.weight(1f)
             ) {
                 chatMessages.messages.forEach { (date, messages) ->
                     stickyHeader {
@@ -113,19 +113,25 @@ private fun ChatScreen(
                                 datePattern = FULL_DATE,
                                 getDateOnly = true
                             ),
+                            modifier = Modifier.padding(top = 8.dp, bottom = 10.dp)
                         )
                     }
-                    items(
+                    itemsIndexed(
                         items = messages,
-                        key = { it.id }
-                    ) {
+                        key = { _, message -> message.id }
+                    ) { index, message ->
+                        val isSender = message.senderId != recipientUser?.id
+                        val topPadding = if (isSenderState != isSender && index > 0) {
+                            isSenderState = isSender
+                            4.dp
+                        } else 0.dp
 
-                        val isSender = it.senderId != recipientUser?.id
                         MessageItem(
-                            text = it.text,
-                            time = it.createdAt.getDateOrTime(getTimeOnly = true),
-                            status = it.status,
-                            isSender = isSender
+                            text = message.text,
+                            time = message.createdAt.getDateOrTime(getTimeOnly = true),
+                            status = message.status,
+                            isSender = isSender,
+                            modifier = Modifier.padding(top = topPadding, bottom = 2.dp)
                         )
                     }
                 }
@@ -238,6 +244,7 @@ private fun ChatInputField(
             unfocusedIndicatorColor = Color.Transparent
         ),
         keyboardOptions = KeyboardOptions(
+            capitalization = KeyboardCapitalization.Sentences,
             keyboardType = KeyboardType.Text,
             imeAction = ImeAction.Send
         ),
@@ -262,9 +269,16 @@ private fun DateHeader(
     ) {
         Surface(
             shape = RoundedCornerShape(4.dp),
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp)
+            color = MaterialTheme.colorScheme.surfaceContainer,
         ) {
-            Text(date)
+            Box(
+                modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = date,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
     }
 }
@@ -291,24 +305,16 @@ private fun MessageItem(
             color = if (isSender) {
                 MaterialTheme.colorScheme.primary
             } else {
-                MaterialTheme.colorScheme.tertiary
-            },
-            modifier = Modifier
-                .sizeIn(
-                    minWidth = 80.dp,
-                    maxWidth = 250.dp
-                )
-
-        ) {
-            Box(Modifier.padding(10.dp)) {
-                Text(text = text)
-                Text(
-                    text = time,
-                    textAlign = TextAlign.End,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.LightGray
-                )
+                MaterialTheme.colorScheme.surfaceContainerHighest
             }
+        ) {
+            MessageItemContent(
+                message = text,
+                time = time,
+                modifier = Modifier
+                    .sizeIn(maxWidth = 250.dp)
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
+            )
         }
     }
 }
