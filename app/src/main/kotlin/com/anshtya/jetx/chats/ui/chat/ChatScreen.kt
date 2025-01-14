@@ -55,10 +55,9 @@ import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.IconButtonDropdownMenu
 import com.anshtya.jetx.common.ui.ProfilePicture
 import com.anshtya.jetx.common.ui.message.MessageItemContent
-import com.anshtya.jetx.common.util.Constants
-import com.anshtya.jetx.common.util.FULL_DATE
-import com.anshtya.jetx.common.util.getDateOrTime
-import java.util.UUID
+import com.anshtya.jetx.sampledata.sampleChatMessages
+import com.anshtya.jetx.sampledata.sampleUsers
+import com.anshtya.jetx.util.Constants
 
 @Composable
 fun ChatRoute(
@@ -109,10 +108,7 @@ private fun ChatScreen(
                 chatMessages.messages.forEach { (date, messages) ->
                     stickyHeader {
                         DateHeader(
-                            date = date.getDateOrTime(
-                                datePattern = FULL_DATE,
-                                getDateOnly = true
-                            ),
+                            date = date,
                             modifier = Modifier.padding(top = 8.dp, bottom = 10.dp)
                         )
                     }
@@ -128,7 +124,7 @@ private fun ChatScreen(
 
                         MessageItem(
                             text = message.text,
-                            time = message.createdAt.getDateOrTime(getTimeOnly = true),
+                            time = message.createdAt,
                             status = message.status,
                             isSender = isSender,
                             modifier = Modifier.padding(top = topPadding, bottom = 2.dp)
@@ -323,13 +319,14 @@ private fun MessageItem(
 @Composable
 private fun ChatScreenPreview() {
     ComponentPreview {
+        val user = sampleUsers.first()
         ChatScreen(
             onBackClick = {},
             chatMessages = DateChatMessages(emptyMap()),
             recipientUser = RecipientUser(
-                id = UUID.fromString("hi"),
-                username = "user",
-                pictureUrl = null
+                id = user.id,
+                username = user.username,
+                pictureUrl = user.pictureUrl
             ),
             onMessageSent = {}
         )
@@ -340,10 +337,11 @@ private fun ChatScreenPreview() {
 @Composable
 private fun MessageItemPreview() {
     ComponentPreview {
+        val message = sampleChatMessages.first()
         MessageItem(
-            text = "hello",
-            time = "10:00 am",
-            status = MessageStatus.SEEN,
+            text = message.text,
+            time = message.createdAt,
+            status = message.status,
             isSender = true
         )
     }

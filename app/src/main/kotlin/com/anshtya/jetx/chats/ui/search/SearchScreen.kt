@@ -50,7 +50,7 @@ import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.DayNightPreview
 import com.anshtya.jetx.common.ui.ProfilePicture
-import com.anshtya.jetx.common.util.Constants
+import com.anshtya.jetx.util.Constants
 import java.util.UUID
 
 @Composable

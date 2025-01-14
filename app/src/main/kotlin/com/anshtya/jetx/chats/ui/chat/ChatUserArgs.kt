@@ -3,7 +3,7 @@ package com.anshtya.jetx.chats.ui.chat
 import android.os.Parcelable
 import com.anshtya.jetx.common.model.Chat
 import com.anshtya.jetx.common.model.UserProfile
-import com.anshtya.jetx.common.util.UUIDSerializer
+import com.anshtya.jetx.util.UUIDSerializer
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import java.util.UUID

@@ -7,6 +7,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.anshtya.jetx.common.model.Message
 import com.anshtya.jetx.common.model.MessageStatus
+import com.anshtya.jetx.util.getDateOrTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -67,7 +68,7 @@ fun MessageEntity.toExternalModel(): Message {
         senderId = senderId,
         text = text ?: "",
         isStarred = isStarred,
-        createdAt = createdAt,
+        createdAt = createdAt.getDateOrTime(getTimeOnly = true),
         status = status
     )
 }

@@ -3,7 +3,7 @@ package com.anshtya.jetx.database.model
 import androidx.room.ColumnInfo
 import com.anshtya.jetx.common.model.Chat
 import com.anshtya.jetx.common.model.MessageStatus
-import com.anshtya.jetx.common.util.getDateOrTime
+import com.anshtya.jetx.util.getDateOrTime
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -24,7 +24,7 @@ fun ChatWithRecentMessage.toExternalModel(): Chat {
         username = username,
         profilePicture = profilePicture,
         message = message,
-        timestamp = createdAt.getDateOrTime(),
+        timestamp = createdAt.getDateOrTime(getYesterday = true),
         messageStatus = messageStatus
     )
 }

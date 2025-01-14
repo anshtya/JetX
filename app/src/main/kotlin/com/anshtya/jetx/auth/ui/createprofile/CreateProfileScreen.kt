@@ -41,7 +41,7 @@ import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.ProfilePicture
 import com.anshtya.jetx.common.ui.rememberMediaPicker
-import com.anshtya.jetx.common.util.toBitmap
+import com.anshtya.jetx.util.toBitmap
 import kotlinx.coroutines.launch
 
 @Composable

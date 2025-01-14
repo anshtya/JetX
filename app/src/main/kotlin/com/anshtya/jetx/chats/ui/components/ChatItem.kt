@@ -21,13 +21,10 @@ import androidx.compose.ui.unit.sp
 import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
 import com.anshtya.jetx.chats.ui.chat.toChatUserArgs
 import com.anshtya.jetx.common.model.Chat
-import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.DayNightPreview
 import com.anshtya.jetx.common.ui.ProfilePicture
-import com.anshtya.jetx.common.util.getDateOrTime
-import java.time.ZonedDateTime
-import java.util.UUID
+import com.anshtya.jetx.sampledata.sampleChats
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -97,15 +94,7 @@ fun ChatItem(
 private fun ChatItemPreview() {
     ComponentPreview {
         ChatItem(
-            chat = Chat(
-                id = 1,
-                recipientId = UUID.fromString("hi"),
-                username = "name",
-                profilePicture = null,
-                message = "message",
-                timestamp = ZonedDateTime.now().getDateOrTime(),
-                messageStatus = MessageStatus.SEEN
-            ),
+            chat = sampleChats.first(),
             onClick = {},
             onLongClick = {}
         )

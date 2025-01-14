@@ -1,4 +1,4 @@
-package com.anshtya.jetx.common.util
+package com.anshtya.jetx.util
 
 import android.content.Context
 import android.graphics.Bitmap

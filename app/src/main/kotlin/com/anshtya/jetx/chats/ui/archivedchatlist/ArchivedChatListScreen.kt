@@ -22,6 +22,7 @@ import com.anshtya.jetx.chats.ui.components.ChatList
 import com.anshtya.jetx.chats.ui.components.EmptyChatsItem
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
+import com.anshtya.jetx.sampledata.sampleChats
 
 @Composable
 fun ArchivedChatListRoute(
@@ -79,7 +80,7 @@ private fun ArchivedChatListScreen(
 private fun ArchivedChatsScreenPreview() {
     ComponentPreview {
         ArchivedChatListScreen(
-            state = ChatListState.Success(emptyList()),
+            state = ChatListState.Success(sampleChats),
             onChatClick = {},
             onBackClick = {}
         )

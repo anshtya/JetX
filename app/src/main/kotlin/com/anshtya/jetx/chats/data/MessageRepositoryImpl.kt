@@ -2,11 +2,13 @@ package com.anshtya.jetx.chats.data
 
 import com.anshtya.jetx.chats.data.model.DateChatMessages
 import com.anshtya.jetx.chats.data.model.MessageInsertData
-import com.anshtya.jetx.chats.data.model.toNetworkMessageRequest
-import com.anshtya.jetx.common.util.Constants
+import com.anshtya.jetx.chats.data.model.toNetworkMessage
 import com.anshtya.jetx.database.dao.MessageDao
 import com.anshtya.jetx.database.entity.MessageEntity
 import com.anshtya.jetx.database.entity.toExternalModel
+import com.anshtya.jetx.util.Constants.FULL_DATE
+import com.anshtya.jetx.util.Constants.MESSAGE_TABLE
+import com.anshtya.jetx.util.getDateOrTime
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
@@ -22,18 +24,24 @@ class MessageRepositoryImpl @Inject constructor(
 ) : MessageRepository {
     private val userId: String = client.auth.currentSessionOrNull()?.user?.id
         ?: throw IllegalStateException("User should be logged in to access messages")
-    private val messagesTable = client.from(Constants.MESSAGE_TABLE)
+    private val messagesTable = client.from(MESSAGE_TABLE)
 
     override fun getChatMessages(chatId: Int): Flow<DateChatMessages> {
         return messageDao.getChatMessages(chatId)
             .map { messages ->
-                messages
-                    .groupBy(
+                DateChatMessages(
+                    messages = messages.groupBy(
                         keySelector = { message -> message.createdAt.truncatedTo(ChronoUnit.DAYS) },
                         valueTransform = { message -> message.toExternalModel() }
-                    )
+                    ).mapKeys { (createdAt, _) ->
+                        createdAt.getDateOrTime(
+                            datePattern = FULL_DATE,
+                            getToday = true,
+                            getYesterday = true
+                        )
+                    }
+                )
             }
-            .map { DateChatMessages(it) }
     }
 
     override suspend fun insertMessage(messageInsertData: MessageInsertData) {
@@ -47,6 +55,6 @@ class MessageRepositoryImpl @Inject constructor(
             attachmentUri = messageInsertData.attachment
         )
         messageDao.upsertMessage(messageEntity)
-        messagesTable.insert(messageEntity.toNetworkMessageRequest())
+        messagesTable.insert(messageEntity.toNetworkMessage())
     }
 }

@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
 import com.anshtya.jetx.common.model.Chat
-import com.anshtya.jetx.common.util.Constants
+import com.anshtya.jetx.util.Constants
 
 @Composable
 fun ChatList(

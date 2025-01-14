@@ -13,7 +13,7 @@ import javax.inject.Singleton
 abstract class ChatsRepositoryModule {
     @Binds
     @Singleton
-    abstract fun bindChatListRepository(
+    abstract fun bindChatsRepository(
         impl: ChatsRepositoryImpl
     ): ChatsRepository
 }

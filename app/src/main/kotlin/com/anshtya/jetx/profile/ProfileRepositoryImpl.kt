@@ -10,6 +10,8 @@ import com.anshtya.jetx.profile.model.CreateProfileRequest
 import com.anshtya.jetx.profile.model.NetworkProfile
 import com.anshtya.jetx.profile.model.toEntity
 import com.anshtya.jetx.profile.model.toExternalModel
+import com.anshtya.jetx.util.Constants.MEDIA_STORAGE
+import com.anshtya.jetx.util.Constants.PROFILE_TABLE
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
@@ -27,11 +29,6 @@ class ProfileRepositoryImpl @Inject constructor(
     private val supabaseStorage = client.storage
     private val supabasePostgrest = client.postgrest
     private val supabaseAuth = client.auth
-
-    private companion object {
-        const val PROFILE_TABLE = "profile"
-        const val MEDIA_STORAGE = "media"
-    }
 
     override val profileStatus: Flow<Boolean> = preferencesStore
         .getBooleanFlow(ProfileValues.PROFILE_CREATED)

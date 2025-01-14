@@ -42,6 +42,7 @@ import com.anshtya.jetx.chats.ui.components.ChatList
 import com.anshtya.jetx.chats.ui.components.EmptyChatsItem
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.IconButtonDropdownMenu
+import com.anshtya.jetx.sampledata.sampleChats
 
 @Composable
 fun ChatListRoute(
@@ -237,7 +238,7 @@ fun ArchivedChatsItem(
 private fun ChatsScreenPreview() {
     ComponentPreview {
         ChatListScreen(
-            state = ChatListState.Success(emptyList()),
+            state = ChatListState.Success(sampleChats),
             archivedChatEmpty = true,
             selectedFilter = FilterOption.ALL,
             onChatClick = {},
