@@ -1,5 +1,7 @@
 package com.anshtya.jetx.auth.ui.createprofile
 
+import android.graphics.Bitmap
+import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,11 +21,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -37,8 +40,8 @@ import com.anshtya.jetx.R
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.ProfilePicture
-import com.anshtya.jetx.common.ui.getImageFromUri
 import com.anshtya.jetx.common.ui.rememberMediaPicker
+import com.anshtya.jetx.common.util.toBitmap
 import kotlinx.coroutines.launch
 
 @Composable
@@ -70,18 +73,23 @@ private fun CreateProfileScreen(
     onContinueClick: () -> Unit,
     onProfileCreated: () -> Unit,
     onBackClick: () -> Unit,
-    setProfilePicture: (ImageBitmap) -> Unit,
+    setProfilePicture: (Bitmap) -> Unit,
     onErrorShown: () -> Unit
 ) {
     LaunchedEffect(uiState.profileCreated) {
         if (uiState.profileCreated) onProfileCreated()
     }
 
+    var selectedProfilePicture by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
     val pickMedia = rememberMediaPicker { uri ->
         if (uri != null) {
-            val image = getImageFromUri(context, uri)
-            setProfilePicture(image)
+            selectedProfilePicture = uri
+        }
+    }
+    LaunchedEffect(selectedProfilePicture) {
+        if (selectedProfilePicture != null) {
+            setProfilePicture(selectedProfilePicture!!.toBitmap(context))
         }
     }
 
@@ -119,7 +127,7 @@ private fun CreateProfileScreen(
             )
             Spacer(Modifier.height(30.dp))
             ProfilePicture(
-                image = uiState.profilePicture,
+                model = uiState.profilePicture,
                 onClick = pickMedia,
                 modifier = Modifier.size(100.dp)
             )

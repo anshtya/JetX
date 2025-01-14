@@ -1,8 +1,7 @@
 package com.anshtya.jetx.auth.data
 
 import com.anshtya.jetx.auth.data.model.AuthStatus
-import com.anshtya.jetx.preferences.PreferencesStore
-import com.anshtya.jetx.preferences.values.AuthValues
+import com.anshtya.jetx.profile.ProfileRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
@@ -13,7 +12,7 @@ import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
     client: SupabaseClient,
-    private val preferencesStore: PreferencesStore
+    private val profileRepository: ProfileRepository
 ) : AuthRepository {
     private val auth = client.auth
 
@@ -35,7 +34,12 @@ class AuthRepositoryImpl @Inject constructor(
                 this.email = email
                 this.password = password
             }
-            preferencesStore.setBoolean(AuthValues.PROFILE_CREATED, true)
+            val authStatus = auth.sessionStatus.value
+            if (authStatus is SessionStatus.Authenticated) {
+                val userId = authStatus.session.user?.id
+                    ?: throw IllegalStateException("User is not authenticated. Can't create profile")
+                profileRepository.fetchAndSaveProfile(userId)
+            }
         }
     }
 
@@ -53,6 +57,7 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun signOut(): Result<Unit> {
         return kotlin.runCatching {
+            profileRepository.deleteProfiles()
             auth.signOut()
         }
     }

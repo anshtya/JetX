@@ -18,4 +18,14 @@
     <string name="name">Name</string>
     <string name="username">Username</string>
     <string name="continue_text">Continue</string>
+    <string name="filter_all">All</string>
+    <string name="filter_unread">Unread</string>
+    <string name="filter_favorites">Favorites</string>
+    <string name="archived">Archived</string>
+    <string name="no_chats">No chats</string>
+    <string name="search_bar_padding">search_bar_padding</string>
+    <string name="search">Search</string>
+    <string name="clear_search">Clear search</string>
+    <string name="send_message">Send message</string>
+    <string name="chatinputfield_placeholder">Message</string>
 </resources>

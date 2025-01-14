@@ -3,6 +3,7 @@ package com.anshtya.jetx.home
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -38,20 +39,21 @@ fun Home(
     onNavigateToCreateProfile: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val userState by viewModel.userState.collectAsStateWithLifecycle()
 
-    if (state.authenticated == true && state.profileCreated == true) {
-        Home()
-    } else if (state.authenticated == false) {
-        LaunchedEffect(Unit) {
-            onNavigateToAuth()
-        }
-    } else if (state.profileCreated == false) {
-        LaunchedEffect(Unit) {
-            onNavigateToCreateProfile()
+    userState?.let {
+        if (it.authenticated && it.profileCreated) {
+            Home()
+        } else {
+            LaunchedEffect(Unit) {
+                if (!it.authenticated) {
+                    onNavigateToAuth()
+                } else {
+                    onNavigateToCreateProfile()
+                }
+            }
         }
     }
-
 }
 
 @Composable
@@ -83,12 +85,14 @@ private fun Home() {
                 .fillMaxSize()
                 .padding(innerPadding)
                 .consumeWindowInsets(innerPadding)
+                .imePadding()
         ) {
             NavHost(
                 navController = navController,
                 startDestination = Chats
             ) {
                 chats(
+                    navController = navController,
                     onNavigateToSettings = navController::navigateToSettings
                 )
                 calls()

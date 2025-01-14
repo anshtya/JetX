@@ -5,11 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.auth.data.AuthRepository
 import com.anshtya.jetx.auth.data.model.AuthStatus
 import com.anshtya.jetx.profile.ProfileRepository
-import com.anshtya.jetx.profile.model.ProfileStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -18,34 +18,31 @@ class HomeViewModel @Inject constructor(
     authRepository: AuthRepository,
     profileRepository: ProfileRepository
 ) : ViewModel() {
-    val state: StateFlow<HomeState> =
-        combine(
-            authRepository.authStatus,
-            profileRepository.profileStatus
-        ) { authStatus, profileStatus ->
-            val authenticated = when (authStatus) {
-                AuthStatus.AUTHORIZED -> true
-                AuthStatus.UNAUTHORIZED -> false
+    val userState: StateFlow<UserState?> = authRepository.authStatus
+        .map {
+            when (it) {
+                AuthStatus.AUTHORIZED -> {
+                    UserState(
+                        authenticated = true,
+                        profileCreated = profileRepository.profileStatus.first()
+                    )
+                }
+                AuthStatus.UNAUTHORIZED -> {
+                    UserState(
+                        authenticated = false,
+                        profileCreated = false
+                    )
+                }
                 else -> null
             }
-
-            val profileCreated = when (profileStatus) {
-                ProfileStatus.CREATED -> true
-                ProfileStatus.NOT_CREATED -> false
-            }
-
-            HomeState(
-                authenticated = authenticated,
-                profileCreated = profileCreated
-            )
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = HomeState()
+            initialValue = null
         )
 }
 
-data class HomeState(
-    val authenticated: Boolean? = null,
-    val profileCreated: Boolean? = null
+data class UserState(
+    val authenticated: Boolean,
+    val profileCreated: Boolean
 )

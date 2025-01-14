@@ -1,13 +1,21 @@
 package com.anshtya.jetx.profile
 
-import com.anshtya.jetx.profile.model.Profile
-import com.anshtya.jetx.profile.model.ProfileStatus
+import android.graphics.Bitmap
+import com.anshtya.jetx.common.model.UserProfile
 import kotlinx.coroutines.flow.Flow
 
 interface ProfileRepository {
-    val profileStatus: Flow<ProfileStatus>
+    val profileStatus: Flow<Boolean>
 
-    suspend fun createProfile(profile: Profile): Result<Unit>
+    suspend fun createProfile(
+        name: String,
+        username: String,
+        profilePicture: Bitmap?
+    ): Result<Unit>
 
-    suspend fun getProfile(id: String): Result<Profile>
+    suspend fun fetchAndSaveProfile(id: String)
+
+    suspend fun searchProfiles(query: String): List<UserProfile>
+
+    suspend fun deleteProfiles()
 }

@@ -1,9 +1,8 @@
 package com.anshtya.jetx.auth.ui.createprofile
 
-import androidx.compose.ui.graphics.ImageBitmap
+import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.profile.model.Profile
 import com.anshtya.jetx.profile.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,9 +30,9 @@ class CreateProfileViewModel @Inject constructor(
         }
     }
 
-    fun setProfilePicture(imageBitmap: ImageBitmap) {
+    fun setProfilePicture(profilePicture: Bitmap) {
         _uiState.update {
-            it.copy(profilePicture = imageBitmap)
+            it.copy(profilePicture = profilePicture)
         }
     }
 
@@ -60,11 +59,9 @@ class CreateProfileViewModel @Inject constructor(
             }
 
             val result = profileRepository.createProfile(
-                profile = Profile(
-                    name = state.name,
-                    username = state.username,
-                    profilePicture = state.profilePicture
-                )
+                name = state.name,
+                username = state.username,
+                profilePicture = state.profilePicture
             )
 
             if (result.isSuccess) {
@@ -73,7 +70,10 @@ class CreateProfileViewModel @Inject constructor(
                 }
             } else {
                 _uiState.update {
-                    it.copy(errorMessage = result.exceptionOrNull()?.message)
+                    it.copy(
+                        continueButtonEnabled = true,
+                        errorMessage = result.exceptionOrNull()?.message
+                    )
                 }
             }
         }
@@ -117,7 +117,7 @@ class CreateProfileViewModel @Inject constructor(
 data class CreateProfileUiState(
     val name: String = "",
     val username: String = "",
-    val profilePicture: ImageBitmap? = null,
+    val profilePicture: Bitmap? = null,
     val nameError: String? = null,
     val usernameError: String? = null,
     val errorMessage: String? = null,
