@@ -2,7 +2,6 @@ package com.anshtya.jetx.chats.ui.archivedchatlist
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -19,10 +18,10 @@ import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
 import com.anshtya.jetx.chats.ui.chatlist.ChatListState
 import com.anshtya.jetx.chats.ui.chatlist.ChatListViewModel
 import com.anshtya.jetx.chats.ui.components.ChatList
-import com.anshtya.jetx.chats.ui.components.EmptyChatsItem
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.sampledata.sampleChats
+import com.anshtya.jetx.util.Constants.defaultPadding
 
 @Composable
 fun ArchivedChatListRoute(
@@ -60,16 +59,15 @@ private fun ArchivedChatListScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .padding(horizontal = defaultPadding)
         ) {
-            if (state is ChatListState.Success && state.list.isNotEmpty()) {
+            if (state is ChatListState.Success) {
                 ChatList(
                     chatList = state.list,
                     onChatClick = onChatClick,
                     onChatLongClick = {},
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxSize()
                 )
-            } else {
-                EmptyChatsItem(Modifier.fillMaxSize())
             }
         }
     }

@@ -1,19 +1,18 @@
 package com.anshtya.jetx.chats.ui.chat
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -30,6 +29,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,7 +57,7 @@ import com.anshtya.jetx.common.ui.ProfilePicture
 import com.anshtya.jetx.common.ui.message.MessageItemContent
 import com.anshtya.jetx.sampledata.sampleChatMessages
 import com.anshtya.jetx.sampledata.sampleUsers
-import com.anshtya.jetx.util.Constants
+import com.anshtya.jetx.util.Constants.defaultPadding
 
 @Composable
 fun ChatRoute(
@@ -75,7 +75,6 @@ fun ChatRoute(
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ChatScreen(
     recipientUser: RecipientUser?,
@@ -83,58 +82,56 @@ private fun ChatScreen(
     onMessageSent: (String) -> Unit,
     onBackClick: () -> Unit
 ) {
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(chatMessages) {
+        listState.scrollToItem(0)
+    }
+
     Scaffold(
         topBar = {
             ChatTopAppBar(
                 recipientUser = recipientUser,
                 onBackClick = onBackClick
             )
+        },
+        bottomBar = {
+            ChatInput(onMessageSent = onMessageSent)
         }
     ) { paddingValues ->
-        Column(
+        var isSenderState: Boolean? = remember { false }
+
+        LazyColumn(
+            state = listState,
+            reverseLayout = true,
+            contentPadding = PaddingValues(horizontal = defaultPadding, vertical = 2.dp),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // State for adding additional top padding if message's sender changes
-            var isSenderState: Boolean? = remember { false }
+            chatMessages.messages.forEach { (date, messages) ->
+                itemsIndexed(
+                    items = messages,
+                    key = { _, message -> message.id }
+                ) { index, message ->
+                    val isSender = message.senderId != recipientUser?.id
+                    val bottomPadding = if (isSenderState != isSender && index > 0) {
+                        isSenderState = isSender
+                        4.dp
+                    } else 0.dp
 
-            LazyColumn(
-                contentPadding = PaddingValues(
-                    horizontal = Constants.defaultPadding, vertical = 2.dp
-                ),
-                modifier = Modifier.weight(1f)
-            ) {
-                chatMessages.messages.forEach { (date, messages) ->
-                    stickyHeader {
-                        DateHeader(
-                            date = date,
-                            modifier = Modifier.padding(top = 8.dp, bottom = 10.dp)
-                        )
-                    }
-                    itemsIndexed(
-                        items = messages,
-                        key = { _, message -> message.id }
-                    ) { index, message ->
-                        val isSender = message.senderId != recipientUser?.id
-                        val topPadding = if (isSenderState != isSender && index > 0) {
-                            isSenderState = isSender
-                            4.dp
-                        } else 0.dp
-
-                        MessageItem(
-                            text = message.text,
-                            time = message.createdAt,
-                            status = message.status,
-                            isSender = isSender,
-                            modifier = Modifier.padding(top = topPadding, bottom = 2.dp)
-                        )
-                    }
+                    MessageItem(
+                        text = message.text,
+                        time = message.createdAt,
+                        status = message.status,
+                        isSender = isSender,
+                        modifier = Modifier.padding(top = 2.dp, bottom = bottomPadding)
+                    )
+                }
+                item(key = date) {
+                    DateHeader(date = date)
                 }
             }
-            ChatInput(
-                onMessageSent = onMessageSent
-            )
         }
     }
 }
@@ -195,7 +192,7 @@ private fun ChatInput(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .heightIn(56.dp)
     ) {
         ChatInputField(
             inputText = inputText,
@@ -261,7 +258,9 @@ private fun DateHeader(
 ) {
     Row(
         horizontalArrangement = Arrangement.Center,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp)
     ) {
         Surface(
             shape = RoundedCornerShape(4.dp),

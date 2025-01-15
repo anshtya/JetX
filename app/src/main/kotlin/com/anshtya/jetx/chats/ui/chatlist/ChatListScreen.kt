@@ -2,9 +2,8 @@ package com.anshtya.jetx.chats.ui.chatlist
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -39,10 +38,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
 import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
 import com.anshtya.jetx.chats.ui.components.ChatList
-import com.anshtya.jetx.chats.ui.components.EmptyChatsItem
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.IconButtonDropdownMenu
 import com.anshtya.jetx.sampledata.sampleChats
+import com.anshtya.jetx.util.Constants.defaultPadding
 
 @Composable
 fun ChatListRoute(
@@ -101,37 +100,32 @@ private fun ChatListScreen(
             }
         }
     ) { paddingValues ->
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(paddingValues)
+                .padding(horizontal = defaultPadding)
         ) {
+            FilterRow(
+                filterOptions = filterOptions,
+                selectedFilter = selectedFilter,
+                onFilterOptionClick = onFilterOptionClick,
+                modifier = Modifier.padding(bottom = 10.dp)
+            )
             if (state is ChatListState.Success) {
-                if (state.list.isNotEmpty()) {
-                    ChatList(
-                        chatList = state.list,
-                        onChatClick = onChatClick,
-                        onChatLongClick = {},
-                        modifier = Modifier.fillMaxWidth(),
-                        slot = {
+                ChatList(
+                    chatList = state.list,
+                    onChatClick = onChatClick,
+                    onChatLongClick = {},
+                    modifier = Modifier.fillMaxWidth(),
+                    slot = {
+                        if (!archivedChatEmpty) {
                             item {
-                                FilterRow(
-                                    filterOptions = filterOptions,
-                                    selectedFilter = selectedFilter,
-                                    onFilterOptionClick = onFilterOptionClick
-                                )
-                            }
-
-                            if (!archivedChatEmpty) {
-                                item {
-                                    ArchivedChatsItem(onArchivedChatsClick = onArchivedChatsClick)
-                                }
+                                ArchivedChatsItem(onArchivedChatsClick = onArchivedChatsClick)
                             }
                         }
-                    )
-                } else {
-                    EmptyChatsItem(Modifier.fillMaxSize())
-                }
+                    }
+                )
             }
         }
     }
@@ -187,12 +181,13 @@ private fun ChatListTopAppBar(
 private fun FilterRow(
     filterOptions: List<FilterOption>,
     selectedFilter: FilterOption,
-    onFilterOptionClick: (FilterOption) -> Unit
+    onFilterOptionClick: (FilterOption) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     LazyRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
         items(
             items = filterOptions

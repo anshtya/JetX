@@ -10,7 +10,7 @@ import java.util.UUID
 
 @Dao
 interface MessageDao {
-    @Query("SELECT * FROM message WHERE chat_id = :chatId")
+    @Query("SELECT * FROM message WHERE chat_id = :chatId ORDER BY created_at DESC")
     fun getChatMessages(chatId: Int): Flow<List<MessageEntity>>
 
     @Query("SELECT * FROM message WHERE id = :messageId")

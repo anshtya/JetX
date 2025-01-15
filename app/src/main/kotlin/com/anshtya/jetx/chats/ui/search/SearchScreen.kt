@@ -50,7 +50,7 @@ import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.DayNightPreview
 import com.anshtya.jetx.common.ui.ProfilePicture
-import com.anshtya.jetx.util.Constants
+import com.anshtya.jetx.util.Constants.defaultPadding
 import java.util.UUID
 
 @Composable
@@ -138,7 +138,7 @@ private fun ProfileSearchBar(
     modifier: Modifier = Modifier
 ) {
     val searchBarPadding by animateDpAsState(
-        targetValue = if (searchBarActive) 0.dp else Constants.defaultPadding,
+        targetValue = if (searchBarActive) 0.dp else defaultPadding,
         label = stringResource(R.string.search_bar_padding),
         finishedListener = {
             if (it == 0.dp) {
