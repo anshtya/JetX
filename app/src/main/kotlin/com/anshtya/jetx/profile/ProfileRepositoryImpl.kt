@@ -85,6 +85,12 @@ class ProfileRepositoryImpl @Inject constructor(
                     ilike(column = "username", pattern = pattern)
                     ilike(column = "name", pattern = pattern)
                 }
+                and {
+                    neq(
+                        column = "user_id",
+                        value = preferencesStore.getString(ProfileValues.USER_ID)!!
+                    )
+                }
             }
         }
             .decodeList<NetworkProfile>()
