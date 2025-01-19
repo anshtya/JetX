@@ -5,14 +5,14 @@ import com.anshtya.jetx.chats.data.MessageListenerImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ViewModelComponent
-import dagger.hilt.android.scopes.ViewModelScoped
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @Module
-@InstallIn(ViewModelComponent::class)
+@InstallIn(SingletonComponent::class)
 abstract class MessageListenerModule {
     @Binds
-    @ViewModelScoped
+    @Singleton
     abstract fun bindMessageListener(
         impl: MessageListenerImpl
     ) : MessageListener

@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "383829d95434660651be57706da286de",
+    "identityHash": "d4e411c358efc7b216a66cf47e67f372",
     "entities": [
       {
         "tableName": "chat",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `recipient_id` TEXT NOT NULL, `is_archived` INTEGER NOT NULL, `is_favorite` INTEGER NOT NULL, FOREIGN KEY(`recipient_id`) REFERENCES `user_profile`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `recipient_id` TEXT NOT NULL, `unread_count` INTEGER NOT NULL, `is_archived` INTEGER NOT NULL, `is_favorite` INTEGER NOT NULL, FOREIGN KEY(`recipient_id`) REFERENCES `user_profile`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -18,6 +18,12 @@
             "fieldPath": "recipientId",
             "columnName": "recipient_id",
             "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unreadCount",
+            "columnName": "unread_count",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -248,7 +254,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '383829d95434660651be57706da286de')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd4e411c358efc7b216a66cf47e67f372')"
     ]
   }
 }

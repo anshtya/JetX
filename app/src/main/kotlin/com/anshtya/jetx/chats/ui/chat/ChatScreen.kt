@@ -54,10 +54,12 @@ import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.IconButtonDropdownMenu
 import com.anshtya.jetx.common.ui.ProfilePicture
+import com.anshtya.jetx.common.ui.message.MessageDetails
 import com.anshtya.jetx.common.ui.message.MessageItemContent
 import com.anshtya.jetx.sampledata.sampleChatMessages
 import com.anshtya.jetx.sampledata.sampleUsers
 import com.anshtya.jetx.util.Constants.defaultPadding
+import java.util.UUID
 
 @Composable
 fun ChatRoute(
@@ -67,10 +69,17 @@ fun ChatRoute(
     val chatUser by viewModel.recipientUser.collectAsStateWithLifecycle()
     val chatMessages by viewModel.chatMessages.collectAsStateWithLifecycle()
 
+    LaunchedEffect(chatMessages.messages.isNotEmpty()) {
+        if (chatMessages.messages.isNotEmpty()) {
+            viewModel.markChatSeen()
+        }
+    }
+
     ChatScreen(
         recipientUser = chatUser,
         chatMessages = chatMessages,
         onMessageSent = viewModel::sendMessage,
+        onMessageSeen = viewModel::markMessageSeen,
         onBackClick = onBackClick
     )
 }
@@ -80,6 +89,7 @@ private fun ChatScreen(
     recipientUser: RecipientUser?,
     chatMessages: DateChatMessages,
     onMessageSent: (String) -> Unit,
+    onMessageSeen: (UUID) -> Unit,
     onBackClick: () -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -99,7 +109,7 @@ private fun ChatScreen(
             ChatInput(onMessageSent = onMessageSent)
         }
     ) { paddingValues ->
-        var isSenderState: Boolean? = remember { false }
+        var isAuthorState: Boolean? = remember { false }
 
         LazyColumn(
             state = listState,
@@ -114,9 +124,9 @@ private fun ChatScreen(
                     items = messages,
                     key = { _, message -> message.id }
                 ) { index, message ->
-                    val isSender = message.senderId != recipientUser?.id
-                    val bottomPadding = if (isSenderState != isSender && index > 0) {
-                        isSenderState = isSender
+                    val isAuthor = message.senderId != recipientUser?.id
+                    val bottomPadding = if (isAuthorState != isAuthor && index > 0) {
+                        isAuthorState = isAuthor
                         4.dp
                     } else 0.dp
 
@@ -124,7 +134,8 @@ private fun ChatScreen(
                         text = message.text,
                         time = message.createdAt,
                         status = message.status,
-                        isSender = isSender,
+                        isAuthor = isAuthor,
+                        onMessageSeen = { onMessageSeen(message.id) },
                         modifier = Modifier.padding(top = 2.dp, bottom = bottomPadding)
                     )
                 }
@@ -283,21 +294,26 @@ private fun MessageItem(
     text: String,
     time: String,
     status: MessageStatus,
-    isSender: Boolean,
+    isAuthor: Boolean,
+    onMessageSeen: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    LaunchedEffect(Unit) {
+        if (!isAuthor && status == MessageStatus.RECEIVED) onMessageSeen()
+    }
+
     Row(
-        horizontalArrangement = if (isSender) Arrangement.End else Arrangement.Start,
+        horizontalArrangement = if (isAuthor) Arrangement.End else Arrangement.Start,
         modifier = modifier.fillMaxWidth()
     ) {
         Surface(
             shape = RoundedCornerShape(
                 topStart = 8.dp,
                 topEnd = 8.dp,
-                bottomStart = if (isSender) 8.dp else 0.dp,
-                bottomEnd = if (isSender) 0.dp else 8.dp
+                bottomStart = if (isAuthor) 8.dp else 0.dp,
+                bottomEnd = if (isAuthor) 0.dp else 8.dp
             ),
-            color = if (isSender) {
+            color = if (isAuthor) {
                 MaterialTheme.colorScheme.primary
             } else {
                 MaterialTheme.colorScheme.surfaceContainerHighest
@@ -305,11 +321,15 @@ private fun MessageItem(
         ) {
             MessageItemContent(
                 message = text,
-                time = time,
                 modifier = Modifier
                     .sizeIn(maxWidth = 250.dp)
                     .padding(horizontal = 8.dp, vertical = 6.dp)
-            )
+            ) {
+                MessageDetails(
+                    time = time,
+                    status = if (isAuthor) status else null
+                )
+            }
         }
     }
 }
@@ -327,7 +347,8 @@ private fun ChatScreenPreview() {
                 username = user.username,
                 pictureUrl = user.pictureUrl
             ),
-            onMessageSent = {}
+            onMessageSent = {},
+            onMessageSeen = {},
         )
     }
 }
@@ -341,7 +362,8 @@ private fun MessageItemPreview() {
             text = message.text,
             time = message.createdAt,
             status = message.status,
-            isSender = true
+            isAuthor = true,
+            onMessageSeen = {}
         )
     }
 }

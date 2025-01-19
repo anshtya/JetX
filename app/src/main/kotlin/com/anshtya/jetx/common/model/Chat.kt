@@ -8,6 +8,8 @@ data class Chat(
     val username: String,
     val profilePicture: String?,
     val message: String,
+    val unreadCount: Int,
     val timestamp: String,
-    val messageStatus: MessageStatus
+    val messageStatus: MessageStatus,
+    val isSender: Boolean
 )

@@ -3,13 +3,18 @@ package com.anshtya.jetx.chats.ui.components
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,6 +29,7 @@ import com.anshtya.jetx.common.model.Chat
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.DayNightPreview
 import com.anshtya.jetx.common.ui.ProfilePicture
+import com.anshtya.jetx.common.ui.message.MessageStatusIcon
 import com.anshtya.jetx.sampledata.sampleChats
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -74,17 +80,49 @@ fun ChatItem(
                 Text(
                     text = chat.timestamp,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = if (chat.unreadCount > 0) MaterialTheme.colorScheme.primary else Color.Gray,
                 )
             }
             Spacer(Modifier.height(2.dp))
-            Text(
-                text = chat.message,
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 1,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
-            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                if (chat.isSender) {
+                    MessageStatusIcon(
+                        status = chat.messageStatus,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(end = 4.dp)
+                    )
+                    Spacer(Modifier.width(2.dp))
+                }
+                Text(
+                    text = chat.message,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.Gray,
+                    modifier = Modifier.weight(1f)
+                )
+                if (chat.unreadCount > 0) {
+                    Spacer(Modifier.width(4.dp))
+                    Surface(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = CircleShape,
+                        modifier = Modifier.size(22.dp)
+                    ) {
+                        Box {
+                            Text(
+                                text = "${chat.unreadCount}",
+                                modifier = Modifier.align(Alignment.Center),
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

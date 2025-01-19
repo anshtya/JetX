@@ -5,11 +5,15 @@ import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Upsert
 import com.anshtya.jetx.database.entity.UserProfileEntity
+import java.util.UUID
 
 @Dao
 interface UserProfileDao {
-    @Query("SELECT * FROM user_profile WHERE username = :username")
-    suspend fun getUserProfile(username: String): UserProfileEntity?
+    @Query("SELECT * FROM user_profile WHERE id = :id")
+    suspend fun getUserProfile(id: UUID): UserProfileEntity?
+
+    @Query("SELECT EXISTS(SELECT * FROM user_profile WHERE id = :id)")
+    suspend fun userProfileExists(id: UUID): Boolean
 
     @Upsert
     suspend fun upsertUserProfile(userProfile: UserProfileEntity)

@@ -15,8 +15,9 @@ interface ChatDao {
     @Query(
         value = """
             SELECT 
-                chat.id, chat.recipient_id, user_profile.username, user_profile.profile_picture, 
-                message.text, message.created_at, message.status
+                chat.id, chat.recipient_id, chat.unread_count,
+                user_profile.username, user_profile.profile_picture, 
+                message.text, message.sender_id, message.created_at, message.status
             FROM chat
             JOIN message ON chat.id = message.chat_id
             JOIN user_profile ON chat.recipient_id = user_profile.id
@@ -57,4 +58,10 @@ interface ChatDao {
 
     @Query("DELETE FROM chat WHERE id in (:chatIds)")
     suspend fun deleteChats(chatIds: List<Int>)
+
+    @Query("UPDATE chat SET unread_count = unread_count + 1 WHERE id = :chatId")
+    suspend fun updateUnreadCount(chatId: Int)
+
+    @Query("UPDATE chat SET unread_count = 0 WHERE id = :chatId")
+    suspend fun markChatAsRead(chatId: Int)
 }

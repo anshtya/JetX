@@ -3,7 +3,6 @@ package com.anshtya.jetx.chats.ui.chatlist
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.chats.data.ChatsRepository
-import com.anshtya.jetx.chats.data.MessageListener
 import com.anshtya.jetx.common.model.Chat
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,14 +21,13 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
-    chatsRepository: ChatsRepository,
-    private val messageListener: MessageListener
+    private val chatsRepository: ChatsRepository
 ) : ViewModel() {
     private val _selectedFilter = MutableStateFlow(FilterOption.ALL)
     val selectedFilter = _selectedFilter.asStateFlow()
 
     init {
-        viewModelScope.launch { messageListener.subscribe() }
+        viewModelScope.launch { chatsRepository.subscribeChanges() }
     }
 
     val chatList: StateFlow<ChatListState> = _selectedFilter
@@ -68,7 +66,7 @@ class ChatListViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        runBlocking { messageListener.unsubscribe() }
+        runBlocking { chatsRepository.unsubscribeChanges() }
     }
 }
 

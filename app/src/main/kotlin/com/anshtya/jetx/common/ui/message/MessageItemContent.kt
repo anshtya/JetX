@@ -5,15 +5,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.Constraints
 
 @Composable
 fun MessageItemContent(
     message: String,
-    time: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    details: @Composable () -> Unit
 ) {
     val itemProperties = remember { MessageItemProperties() }
 
@@ -31,12 +30,7 @@ fun MessageItemContent(
                     textLayoutResult.getLineRight(textLayoutResult.lineCount - 1)
             }
         )
-
-        Text(
-            text = time,
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray
-        )
+        details()
     }
 }
 
@@ -55,22 +49,22 @@ private fun MessageLayout(
             }
 
             val message = placeables[0]
-            val time = placeables[1]
+            val details = placeables[1]
 
-            if (itemProperties.textLineCount > 1 && itemProperties.lastLineWidth + time.measuredWidth >= itemProperties.textWidth) {
+            if (itemProperties.textLineCount > 1 && itemProperties.lastLineWidth + details.measuredWidth >= itemProperties.textWidth) {
                 itemProperties.itemWidth = message.measuredWidth
-                itemProperties.itemHeight = message.measuredHeight + time.measuredHeight
-            } else if (itemProperties.textLineCount > 1 && itemProperties.lastLineWidth + time.measuredWidth < itemProperties.textWidth) {
+                itemProperties.itemHeight = message.measuredHeight + details.measuredHeight
+            } else if (itemProperties.textLineCount > 1 && itemProperties.lastLineWidth + details.measuredWidth < itemProperties.textWidth) {
                 itemProperties.itemWidth = message.measuredWidth
                 itemProperties.itemHeight = message.measuredHeight
-            } else if (itemProperties.textLineCount == 1 && message.measuredWidth + time.measuredWidth >= constraints.maxWidth) {
+            } else if (itemProperties.textLineCount == 1 && message.measuredWidth + details.measuredWidth >= constraints.maxWidth) {
                 itemProperties.itemWidth = message.measuredWidth
-                itemProperties.itemHeight = message.measuredHeight + time.measuredHeight
+                itemProperties.itemHeight = message.measuredHeight + details.measuredHeight
             } else {
-                itemProperties.itemWidth = message.measuredWidth + time.measuredWidth
+                itemProperties.itemWidth = message.measuredWidth + details.measuredWidth
                 itemProperties.itemHeight = message.measuredHeight
                 // Add more horizontal spacing between message and time
-                itemProperties.itemWidth += 10
+                itemProperties.itemWidth += 12
             }
 
             // Add more vertical spacing above time
@@ -81,9 +75,9 @@ private fun MessageLayout(
                 height = itemProperties.itemHeight
             ) {
                 message.placeRelative(0, 0)
-                time.placeRelative(
-                    x = itemProperties.itemWidth - time.width,
-                    y = itemProperties.itemHeight - time.height
+                details.placeRelative(
+                    x = itemProperties.itemWidth - details.width,
+                    y = itemProperties.itemHeight - details.height
                 )
             }
         }

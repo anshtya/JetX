@@ -59,7 +59,7 @@ data class MessageEntity(
     val attachmentUri: String?,
     @ColumnInfo(name = "created_at")
     val createdAt: ZonedDateTime = ZonedDateTime.now(ZoneId.of("UTC")),
-    val status: MessageStatus = MessageStatus.SENT
+    val status: MessageStatus
 )
 
 fun MessageEntity.toExternalModel(): Message {

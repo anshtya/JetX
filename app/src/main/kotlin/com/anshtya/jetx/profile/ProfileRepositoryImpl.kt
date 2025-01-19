@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import com.anshtya.jetx.common.model.UserProfile
 import com.anshtya.jetx.database.dao.UserProfileDao
 import com.anshtya.jetx.database.entity.UserProfileEntity
+import com.anshtya.jetx.database.entity.toExternalModel
 import com.anshtya.jetx.preferences.PreferencesStore
 import com.anshtya.jetx.preferences.values.ProfileValues
 import com.anshtya.jetx.profile.model.CreateProfileRequest
@@ -19,6 +20,7 @@ import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.io.ByteArrayOutputStream
+import java.util.UUID
 import javax.inject.Inject
 
 class ProfileRepositoryImpl @Inject constructor(
@@ -40,7 +42,8 @@ class ProfileRepositoryImpl @Inject constructor(
         profilePicture: Bitmap?
     ): Result<Unit> {
         return kotlin.runCatching {
-            val userId = supabaseAuth.retrieveUserForCurrentSession().id
+            val userId = supabaseAuth.currentUserOrNull()?.id
+                ?: throw IllegalStateException("User should be logged in to create profile")
             var profilePicturePath: String? = null
 
             if (profilePicture != null) {
@@ -77,6 +80,9 @@ class ProfileRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getProfile(id: UUID): UserProfile? =
+        userProfileDao.getUserProfile(id)?.toExternalModel()
+
     override suspend fun searchProfiles(query: String): List<UserProfile> {
         val pattern = "%${query}%"
         return supabasePostgrest.from(PROFILE_TABLE).select {
@@ -96,6 +102,9 @@ class ProfileRepositoryImpl @Inject constructor(
             .decodeList<NetworkProfile>()
             .map(NetworkProfile::toExternalModel)
     }
+
+    override suspend fun profileExists(id: UUID): Boolean =
+        userProfileDao.userProfileExists(id)
 
     override suspend fun deleteProfiles() {
         userProfileDao.deleteAllProfiles()
