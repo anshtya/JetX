@@ -1,13 +1,12 @@
 package com.anshtya.jetx.chats.data
 
 import com.anshtya.jetx.chats.data.model.DateChatMessages
-import com.anshtya.jetx.chats.data.model.NetworkMessage
-import com.anshtya.jetx.chats.data.model.toIncomingMessage
-import com.anshtya.jetx.chats.data.model.toNetworkMessage
 import com.anshtya.jetx.common.coroutine.DefaultScope
 import com.anshtya.jetx.common.model.Chat
 import com.anshtya.jetx.common.model.IncomingMessage
 import com.anshtya.jetx.common.model.MessageStatus
+import com.anshtya.jetx.common.model.NetworkMessage
+import com.anshtya.jetx.common.model.toNetworkMessage
 import com.anshtya.jetx.database.dao.ChatDao
 import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
 import com.anshtya.jetx.database.entity.toExternalModel
@@ -35,7 +34,6 @@ import javax.inject.Inject
 class ChatsRepositoryImpl @Inject constructor(
     client: SupabaseClient,
     private val chatDao: ChatDao,
-    private val profileRepository: ProfileRepository,
     private val messageListener: MessageListener,
     private val localMessagesDataSource: LocalMessagesDataSource,
     @DefaultScope private val coroutineScope: CoroutineScope
@@ -114,6 +112,10 @@ class ChatsRepositoryImpl @Inject constructor(
             attachmentUri = attachment,
             status = MessageStatus.SENDING
         )
+        val profileExists = profileRepository.profileExists(recipientId)
+        if (!profileExists) {
+            profileRepository.fetchAndSaveProfile(recipientId.toString())
+        }
         localMessagesDataSource.insertMessage(message, isCurrentUser = true)
         messagesTable.insert(message.toNetworkMessage())
         localMessagesDataSource.updateMessageStatus(message.id, MessageStatus.SENT)
@@ -145,56 +147,21 @@ class ChatsRepositoryImpl @Inject constructor(
     }
 
     private fun listenMessageChanges() {
-        val userId = UUID.fromString(supabaseAuth.currentUserOrNull()?.id)
         messageListener.changes.onEach { action ->
             when (action) {
-                is PostgresAction.Insert -> {
-                    val message = action.decodeRecord<NetworkMessage>()
-                    val senderId = message.senderId
-                    val profileExists = profileRepository.profileExists(senderId)
-                    if (!profileExists) {
-                        profileRepository.fetchAndSaveProfile(senderId.toString())
-                    }
-                    localMessagesDataSource.insertMessage(
-                        incomingMessage = message.toIncomingMessage(),
-                        isCurrentUser = false
-                    )
-                    messagesTable.update(
-                        update = { set("has_received", true) },
-                        request = {
-                            filter { eq("id", message.id) }
-                        }
-                    )
-                }
-
                 is PostgresAction.Update -> {
                     val networkMessage = action.decodeRecord<NetworkMessage>()
                     val storedMessage = localMessagesDataSource.getChatMessage(networkMessage.id)
-                    if (userId == networkMessage.recipientId) {
-                        // Discard message status db updates because they have already been updated
-                        // when seeing or receiving messages
-                        if (networkMessage.text != storedMessage.text) {
-                            localMessagesDataSource.updateMessage(
-                                storedMessage.copy(text = networkMessage.text)
-                            )
-                        }
-                    } else {
-                        // Discard text message db updates because they have already been updated
-                        // before updating messages on network
-                        val hasSeen = storedMessage.status == MessageStatus.SEEN
-                        val hasReceived = storedMessage.status == MessageStatus.RECEIVED
-                        if (networkMessage.hasReceived != hasReceived || networkMessage.hasSeen != hasSeen) {
-                            localMessagesDataSource.updateMessage(
-                                storedMessage.copy(
-                                    status = if (networkMessage.hasSeen) {
-                                        MessageStatus.SEEN
-                                    } else if (networkMessage.hasReceived) {
-                                        MessageStatus.RECEIVED
-                                    } else storedMessage.status
-                                )
-                            )
-                        }
-                    }
+                    localMessagesDataSource.updateMessage(
+                        storedMessage.copy(
+                            text = networkMessage.text,
+                            status = if (networkMessage.hasSeen!!) {
+                                MessageStatus.SEEN
+                            } else if (networkMessage.hasReceived!!) {
+                                MessageStatus.RECEIVED
+                            } else storedMessage.status
+                        )
+                    )
                 }
 
                 else -> {}

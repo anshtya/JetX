@@ -27,10 +27,13 @@ class LocalMessagesDataSource @Inject constructor(
     ) {
         db.withTransaction {
             val chatId = if (isCurrentUser) {
-                chatDao.getChat(incomingMessage.recipientId)?.id!!
+                chatDao.getChat(incomingMessage.recipientId)?.id
+                    ?: chatDao.insertChat(ChatEntity(recipientId = incomingMessage.recipientId))
+                    .toInt()
             } else {
                 chatDao.getChat(incomingMessage.senderId)?.id
-                    ?: chatDao.insertChat(ChatEntity(recipientId = incomingMessage.senderId)).toInt()
+                    ?: chatDao.insertChat(ChatEntity(recipientId = incomingMessage.senderId))
+                        .toInt()
             }
 
             val messageEntity = MessageEntity(

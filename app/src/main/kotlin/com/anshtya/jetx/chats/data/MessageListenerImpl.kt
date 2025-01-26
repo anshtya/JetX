@@ -29,29 +29,12 @@ class MessageListenerImpl @Inject constructor(
     override suspend fun subscribe() {
         val userId = supabaseAuth.currentUserOrNull()?.id
             ?: throw IllegalStateException("User should be logged in to observe messages")
-        listenMessages(messagesChannel, userId)
         listenSenderMessageUpdates(messagesChannel, userId)
         messagesChannel.subscribe()
     }
 
     override suspend fun unsubscribe() {
         messagesChannel.unsubscribe()
-    }
-
-    private fun listenMessages(channel: RealtimeChannel, userId: String) {
-        channel.postgresChangeFlow<PostgresAction>(
-            schema = "public",
-            filter = {
-                table = "messages"
-                filter(
-                    filter = FilterOperation(
-                        column = "recipient_id",
-                        operator = FilterOperator.EQ,
-                        value = userId
-                    )
-                )
-            }
-        ).onEach { action -> _changes.emit(action) }.launchIn(coroutineScope)
     }
 
     private fun listenSenderMessageUpdates(channel: RealtimeChannel, userId: String) {

@@ -5,6 +5,7 @@ import com.anshtya.jetx.common.model.UserProfile
 import com.anshtya.jetx.database.dao.UserProfileDao
 import com.anshtya.jetx.database.entity.UserProfileEntity
 import com.anshtya.jetx.database.entity.toExternalModel
+import com.anshtya.jetx.fcm.FcmTokenManager
 import com.anshtya.jetx.preferences.PreferencesStore
 import com.anshtya.jetx.preferences.values.ProfileValues
 import com.anshtya.jetx.profile.model.CreateProfileRequest
@@ -25,6 +26,7 @@ import javax.inject.Inject
 
 class ProfileRepositoryImpl @Inject constructor(
     client: SupabaseClient,
+    private val fcmTokenManager: FcmTokenManager,
     private val preferencesStore: PreferencesStore,
     private val userProfileDao: UserProfileDao
 ) : ProfileRepository {
@@ -65,6 +67,7 @@ class ProfileRepositoryImpl @Inject constructor(
                 )
             )
             fetchAndSaveProfile(userId)
+            fcmTokenManager.addToken()
         }
     }
 
