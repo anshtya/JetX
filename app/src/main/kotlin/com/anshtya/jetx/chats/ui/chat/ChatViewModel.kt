@@ -7,15 +7,15 @@ import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.model.DateChatMessages
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -27,12 +27,12 @@ class ChatViewModel @Inject constructor(
     private val chatUserArgs = savedStateHandle.getStateFlow<ChatUserArgs?>(
         key = "chatUserArgs", initialValue = null
     )
-
-    private var messageSeenJob: Job? = null
+    private val chatId = MutableStateFlow<Int?>(null)
 
     val recipientUser: StateFlow<RecipientUser?> = chatUserArgs
         .filterNotNull()
         .mapLatest { userArgs ->
+            chatId.update { userArgs.chatId }
             RecipientUser(
                 id = userArgs.recipientId,
                 username = userArgs.username,
@@ -45,13 +45,9 @@ class ChatViewModel @Inject constructor(
             initialValue = null
         )
 
-    val chatMessages: StateFlow<DateChatMessages> = chatUserArgs
+    val chatMessages: StateFlow<DateChatMessages> = chatId
         .filterNotNull()
-        .flatMapLatest { userArgs ->
-            chatsRepository.getChatMessages(
-                chatId = userArgs.chatId ?: chatsRepository.getChatId(userArgs.recipientId)!!
-            )
-        }
+        .flatMapLatest { chatsRepository.getChatMessages(it) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -59,29 +55,24 @@ class ChatViewModel @Inject constructor(
         )
 
     fun sendMessage(message: String) {
-        val recipientUser = recipientUser.value ?: return
-
         viewModelScope.launch {
             chatsRepository.insertChatMessage(
-                recipientId = recipientUser.id,
+                recipientId = recipientUser.value!!.id,
                 text = message
             )
+
+            if (chatId.value == null) {
+                chatId.update { chatsRepository.getChatId(chatUserArgs.value!!.recipientId) }
+            }
         }
     }
 
-    fun markChatSeen() {
-        messageSeenJob = viewModelScope.launch {
-            chatsRepository.markChatAsRead(chatUserArgs.value?.recipientId!!)
-            messageSeenJob = null
-        }
-    }
-
-    fun markMessageSeen(messageId: UUID) {
-        if (messageSeenJob != null) return
-
-        messageSeenJob = viewModelScope.launch {
-            chatsRepository.markChatMessageAsSeen(messageId)
-            messageSeenJob = null
+    fun markChatMessagesAsSeen() {
+        viewModelScope.launch {
+            val id = chatId.value
+            if (id != null) {
+                chatsRepository.markChatMessagesAsSeen(id)
+            }
         }
     }
 }

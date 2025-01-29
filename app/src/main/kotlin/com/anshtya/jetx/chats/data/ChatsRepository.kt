@@ -29,7 +29,5 @@ interface ChatsRepository {
 
     suspend fun deleteChats(chatIds: List<Int>)
 
-    suspend fun markChatAsRead(recipientId: UUID)
-
-    suspend fun markChatMessageAsSeen(messageId: UUID)
+    suspend fun markChatMessagesAsSeen(chatId: Int)
 }

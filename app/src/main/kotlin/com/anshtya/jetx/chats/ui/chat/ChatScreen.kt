@@ -59,7 +59,6 @@ import com.anshtya.jetx.common.ui.message.MessageItemContent
 import com.anshtya.jetx.sampledata.sampleChatMessages
 import com.anshtya.jetx.sampledata.sampleUsers
 import com.anshtya.jetx.util.Constants.defaultPadding
-import java.util.UUID
 
 @Composable
 fun ChatRoute(
@@ -69,17 +68,11 @@ fun ChatRoute(
     val chatUser by viewModel.recipientUser.collectAsStateWithLifecycle()
     val chatMessages by viewModel.chatMessages.collectAsStateWithLifecycle()
 
-    LaunchedEffect(chatMessages.messages.isNotEmpty()) {
-        if (chatMessages.messages.isNotEmpty()) {
-            viewModel.markChatSeen()
-        }
-    }
-
     ChatScreen(
         recipientUser = chatUser,
         chatMessages = chatMessages,
         onMessageSent = viewModel::sendMessage,
-        onMessageSeen = viewModel::markMessageSeen,
+        onChatSeen = viewModel::markChatMessagesAsSeen,
         onBackClick = onBackClick
     )
 }
@@ -89,13 +82,23 @@ private fun ChatScreen(
     recipientUser: RecipientUser?,
     chatMessages: DateChatMessages,
     onMessageSent: (String) -> Unit,
-    onMessageSeen: (UUID) -> Unit,
+    onChatSeen: () -> Unit,
     onBackClick: () -> Unit
 ) {
     val listState = rememberLazyListState()
 
     LaunchedEffect(chatMessages) {
         listState.scrollToItem(0)
+        if (chatMessages.messages.isNotEmpty()) {
+            val hasUnseenMessages = chatMessages.messages.any { (_, messages) ->
+                messages.any {
+                    it.senderId == recipientUser?.id && it.status == MessageStatus.RECEIVED
+                }
+            }
+            if (hasUnseenMessages) {
+                onChatSeen()
+            }
+        }
     }
 
     Scaffold(
@@ -135,7 +138,6 @@ private fun ChatScreen(
                         time = message.createdAt,
                         status = message.status,
                         isAuthor = isAuthor,
-                        onMessageSeen = { onMessageSeen(message.id) },
                         modifier = Modifier.padding(top = 2.dp, bottom = bottomPadding)
                     )
                 }
@@ -295,13 +297,8 @@ private fun MessageItem(
     time: String,
     status: MessageStatus,
     isAuthor: Boolean,
-    onMessageSeen: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LaunchedEffect(Unit) {
-        if (!isAuthor && status == MessageStatus.RECEIVED) onMessageSeen()
-    }
-
     Row(
         horizontalArrangement = if (isAuthor) Arrangement.End else Arrangement.Start,
         modifier = modifier.fillMaxWidth()
@@ -348,7 +345,7 @@ private fun ChatScreenPreview() {
                 pictureUrl = user.pictureUrl
             ),
             onMessageSent = {},
-            onMessageSeen = {},
+            onChatSeen = {},
         )
     }
 }
@@ -362,8 +359,7 @@ private fun MessageItemPreview() {
             text = message.text,
             time = message.createdAt,
             status = message.status,
-            isAuthor = true,
-            onMessageSeen = {}
+            isAuthor = true
         )
     }
 }

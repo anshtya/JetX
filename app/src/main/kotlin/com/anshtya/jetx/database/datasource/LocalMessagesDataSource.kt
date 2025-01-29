@@ -56,25 +56,13 @@ class LocalMessagesDataSource @Inject constructor(
         messageDao.upsertMessage(messageEntity)
     }
 
-    suspend fun markChatAsRead(recipientId: UUID): List<UUID>? {
-        val chatId = chatDao.getChat(recipientId)?.id ?: return null
-
-        val unreadMessageIds = messageDao.getUnreadMessagesId(chatId, recipientId)
-        if (messageDao.getRecentUnreadChatMessage(chatId, recipientId)) {
-            db.withTransaction {
-                chatDao.markChatAsRead(chatId)
-                messageDao.markMessagesAsRead(chatId, recipientId)
-            }
+    suspend fun markChatMessagesAsSeen(chatId: Int): List<UUID> {
+        val unreadMessageIds = messageDao.getUnreadMessagesId(chatId)
+        db.withTransaction {
+            chatDao.markChatAsRead(chatId)
+            messageDao.markMessagesAsRead(chatId)
         }
         return unreadMessageIds
-    }
-
-    suspend fun markMessageSeen(messageId: UUID) {
-        val message = messageDao.getChatMessage(messageId)
-        db.withTransaction {
-            messageDao.updateMessageStatus(messageId, MessageStatus.SEEN)
-            chatDao.markChatAsRead(message.chatId)
-        }
     }
 
     suspend fun updateMessageStatus(messageId: UUID, status: MessageStatus) {

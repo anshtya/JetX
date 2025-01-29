@@ -19,25 +19,11 @@ interface MessageDao {
     suspend fun getChatMessage(messageId: UUID): MessageEntity
 
     @Query("""
-        SELECT EXISTS(
-            SELECT 1 FROM message 
-            WHERE recipient_id = :recipientId AND chat_id = :chatId AND status = :receivedStatus AND created_at <= :timestamp
-        )
-    """)
-    suspend fun getRecentUnreadChatMessage(
-        chatId: Int,
-        recipientId: UUID,
-        receivedStatus: MessageStatus = MessageStatus.RECEIVED,
-        timestamp: ZonedDateTime = ZonedDateTime.now()
-    ): Boolean
-
-    @Query("""
         SELECT id FROM message 
-        WHERE recipient_id = :recipientId AND chat_id = :chatId AND status = :receivedStatus
+        WHERE chat_id = :chatId AND status = :receivedStatus
     """)
     suspend fun getUnreadMessagesId(
         chatId: Int,
-        recipientId: UUID,
         receivedStatus: MessageStatus = MessageStatus.RECEIVED
     ): List<UUID>
 
@@ -56,11 +42,11 @@ interface MessageDao {
     @Query("""
         UPDATE message 
         SET status = :seenStatus 
-        WHERE recipient_id = :recipientId AND chat_id = :chatId AND status = :receivedStatus
+        WHERE chat_id = :chatId AND status = :receivedStatus AND created_at <= :time
     """)
     suspend fun markMessagesAsRead(
         chatId: Int,
-        recipientId: UUID,
+        time: ZonedDateTime = ZonedDateTime.now(),
         seenStatus: MessageStatus = MessageStatus.SEEN,
         receivedStatus: MessageStatus = MessageStatus.RECEIVED
     )

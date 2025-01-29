@@ -36,6 +36,7 @@ class ChatsRepositoryImpl @Inject constructor(
     private val chatDao: ChatDao,
     private val messageListener: MessageListener,
     private val localMessagesDataSource: LocalMessagesDataSource,
+    private val profileRepository: ProfileRepository,
     @DefaultScope private val coroutineScope: CoroutineScope
 ) : ChatsRepository {
     private val supabaseAuth = client.auth
@@ -125,8 +126,9 @@ class ChatsRepositoryImpl @Inject constructor(
         chatDao.deleteChats(chatIds)
     }
 
-    override suspend fun markChatAsRead(recipientId: UUID) {
-        localMessagesDataSource.markChatAsRead(recipientId)?.forEach { messageId ->
+    override suspend fun markChatMessagesAsSeen(chatId: Int) {
+        val unreadMessageIds = localMessagesDataSource.markChatMessagesAsSeen(chatId)
+        unreadMessageIds.forEach { messageId ->
             messagesTable.update(
                 update = { set("has_seen", true) },
                 request = {
@@ -134,16 +136,6 @@ class ChatsRepositoryImpl @Inject constructor(
                 }
             )
         }
-    }
-
-    override suspend fun markChatMessageAsSeen(messageId: UUID) {
-        localMessagesDataSource.markMessageSeen(messageId)
-        messagesTable.update(
-            update = { set("has_seen", true) },
-            request = {
-                filter { eq("id", messageId) }
-            }
-        )
     }
 
     private fun listenMessageChanges() {
