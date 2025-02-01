@@ -1,5 +1,6 @@
-package com.anshtya.jetx.common.model
+package com.anshtya.jetx.chats.data.model
 
+import com.anshtya.jetx.database.entity.MessageEntity
 import com.anshtya.jetx.util.UUIDSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -19,21 +20,12 @@ data class NetworkMessage(
     @SerialName("attachment_url")
     val attachmentUrl: String?,
     @SerialName("has_seen")
-    val hasSeen: Boolean?,
+    val hasSeen: Boolean,
     @SerialName("has_received")
-    val hasReceived: Boolean?
+    val hasReceived: Boolean
 )
 
-fun NetworkMessage.toIncomingMessage() = IncomingMessage(
-    id = id,
-    senderId = senderId,
-    recipientId = recipientId,
-    text = text,
-    attachmentUri = attachmentUrl,
-    status = MessageStatus.RECEIVED
-)
-
-fun IncomingMessage.toNetworkMessage() = NetworkMessage(
+fun MessageEntity.toNetworkMessage() = NetworkMessage(
     id = id,
     senderId = senderId,
     recipientId = recipientId,

@@ -18,8 +18,6 @@ interface ProfileRepository {
 
     suspend fun getProfile(id: UUID): UserProfile?
 
-    suspend fun profileExists(id: UUID): Boolean
-
     suspend fun searchProfiles(query: String): List<UserProfile>
 
     suspend fun deleteProfiles()

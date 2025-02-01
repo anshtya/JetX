@@ -1,4 +1,4 @@
-package com.anshtya.jetx.common.model
+package com.anshtya.jetx.work.model
 
 import com.anshtya.jetx.util.UUIDSerializer
 import kotlinx.serialization.SerialName
@@ -16,13 +16,4 @@ data class NetworkIncomingMessage(
     @Serializable(UUIDSerializer::class)
     val recipientId: UUID,
     val text: String?,
-)
-
-fun NetworkIncomingMessage.toIncomingMessage() = IncomingMessage(
-    id = id,
-    senderId = senderId,
-    recipientId = recipientId,
-    text = text,
-    attachmentUri = null,
-    status = MessageStatus.RECEIVED
 )

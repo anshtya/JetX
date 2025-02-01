@@ -21,10 +21,9 @@ interface ChatsRepository {
 
     fun getChatMessages(chatId: Int): Flow<DateChatMessages>
 
-    suspend fun insertChatMessage(
+    suspend fun sendChatMessage(
         recipientId: UUID,
-        text: String? = null,
-        attachment: String? = null
+        text: String?
     )
 
     suspend fun deleteChats(chatIds: List<Int>)

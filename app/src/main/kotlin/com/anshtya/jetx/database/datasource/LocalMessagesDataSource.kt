@@ -1,7 +1,6 @@
 package com.anshtya.jetx.database.datasource
 
 import androidx.room.withTransaction
-import com.anshtya.jetx.common.model.IncomingMessage
 import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.database.JetXDatabase
 import com.anshtya.jetx.database.dao.ChatDao
@@ -22,33 +21,37 @@ class LocalMessagesDataSource @Inject constructor(
     suspend fun getChatMessage(id: UUID): MessageEntity = messageDao.getChatMessage(id)
 
     suspend fun insertMessage(
-        incomingMessage: IncomingMessage,
-        isCurrentUser: Boolean
-    ) {
-        db.withTransaction {
-            val chatId = if (isCurrentUser) {
-                chatDao.getChat(incomingMessage.recipientId)?.id
-                    ?: chatDao.insertChat(ChatEntity(recipientId = incomingMessage.recipientId))
-                    .toInt()
+        id: UUID,
+        senderId: UUID,
+        recipientId: UUID,
+        text: String?,
+        attachmentUri: String?,
+        currentUser: Boolean
+    ): MessageEntity {
+        return db.withTransaction {
+            val chatId = if (currentUser) {
+                chatDao.getChat(recipientId)?.id
+                    ?: chatDao.insertChat(ChatEntity(recipientId = recipientId)).toInt()
             } else {
-                chatDao.getChat(incomingMessage.senderId)?.id
-                    ?: chatDao.insertChat(ChatEntity(recipientId = incomingMessage.senderId))
-                        .toInt()
+                chatDao.getChat(senderId)?.id
+                    ?: chatDao.insertChat(ChatEntity(recipientId = senderId)).toInt()
             }
 
             val messageEntity = MessageEntity(
-                id = incomingMessage.id,
-                senderId = incomingMessage.senderId,
-                recipientId = incomingMessage.recipientId,
+                id = id,
+                senderId = senderId,
+                recipientId = recipientId,
                 chatId = chatId,
-                text = incomingMessage.text,
-                attachmentUri = incomingMessage.attachmentUri,
-                status = incomingMessage.status
+                text = text,
+                attachmentUri = attachmentUri,
+                status = if (currentUser) MessageStatus.SENDING else MessageStatus.RECEIVED
             )
             messageDao.upsertMessage(messageEntity)
-            if (!isCurrentUser) {
+            if (!currentUser) {
                 chatDao.updateUnreadCount(messageEntity.chatId)
             }
+
+            return@withTransaction messageEntity
         }
     }
 

@@ -3,6 +3,7 @@ package com.anshtya.jetx.work.worker
 import android.app.NotificationManager
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat.getString
 import androidx.core.content.ContextCompat.getSystemService
@@ -15,47 +16,34 @@ import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.toBitmap
 import com.anshtya.jetx.R
-import com.anshtya.jetx.common.model.NetworkIncomingMessage
-import com.anshtya.jetx.common.model.toIncomingMessage
-import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
+import com.anshtya.jetx.chats.data.MessageReceiveRepository
+import com.anshtya.jetx.work.model.NetworkIncomingMessage
 import com.anshtya.jetx.notifications.NotificationChannels
 import com.anshtya.jetx.profile.ProfileRepository
-import com.anshtya.jetx.util.Constants.MESSAGE_TABLE
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.postgrest.from
 import kotlinx.serialization.json.Json
 
 @HiltWorker
 class MessageReceiveWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    private val client: SupabaseClient,
     private val profileRepository: ProfileRepository,
-    private val localMessagesDataSource: LocalMessagesDataSource
+    private val messageReceiveRepository: MessageReceiveRepository
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
         return try {
             val message = Json.decodeFromString<NetworkIncomingMessage>(inputData.getString(MESSAGE_KEY)!!)
-            val senderId = message.senderId
-            val profileExists = profileRepository.profileExists(senderId)
-            if (!profileExists) {
-                profileRepository.fetchAndSaveProfile(senderId.toString())
-            }
-            localMessagesDataSource.insertMessage(
-                incomingMessage = message.toIncomingMessage(),
-                isCurrentUser = false
+            messageReceiveRepository.insertChatMessage(
+                id = message.id,
+                senderId = message.senderId,
+                recipientId = message.recipientId,
+                text = message.text,
+                attachmentUri = null
             )
-            client.from(MESSAGE_TABLE).update(
-                update = { set("has_received", true) },
-                request = {
-                    filter { eq("id", message.id) }
-                }
-            )
-            val senderProfile = profileRepository.getProfile(message.senderId)!!
 
+            val senderProfile = profileRepository.getProfile(message.senderId)!!
             postMessageNotification(
                 senderName = senderProfile.username,
                 senderProfilePicture = senderProfile.pictureUrl,
@@ -64,6 +52,7 @@ class MessageReceiveWorker @AssistedInject constructor(
 
             Result.success()
         } catch (e: Exception) {
+            Log.e("work", "$e")
             postMayHaveNewMessages()
             Result.retry()
         }

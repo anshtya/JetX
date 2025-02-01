@@ -1,14 +1,15 @@
 package com.anshtya.jetx.chats.data
 
+import android.util.Log
 import com.anshtya.jetx.chats.data.model.DateChatMessages
 import com.anshtya.jetx.common.coroutine.DefaultScope
 import com.anshtya.jetx.common.model.Chat
-import com.anshtya.jetx.common.model.IncomingMessage
 import com.anshtya.jetx.common.model.MessageStatus
-import com.anshtya.jetx.common.model.NetworkMessage
-import com.anshtya.jetx.common.model.toNetworkMessage
+import com.anshtya.jetx.chats.data.model.NetworkMessage
+import com.anshtya.jetx.chats.data.model.toNetworkMessage
 import com.anshtya.jetx.database.dao.ChatDao
 import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
+import com.anshtya.jetx.database.entity.MessageEntity
 import com.anshtya.jetx.database.entity.toExternalModel
 import com.anshtya.jetx.database.model.ChatWithRecentMessage
 import com.anshtya.jetx.database.model.toExternalModel
@@ -38,17 +39,24 @@ class ChatsRepositoryImpl @Inject constructor(
     private val localMessagesDataSource: LocalMessagesDataSource,
     private val profileRepository: ProfileRepository,
     @DefaultScope private val coroutineScope: CoroutineScope
-) : ChatsRepository {
+) : ChatsRepository, MessageReceiveRepository {
+    private var isSubscribed: Boolean = false
+
     private val supabaseAuth = client.auth
-    private val messagesTable = client.from(MESSAGE_TABLE)
+    private val networkMessagesTable = client.from(MESSAGE_TABLE)
 
     override suspend fun subscribeChanges() {
+        if (isSubscribed) {
+            throw Exception("Already subscribed to changes.")
+        }
         messageListener.subscribe()
+        isSubscribed = true
         listenMessageChanges()
     }
 
     override suspend fun unsubscribeChanges() {
         messageListener.unsubscribe()
+        isSubscribed = false
     }
 
     override fun getChats(
@@ -101,24 +109,41 @@ class ChatsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun insertChatMessage(
+        id: UUID,
+        senderId: UUID,
         recipientId: UUID,
         text: String?,
-        attachment: String?
+        attachmentUri: String?
     ) {
-        val message = IncomingMessage(
+        val message = saveChatMessage(
+            id = id,
+            senderId = senderId,
+            recipientId = recipientId,
+            text = text,
+            attachmentUri = null,
+            currentUser = false
+        )
+        networkMessagesTable.update(
+            update = { set("has_received", true) },
+            request = {
+                filter { eq("id", message.id) }
+            }
+        )
+    }
+
+    override suspend fun sendChatMessage(
+        recipientId: UUID,
+        text: String?
+    ) {
+        val message = saveChatMessage(
             id = UUID.randomUUID(),
             senderId = UUID.fromString(supabaseAuth.currentUserOrNull()?.id),
             recipientId = recipientId,
             text = text,
-            attachmentUri = attachment,
-            status = MessageStatus.SENDING
+            attachmentUri = null,
+            currentUser = true
         )
-        val profileExists = profileRepository.profileExists(recipientId)
-        if (!profileExists) {
-            profileRepository.fetchAndSaveProfile(recipientId.toString())
-        }
-        localMessagesDataSource.insertMessage(message, isCurrentUser = true)
-        messagesTable.insert(message.toNetworkMessage())
+        networkMessagesTable.insert(message.toNetworkMessage())
         localMessagesDataSource.updateMessageStatus(message.id, MessageStatus.SENT)
     }
 
@@ -128,8 +153,9 @@ class ChatsRepositoryImpl @Inject constructor(
 
     override suspend fun markChatMessagesAsSeen(chatId: Int) {
         val unreadMessageIds = localMessagesDataSource.markChatMessagesAsSeen(chatId)
+        Log.i("message", "unread ids - $unreadMessageIds")
         unreadMessageIds.forEach { messageId ->
-            messagesTable.update(
+            networkMessagesTable.update(
                 update = { set("has_seen", true) },
                 request = {
                     filter { eq("id", messageId) }
@@ -147,9 +173,9 @@ class ChatsRepositoryImpl @Inject constructor(
                     localMessagesDataSource.updateMessage(
                         storedMessage.copy(
                             text = networkMessage.text,
-                            status = if (networkMessage.hasSeen!!) {
+                            status = if (networkMessage.hasSeen) {
                                 MessageStatus.SEEN
-                            } else if (networkMessage.hasReceived!!) {
+                            } else if (networkMessage.hasReceived) {
                                 MessageStatus.RECEIVED
                             } else storedMessage.status
                         )
@@ -159,5 +185,28 @@ class ChatsRepositoryImpl @Inject constructor(
                 else -> {}
             }
         }.launchIn(coroutineScope)
+    }
+
+    private suspend fun saveChatMessage(
+        id: UUID,
+        senderId: UUID,
+        recipientId: UUID,
+        text: String?,
+        attachmentUri: String?,
+        currentUser: Boolean
+    ): MessageEntity {
+        val profileId = if (currentUser) recipientId else senderId
+        val profileExists = profileRepository.getProfile(profileId)
+        if (profileExists == null) {
+            profileRepository.fetchAndSaveProfile(profileId.toString())
+        }
+        return localMessagesDataSource.insertMessage(
+            id = id,
+            senderId = senderId,
+            recipientId = recipientId,
+            text = text,
+            attachmentUri = attachmentUri,
+            currentUser = currentUser
+        )
     }
 }

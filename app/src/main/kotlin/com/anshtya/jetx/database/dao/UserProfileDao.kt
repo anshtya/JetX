@@ -12,9 +12,6 @@ interface UserProfileDao {
     @Query("SELECT * FROM user_profile WHERE id = :id")
     suspend fun getUserProfile(id: UUID): UserProfileEntity?
 
-    @Query("SELECT EXISTS(SELECT * FROM user_profile WHERE id = :id)")
-    suspend fun userProfileExists(id: UUID): Boolean
-
     @Upsert
     suspend fun upsertUserProfile(userProfile: UserProfileEntity)
 

@@ -106,9 +106,6 @@ class ProfileRepositoryImpl @Inject constructor(
             .map(NetworkProfile::toExternalModel)
     }
 
-    override suspend fun profileExists(id: UUID): Boolean =
-        userProfileDao.userProfileExists(id)
-
     override suspend fun deleteProfiles() {
         userProfileDao.deleteAllProfiles()
         preferencesStore.clearPreferences()

@@ -56,7 +56,7 @@ class ChatViewModel @Inject constructor(
 
     fun sendMessage(message: String) {
         viewModelScope.launch {
-            chatsRepository.insertChatMessage(
+            chatsRepository.sendChatMessage(
                 recipientId = recipientUser.value!!.id,
                 text = message
             )
