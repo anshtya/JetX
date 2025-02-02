@@ -12,7 +12,9 @@ val sampleChats = listOf(
         profilePicture = null,
         message = "How are you",
         timestamp = "10:00am",
-        messageStatus = MessageStatus.SENT
+        messageStatus = MessageStatus.SENT,
+        unreadCount = 1,
+        isSender = true
     ),
     Chat(
         id = 2,
@@ -21,6 +23,8 @@ val sampleChats = listOf(
         profilePicture = null,
         message = "Call me @3pm",
         timestamp = "10:30am",
-        messageStatus = MessageStatus.SENT
+        messageStatus = MessageStatus.SENT,
+        unreadCount = 20,
+        isSender = false
     ),
 )

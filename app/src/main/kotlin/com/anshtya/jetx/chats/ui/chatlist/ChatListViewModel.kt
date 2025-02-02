@@ -14,15 +14,21 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
-    chatsRepository: ChatsRepository
+    private val chatsRepository: ChatsRepository
 ) : ViewModel() {
     private val _selectedFilter = MutableStateFlow(FilterOption.ALL)
     val selectedFilter = _selectedFilter.asStateFlow()
+
+    init {
+        viewModelScope.launch { chatsRepository.subscribeChanges() }
+    }
 
     val chatList: StateFlow<ChatListState> = _selectedFilter
         .flatMapLatest { filter ->
@@ -56,6 +62,11 @@ class ChatListViewModel @Inject constructor(
 
     fun changeFilter(filterOption: FilterOption) {
         _selectedFilter.update { filterOption }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        runBlocking { chatsRepository.unsubscribeChanges() }
     }
 }
 

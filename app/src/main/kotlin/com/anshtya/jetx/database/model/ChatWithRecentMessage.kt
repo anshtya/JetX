@@ -9,12 +9,21 @@ import java.util.UUID
 
 data class ChatWithRecentMessage(
     val id: Int,
-    @ColumnInfo(name = "recipient_id") val recipientId: UUID,
+    @ColumnInfo(name = "recipient_id")
+    val recipientId: UUID,
+    @ColumnInfo(name = "sender_id")
+    val senderId: UUID,
     val username: String,
-    @ColumnInfo(name = "profile_picture") val profilePicture: String?,
-    @ColumnInfo(name = "text") val message: String,
-    @ColumnInfo(name = "created_at") val createdAt: ZonedDateTime,
-    @ColumnInfo(name = "status") val messageStatus: MessageStatus
+    @ColumnInfo(name = "profile_picture")
+    val profilePicture: String?,
+    @ColumnInfo(name = "text")
+    val message: String,
+    @ColumnInfo(name = "unread_count")
+    val unreadCount: Int,
+    @ColumnInfo(name = "created_at")
+    val createdAt: ZonedDateTime,
+    @ColumnInfo(name = "status")
+    val messageStatus: MessageStatus
 )
 
 fun ChatWithRecentMessage.toExternalModel(): Chat {
@@ -24,7 +33,9 @@ fun ChatWithRecentMessage.toExternalModel(): Chat {
         username = username,
         profilePicture = profilePicture,
         message = message,
+        unreadCount = unreadCount,
         timestamp = createdAt.getDateOrTime(getYesterday = true),
-        messageStatus = messageStatus
+        messageStatus = messageStatus,
+        isSender = recipientId != senderId
     )
 }

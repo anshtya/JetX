@@ -1,6 +1,7 @@
 package com.anshtya.jetx.auth.data
 
 import com.anshtya.jetx.auth.data.model.AuthStatus
+import com.anshtya.jetx.fcm.FcmTokenManager
 import com.anshtya.jetx.profile.ProfileRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
@@ -12,11 +13,12 @@ import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
     client: SupabaseClient,
+    private val fcmTokenManager: FcmTokenManager,
     private val profileRepository: ProfileRepository
 ) : AuthRepository {
-    private val auth = client.auth
+    private val supabaseAuth = client.auth
 
-    override val authStatus: Flow<AuthStatus> = auth.sessionStatus
+    override val authStatus: Flow<AuthStatus> = supabaseAuth.sessionStatus
         .map { status ->
             when (status) {
                 is SessionStatus.Initializing -> AuthStatus.INITIALIZING
@@ -30,16 +32,14 @@ class AuthRepositoryImpl @Inject constructor(
         password: String
     ): Result<Unit> {
         return kotlin.runCatching {
-            auth.signInWith(Email) {
+            supabaseAuth.signInWith(Email) {
                 this.email = email
                 this.password = password
             }
-            val authStatus = auth.sessionStatus.value
-            if (authStatus is SessionStatus.Authenticated) {
-                val userId = authStatus.session.user?.id
-                    ?: throw IllegalStateException("User is not authenticated. Can't create profile")
-                profileRepository.fetchAndSaveProfile(userId)
-            }
+            val userId = supabaseAuth.currentUserOrNull()?.id
+                ?: throw IllegalStateException("User is not authenticated. Can't create profile")
+            profileRepository.fetchAndSaveProfile(userId)
+            fcmTokenManager.addToken()
         }
     }
 
@@ -48,7 +48,7 @@ class AuthRepositoryImpl @Inject constructor(
         password: String
     ): Result<Unit> {
         return kotlin.runCatching {
-            auth.signUpWith(Email) {
+            supabaseAuth.signUpWith(Email) {
                 this.email = email
                 this.password = password
             }
@@ -58,7 +58,8 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun signOut(): Result<Unit> {
         return kotlin.runCatching {
             profileRepository.deleteProfiles()
-            auth.signOut()
+            fcmTokenManager.removeToken()
+            supabaseAuth.signOut()
         }
     }
 }

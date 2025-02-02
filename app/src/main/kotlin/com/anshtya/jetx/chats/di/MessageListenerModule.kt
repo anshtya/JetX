@@ -1,7 +1,7 @@
 package com.anshtya.jetx.chats.di
 
-import com.anshtya.jetx.chats.data.MessageRepository
-import com.anshtya.jetx.chats.data.MessageRepositoryImpl
+import com.anshtya.jetx.chats.data.MessageListener
+import com.anshtya.jetx.chats.data.MessageListenerImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -10,10 +10,10 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class MessageRepositoryModule {
+abstract class MessageListenerModule {
     @Binds
     @Singleton
-    abstract fun bindMessageRepository(
-        impl: MessageRepositoryImpl
-    ): MessageRepository
+    abstract fun bindMessageListener(
+        impl: MessageListenerImpl
+    ) : MessageListener
 }

@@ -1,81 +1,62 @@
 package com.anshtya.jetx.chats.data
 
-import com.anshtya.jetx.chats.data.model.ChatInfo
-import com.anshtya.jetx.chats.data.model.NetworkMessage
-import com.anshtya.jetx.chats.data.model.toChatInfo
-import com.anshtya.jetx.chats.data.model.toEntity
+import android.util.Log
+import com.anshtya.jetx.chats.data.model.DateChatMessages
 import com.anshtya.jetx.common.coroutine.DefaultScope
 import com.anshtya.jetx.common.model.Chat
+import com.anshtya.jetx.common.model.MessageStatus
+import com.anshtya.jetx.chats.data.model.NetworkMessage
+import com.anshtya.jetx.chats.data.model.toNetworkMessage
 import com.anshtya.jetx.database.dao.ChatDao
-import com.anshtya.jetx.database.dao.MessageDao
-import com.anshtya.jetx.database.entity.ChatEntity
+import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
+import com.anshtya.jetx.database.entity.MessageEntity
+import com.anshtya.jetx.database.entity.toExternalModel
 import com.anshtya.jetx.database.model.ChatWithRecentMessage
 import com.anshtya.jetx.database.model.toExternalModel
 import com.anshtya.jetx.profile.ProfileRepository
+import com.anshtya.jetx.util.Constants.FULL_DATE
+import com.anshtya.jetx.util.Constants.MESSAGE_TABLE
+import com.anshtya.jetx.util.getDateOrTime
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.user.UserInfo
-import io.github.jan.supabase.postgrest.query.filter.FilterOperation
-import io.github.jan.supabase.postgrest.query.filter.FilterOperator
+import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.realtime.PostgresAction
-import io.github.jan.supabase.realtime.channel
-import io.github.jan.supabase.realtime.postgresChangeFlow
+import io.github.jan.supabase.realtime.decodeRecord
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
+import kotlinx.coroutines.flow.onEach
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import javax.inject.Inject
 
 class ChatsRepositoryImpl @Inject constructor(
     client: SupabaseClient,
     private val chatDao: ChatDao,
-    private val messageDao: MessageDao,
+    private val messageListener: MessageListener,
+    private val localMessagesDataSource: LocalMessagesDataSource,
     private val profileRepository: ProfileRepository,
     @DefaultScope private val coroutineScope: CoroutineScope
-) : ChatsRepository {
-    private val json = Json
-    private val auth = client.auth
-    private val userInfo: UserInfo = auth.currentSessionOrNull()?.user
-        ?: throw IllegalStateException("User should be logged in to access chats")
+) : ChatsRepository, MessageReceiveRepository {
+    private var isSubscribed: Boolean = false
 
-    private val messagesChannel = client.channel("messages-db-changes")
-    private val messagesChanges = messagesChannel.postgresChangeFlow<PostgresAction>(
-        schema = "public",
-        filter = {
-            table = "messages"
-            filter(
-                filter = FilterOperation(
-                    column = "recipient_id",
-                    operator = FilterOperator.EQ,
-                    value = userInfo.id
-                )
-            )
-        }
-    )
+    private val supabaseAuth = client.auth
+    private val networkMessagesTable = client.from(MESSAGE_TABLE)
 
-    init {
-        coroutineScope.launch {
-            messagesChannel.subscribe()
-            messagesChanges.collect { action ->
-                when (action) {
-                    is PostgresAction.Insert -> {
-                        val message = json.decodeFromString<NetworkMessage>(
-                            string = action.record.toString()
-                        )
-                        upsertMessage(message)
-                    }
-                    is PostgresAction.Update -> {
-                        val message = json.decodeFromString<NetworkMessage>(
-                            string = action.record.toString()
-                        )
-                        upsertMessage(message)
-                    }
-                    else -> {}
-                }
-            }
+    override suspend fun subscribeChanges() {
+        if (isSubscribed) {
+            throw Exception("Already subscribed to changes.")
         }
+        messageListener.subscribe()
+        isSubscribed = true
+        listenMessageChanges()
+    }
+
+    override suspend fun unsubscribeChanges() {
+        messageListener.unsubscribe()
+        isSubscribed = false
     }
 
     override fun getChats(
@@ -86,9 +67,11 @@ class ChatsRepositoryImpl @Inject constructor(
             showArchivedChats = false,
             showFavoriteChats = showFavoriteChats,
             showUnreadChats = showUnreadChats
-        ).map { chat ->
-            chat.map(ChatWithRecentMessage::toExternalModel)
-        }
+        )
+            .distinctUntilChanged()
+            .map { chat ->
+                chat.map(ChatWithRecentMessage::toExternalModel)
+            }
     }
 
     override fun getArchivedChats(): Flow<List<Chat>> {
@@ -96,35 +79,134 @@ class ChatsRepositoryImpl @Inject constructor(
             showArchivedChats = true,
             showFavoriteChats = false,
             showUnreadChats = false
-        ).map { chat ->
-            chat.map(ChatWithRecentMessage::toExternalModel)
-        }
+        )
+            .distinctUntilChanged()
+            .map { chat ->
+                chat.map(ChatWithRecentMessage::toExternalModel)
+            }
     }
 
-    override suspend fun getChatInfo(recipientId: UUID): ChatInfo? {
-        return chatDao.getChat(recipientId)?.toChatInfo()
+    override suspend fun getChatId(recipientId: UUID): Int? =
+        chatDao.getChat(recipientId)?.id
+
+    override fun getChatMessages(chatId: Int): Flow<DateChatMessages> {
+        return localMessagesDataSource.getChatMessages(chatId)
+            .distinctUntilChanged()
+            .map { messages ->
+                DateChatMessages(
+                    messages = messages.groupBy(
+                        keySelector = { message -> message.createdAt.truncatedTo(ChronoUnit.DAYS) },
+                        valueTransform = { message -> message.toExternalModel() }
+                    ).mapKeys { (createdAt, _) ->
+                        createdAt.getDateOrTime(
+                            datePattern = FULL_DATE,
+                            getToday = true,
+                            getYesterday = true
+                        )
+                    }
+                )
+            }
     }
 
-    override suspend fun createChat(recipientId: UUID): Int {
-        profileRepository.fetchAndSaveProfile(recipientId.toString())
-        return chatDao.insertChat(ChatEntity(recipientId = recipientId)).toInt()
+    override suspend fun insertChatMessage(
+        id: UUID,
+        senderId: UUID,
+        recipientId: UUID,
+        text: String?,
+        attachmentUri: String?
+    ) {
+        val message = saveChatMessage(
+            id = id,
+            senderId = senderId,
+            recipientId = recipientId,
+            text = text,
+            attachmentUri = null,
+            currentUser = false
+        )
+        networkMessagesTable.update(
+            update = { set("has_received", true) },
+            request = {
+                filter { eq("id", message.id) }
+            }
+        )
+    }
+
+    override suspend fun sendChatMessage(
+        recipientId: UUID,
+        text: String?
+    ) {
+        val message = saveChatMessage(
+            id = UUID.randomUUID(),
+            senderId = UUID.fromString(supabaseAuth.currentUserOrNull()?.id),
+            recipientId = recipientId,
+            text = text,
+            attachmentUri = null,
+            currentUser = true
+        )
+        networkMessagesTable.insert(message.toNetworkMessage())
+        localMessagesDataSource.updateMessageStatus(message.id, MessageStatus.SENT)
     }
 
     override suspend fun deleteChats(chatIds: List<Int>) {
         chatDao.deleteChats(chatIds)
     }
 
-    private suspend fun upsertMessage(networkMessage: NetworkMessage) {
-        val senderId = networkMessage.senderId
-        val chat = chatDao.getChat(senderId)
-        val chatId = if (chat != null) {
-            chat.id
-        } else {
-            profileRepository.fetchAndSaveProfile(senderId.toString())
-
-            // Logged-in user will chat to sender, hence sender will be recipient.
-            chatDao.insertChat(ChatEntity(recipientId = senderId)).toInt()
+    override suspend fun markChatMessagesAsSeen(chatId: Int) {
+        val unreadMessageIds = localMessagesDataSource.markChatMessagesAsSeen(chatId)
+        Log.i("message", "unread ids - $unreadMessageIds")
+        unreadMessageIds.forEach { messageId ->
+            networkMessagesTable.update(
+                update = { set("has_seen", true) },
+                request = {
+                    filter { eq("id", messageId) }
+                }
+            )
         }
-        messageDao.upsertMessage(networkMessage.toEntity(chatId))
+    }
+
+    private fun listenMessageChanges() {
+        messageListener.changes.onEach { action ->
+            when (action) {
+                is PostgresAction.Update -> {
+                    val networkMessage = action.decodeRecord<NetworkMessage>()
+                    val storedMessage = localMessagesDataSource.getChatMessage(networkMessage.id)
+                    localMessagesDataSource.updateMessage(
+                        storedMessage.copy(
+                            text = networkMessage.text,
+                            status = if (networkMessage.hasSeen) {
+                                MessageStatus.SEEN
+                            } else if (networkMessage.hasReceived) {
+                                MessageStatus.RECEIVED
+                            } else storedMessage.status
+                        )
+                    )
+                }
+
+                else -> {}
+            }
+        }.launchIn(coroutineScope)
+    }
+
+    private suspend fun saveChatMessage(
+        id: UUID,
+        senderId: UUID,
+        recipientId: UUID,
+        text: String?,
+        attachmentUri: String?,
+        currentUser: Boolean
+    ): MessageEntity {
+        val profileId = if (currentUser) recipientId else senderId
+        val profileExists = profileRepository.getProfile(profileId)
+        if (profileExists == null) {
+            profileRepository.fetchAndSaveProfile(profileId.toString())
+        }
+        return localMessagesDataSource.insertMessage(
+            id = id,
+            senderId = senderId,
+            recipientId = recipientId,
+            text = text,
+            attachmentUri = attachmentUri,
+            currentUser = currentUser
+        )
     }
 }

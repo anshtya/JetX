@@ -28,4 +28,14 @@
     <string name="clear_search">Clear search</string>
     <string name="send_message">Send message</string>
     <string name="chatinputfield_placeholder">Message</string>
+
+    <!--Notification-->
+    <string name="notification_chat_group">Chats</string>
+    <string name="notification_other_group">Others</string>
+
+    <string name="notification_message_channel">Message notifications</string>
+    <string name="notification_other_channel">Other notifications</string>
+
+    <string name="checking_for_new_messages">Checking for new messages</string>
+    <string name="may_have_new_messages">You may have new messages</string>
 </resources>
