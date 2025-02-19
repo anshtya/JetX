@@ -9,5 +9,5 @@ object Constants {
     const val PROFILE_TABLE = "profile"
 
     const val FULL_DATE = "d MMMM yyyy"
-    val defaultPadding = 8.dp
+    val defaultPadding = 10.dp
 }

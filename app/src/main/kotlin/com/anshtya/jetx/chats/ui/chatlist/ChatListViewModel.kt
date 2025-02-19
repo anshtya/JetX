@@ -24,6 +24,17 @@ class ChatListViewModel @Inject constructor(
     private val _selectedFilter = MutableStateFlow(FilterOption.ALL)
     val selectedFilter = _selectedFilter.asStateFlow()
 
+    private val _selectedChats = MutableStateFlow<Set<Int>>(emptySet())
+    val selectedChats = _selectedChats.asStateFlow()
+
+    val selectedChatCount = _selectedChats
+        .map { it.size }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = 0
+        )
+
     val chatList: StateFlow<ChatListState> = _selectedFilter
         .flatMapLatest { filter ->
             chatsRepository.getChats(
@@ -56,6 +67,16 @@ class ChatListViewModel @Inject constructor(
 
     fun changeFilter(filterOption: FilterOption) {
         _selectedFilter.update { filterOption }
+    }
+
+    fun selectChat(id: Int) {
+        _selectedChats.update {
+            it.toMutableSet().apply { add(id) }
+        }
+    }
+
+    fun clearSelectedChats() {
+        _selectedChats.update { emptySet() }
     }
 }
 

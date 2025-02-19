@@ -1,6 +1,7 @@
 package com.anshtya.jetx.chats.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,25 +33,35 @@ import com.anshtya.jetx.common.ui.DayNightPreview
 import com.anshtya.jetx.common.ui.ProfilePicture
 import com.anshtya.jetx.common.ui.message.MessageStatusIcon
 import com.anshtya.jetx.sampledata.sampleChats
+import com.anshtya.jetx.util.Constants.defaultPadding
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ChatItem(
     chat: Chat,
+    selected: Boolean,
     onClick: (ChatUserArgs) -> Unit,
     onLongClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
         modifier = modifier
             .fillMaxWidth()
+            .background(
+                color = if (selected) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else Color.Unspecified,
+                shape = RoundedCornerShape(8.dp)
+            )
             .combinedClickable(
                 onClick = { onClick(chat.toChatUserArgs()) },
-                onLongClick = {
-                    // TODO: add long click support
-                }
+                onLongClick = { onLongClick(chat.id) }
+            )
+            .padding(
+                horizontal = defaultPadding,
+                vertical = 4.dp
             )
     ) {
         ProfilePicture(
@@ -57,13 +69,16 @@ fun ChatItem(
             onClick = {
                 // TODO: add profile view
             },
+            parentSelected = selected,
             modifier = Modifier
                 .size(50.dp)
                 .align(Alignment.CenterVertically)
         )
 
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -88,7 +103,7 @@ fun ChatItem(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
-            ){
+            ) {
                 if (chat.isSender) {
                     MessageStatusIcon(
                         status = chat.messageStatus,
@@ -133,6 +148,7 @@ private fun ChatItemPreview() {
     ComponentPreview {
         ChatItem(
             chat = sampleChats.first(),
+            selected = false,
             onClick = {},
             onLongClick = {}
         )
