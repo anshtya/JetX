@@ -1,6 +1,7 @@
 package com.anshtya.jetx.auth.data
 
 import com.anshtya.jetx.auth.data.model.AuthStatus
+import com.anshtya.jetx.chats.data.MessageListener
 import com.anshtya.jetx.fcm.FcmTokenManager
 import com.anshtya.jetx.profile.ProfileRepository
 import io.github.jan.supabase.SupabaseClient
@@ -14,7 +15,8 @@ import javax.inject.Inject
 class AuthRepositoryImpl @Inject constructor(
     client: SupabaseClient,
     private val fcmTokenManager: FcmTokenManager,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val messageListener: MessageListener
 ) : AuthRepository {
     private val supabaseAuth = client.auth
 
@@ -59,6 +61,7 @@ class AuthRepositoryImpl @Inject constructor(
         return kotlin.runCatching {
             profileRepository.deleteProfiles()
             fcmTokenManager.removeToken()
+            messageListener.unsubscribe()
             supabaseAuth.signOut()
         }
     }

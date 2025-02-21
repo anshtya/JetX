@@ -6,10 +6,6 @@ import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
 interface ChatsRepository {
-    suspend fun subscribeChanges()
-
-    suspend fun unsubscribeChanges()
-
     fun getChats(
         showFavoriteChats: Boolean,
         showUnreadChats: Boolean

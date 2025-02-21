@@ -2,11 +2,11 @@ package com.anshtya.jetx.chats.data
 
 import android.util.Log
 import com.anshtya.jetx.chats.data.model.DateChatMessages
+import com.anshtya.jetx.chats.data.model.NetworkMessage
+import com.anshtya.jetx.chats.data.model.toNetworkMessage
 import com.anshtya.jetx.common.coroutine.DefaultScope
 import com.anshtya.jetx.common.model.Chat
 import com.anshtya.jetx.common.model.MessageStatus
-import com.anshtya.jetx.chats.data.model.NetworkMessage
-import com.anshtya.jetx.chats.data.model.toNetworkMessage
 import com.anshtya.jetx.database.dao.ChatDao
 import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
 import com.anshtya.jetx.database.entity.MessageEntity
@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import javax.inject.Inject
@@ -40,23 +41,14 @@ class ChatsRepositoryImpl @Inject constructor(
     private val profileRepository: ProfileRepository,
     @DefaultScope private val coroutineScope: CoroutineScope
 ) : ChatsRepository, MessageReceiveRepository {
-    private var isSubscribed: Boolean = false
-
     private val supabaseAuth = client.auth
     private val networkMessagesTable = client.from(MESSAGE_TABLE)
 
-    override suspend fun subscribeChanges() {
-        if (isSubscribed) {
-            throw Exception("Already subscribed to changes.")
+    init {
+        coroutineScope.launch {
+            messageListener.subscribe()
+            listenMessageChanges()
         }
-        messageListener.subscribe()
-        isSubscribed = true
-        listenMessageChanges()
-    }
-
-    override suspend fun unsubscribeChanges() {
-        messageListener.unsubscribe()
-        isSubscribed = false
     }
 
     override fun getChats(
