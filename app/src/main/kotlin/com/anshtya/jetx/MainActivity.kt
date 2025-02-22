@@ -9,6 +9,9 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
@@ -20,6 +23,7 @@ import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.request.crossfade
+import com.anshtya.jetx.settings.data.model.ThemeOption
 import com.anshtya.jetx.ui.navigation.JetXNavigation
 import com.anshtya.jetx.ui.theme.JetXTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,7 +33,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainActivityViewModel by viewModels()
-    private var useDarkTheme: Boolean? = null
+    private var themeOption by mutableStateOf<ThemeOption?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -39,17 +43,17 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect {
-                    useDarkTheme = it.useDarkTheme
+                    themeOption = it.themeOption
                 }
             }
         }
 
         splashScreen.setKeepOnScreenCondition {
-            useDarkTheme == null
+            themeOption == null
         }
 
         setContent {
-            val useDarkTheme = shouldUseDarkTheme(useDarkTheme)
+            val useDarkTheme = shouldUseDarkTheme(themeOption)
             JetXTheme(
                 darkTheme = useDarkTheme
             ) {
@@ -80,13 +84,13 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun shouldUseDarkTheme(
-    useDarkTheme: Boolean?
+    themeOption: ThemeOption?
 ): Boolean {
-    return if (useDarkTheme == null) {
-        isSystemInDarkTheme()
-    } else if (useDarkTheme) {
-        true
-    } else {
-        false
+    if (themeOption == null) return isSystemInDarkTheme()
+
+    return when (themeOption) {
+        ThemeOption.SYSTEM_DEFAULT -> isSystemInDarkTheme()
+        ThemeOption.LIGHT -> false
+        ThemeOption.DARK -> true
     }
 }

@@ -96,7 +96,7 @@ private fun Home() {
                     onNavigateToSettings = navController::navigateToSettings
                 )
                 calls()
-                settings()
+                settings(onBackClick = navController::navigateUp)
             }
         }
     }

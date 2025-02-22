@@ -4,12 +4,16 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.anshtya.jetx.preferences.values.ProfileValues
+import com.anshtya.jetx.preferences.values.SettingsValues
 
 object PreferencesMap {
     private val map = mapOf<String, Preferences.Key<*>>(
         // Profile values
         ProfileValues.PROFILE_CREATED to booleanPreferencesKey(ProfileValues.PROFILE_CREATED),
         ProfileValues.USER_ID to stringPreferencesKey(ProfileValues.USER_ID),
+
+        // Settings value
+        SettingsValues.THEME to stringPreferencesKey(SettingsValues.THEME)
     )
 
     @Suppress("UNCHECKED_CAST")

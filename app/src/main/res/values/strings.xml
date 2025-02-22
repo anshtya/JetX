@@ -28,6 +28,7 @@
     <string name="clear_search">Clear search</string>
     <string name="send_message">Send message</string>
     <string name="chatinputfield_placeholder">Message</string>
+    <string name="ok">OK</string>
 
     <!--Notification-->
     <string name="notification_chat_group">Chats</string>
@@ -49,4 +50,8 @@
     <string name="delete_chat_dialog_confirm_single">Delete chat</string>
     <string name="delete_chat_dialog_confirm_multiple">Delete chats</string>
     <string name="delete_chat_dialog_dismiss">Cancel</string>
+
+    <!--Settings-->
+    <string name="sign_out">Sign Out</string>
+    <string name="theme">Theme</string>
 </resources>
