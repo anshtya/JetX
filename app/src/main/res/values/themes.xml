@@ -2,4 +2,9 @@
 <resources>
 
     <style name="Theme.JetX" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.JetX.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">?android:attr/background</item>
+        <item name="postSplashScreenTheme">@style/Theme.JetX</item>
+    </style>
 </resources>
