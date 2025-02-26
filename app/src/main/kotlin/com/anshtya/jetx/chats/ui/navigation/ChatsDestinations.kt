@@ -1,22 +1,18 @@
 package com.anshtya.jetx.chats.ui.navigation
 
-import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
-import com.anshtya.jetx.chats.ui.navigation.navtype.chatUserArgsType
 import kotlinx.serialization.Serializable
-import kotlin.reflect.typeOf
 
 sealed interface ChatsDestinations {
     @Serializable
     data object ChatList : ChatsDestinations
 
     @Serializable
-    data class Chat(val chatUserArgs: ChatUserArgs) : ChatsDestinations {
-        companion object {
-            val typeMap = mapOf(
-                typeOf<ChatUserArgs>() to chatUserArgsType
-            )
-        }
-    }
+    data class Chat(
+        val recipientId: String? = null,
+        val chatId: Int? = null,
+        val username: String? = null,
+        val pictureUrl: String? = null
+    ) : ChatsDestinations
 
     @Serializable
     data object ArchivedChatList : ChatsDestinations

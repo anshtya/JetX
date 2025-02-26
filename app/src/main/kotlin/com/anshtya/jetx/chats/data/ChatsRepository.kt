@@ -15,6 +15,8 @@ interface ChatsRepository {
 
     suspend fun getChatId(recipientId: UUID): Int?
 
+    suspend fun getChatRecipientId(chatId: Int): UUID?
+
     fun getChatMessages(chatId: Int): Flow<DateChatMessages>
 
     suspend fun sendChatMessage(

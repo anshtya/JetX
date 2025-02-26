@@ -6,11 +6,14 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
+import androidx.navigation.navDeepLink
 import com.anshtya.jetx.chats.ui.archivedchatlist.ArchivedChatListRoute
 import com.anshtya.jetx.chats.ui.chat.ChatRoute
+import com.anshtya.jetx.chats.ui.chat.toChatDestination
 import com.anshtya.jetx.chats.ui.chatlist.ChatListRoute
 import com.anshtya.jetx.chats.ui.chatlist.ChatListViewModel
 import com.anshtya.jetx.chats.ui.search.SearchRoute
+import com.anshtya.jetx.util.Constants
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -28,8 +31,8 @@ fun NavGraphBuilder.chats(
                 navController.getBackStackEntry(Chats)
             }
             ChatListRoute(
-                onNavigateToChat = {
-                    navController.navigate(ChatsDestinations.Chat(it))
+                onNavigateToChat = { args ->
+                    navController.navigate(args.toChatDestination())
                 },
                 onNavigateToArchivedChats = {
                     navController.navigate(ChatsDestinations.ArchivedChatList)
@@ -47,8 +50,8 @@ fun NavGraphBuilder.chats(
                 navController.getBackStackEntry(Chats)
             }
             ArchivedChatListRoute(
-                onNavigateToChat = {
-                    navController.navigate(ChatsDestinations.Chat(it))
+                onNavigateToChat = { args ->
+                    navController.navigate(args.toChatDestination())
                 },
                 onBackClick = navController::navigateUp,
                 viewModel = hiltViewModel<ChatListViewModel>(parentEntry)
@@ -56,7 +59,11 @@ fun NavGraphBuilder.chats(
         }
 
         composable<ChatsDestinations.Chat>(
-            typeMap = ChatsDestinations.Chat.typeMap
+            deepLinks = listOf(
+                navDeepLink<ChatsDestinations.Chat>(
+                    basePath = "${Constants.BASE_APP_URL}/${Constants.CHAT_ARG}"
+                )
+            )
         ) {
             ChatRoute(
                 onBackClick = navController::navigateUp
@@ -65,8 +72,8 @@ fun NavGraphBuilder.chats(
 
         composable<ChatsDestinations.Search> {
             SearchRoute(
-                onNavigateToChat = {
-                    navController.navigate(ChatsDestinations.Chat(it))
+                onNavigateToChat = { args ->
+                    navController.navigate(args.toChatDestination())
                 },
                 onBackClick = navController::navigateUp
             )

@@ -81,6 +81,10 @@ class ChatsRepositoryImpl @Inject constructor(
     override suspend fun getChatId(recipientId: UUID): Int? =
         chatDao.getChat(recipientId)?.id
 
+    override suspend fun getChatRecipientId(chatId: Int): UUID? =
+        chatDao.getChat(chatId)?.recipientId
+
+
     override fun getChatMessages(chatId: Int): Flow<DateChatMessages> {
         return localMessagesDataSource.getChatMessages(chatId)
             .distinctUntilChanged()
@@ -106,7 +110,7 @@ class ChatsRepositoryImpl @Inject constructor(
         recipientId: UUID,
         text: String?,
         attachmentUri: String?
-    ) {
+    ): Int {
         val message = saveChatMessage(
             id = id,
             senderId = senderId,
@@ -121,6 +125,7 @@ class ChatsRepositoryImpl @Inject constructor(
                 filter { eq("id", message.id) }
             }
         )
+        return message.chatId
     }
 
     override suspend fun sendChatMessage(

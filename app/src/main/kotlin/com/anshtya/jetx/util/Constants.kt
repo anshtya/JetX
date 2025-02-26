@@ -10,4 +10,9 @@ object Constants {
 
     const val FULL_DATE = "d MMMM yyyy"
     val defaultPadding = 10.dp
+
+    // Deeplink
+    const val BASE_APP_URL = "https://anshtya.com"
+    const val CHAT_ARG = "chat"
+    const val CHAT_ID_ARG = "chatId"
 }

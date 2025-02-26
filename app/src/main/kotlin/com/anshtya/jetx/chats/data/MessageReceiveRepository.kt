@@ -9,5 +9,5 @@ interface MessageReceiveRepository {
         recipientId: UUID,
         text: String?,
         attachmentUri: String?
-    )
+    ): Int
 }
