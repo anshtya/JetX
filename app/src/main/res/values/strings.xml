@@ -54,4 +54,6 @@
     <!--Settings-->
     <string name="sign_out">Sign Out</string>
     <string name="theme">Theme</string>
+    <string name="mark_as_read">Mark as read</string>
+    <string name="reply">Reply</string>
 </resources>

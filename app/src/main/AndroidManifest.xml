@@ -57,6 +57,9 @@
                 android:value="androidx.startup"
                 tools:node="remove" />
         </provider>
+
+        <receiver android:name=".notifications.MarkAsReadReceiver" />
+        <receiver android:name=".notifications.ReplyReceiver" />
     </application>
 
 </manifest>

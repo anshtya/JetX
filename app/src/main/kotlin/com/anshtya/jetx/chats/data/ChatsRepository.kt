@@ -24,6 +24,11 @@ interface ChatsRepository {
         text: String?
     )
 
+    suspend fun sendChatMessage(
+        chatId: Int,
+        text: String
+    )
+
     suspend fun deleteChats(chatIds: List<Int>)
 
     suspend fun markChatMessagesAsSeen(chatId: Int)

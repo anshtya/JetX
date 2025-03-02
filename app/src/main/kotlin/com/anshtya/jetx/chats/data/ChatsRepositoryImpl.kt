@@ -32,7 +32,9 @@ import kotlinx.coroutines.launch
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class ChatsRepositoryImpl @Inject constructor(
     client: SupabaseClient,
     private val chatDao: ChatDao,
@@ -47,7 +49,7 @@ class ChatsRepositoryImpl @Inject constructor(
     init {
         coroutineScope.launch {
             messageListener.subscribe()
-            listenMessageChanges()
+            listenMessageChanges(this)
         }
     }
 
@@ -128,6 +130,11 @@ class ChatsRepositoryImpl @Inject constructor(
         return message.chatId
     }
 
+    override suspend fun sendChatMessage(chatId: Int, text: String) {
+        val recipientId = getChatRecipientId(chatId)!!
+        sendChatMessage(recipientId, text)
+    }
+
     override suspend fun sendChatMessage(
         recipientId: UUID,
         text: String?
@@ -161,7 +168,7 @@ class ChatsRepositoryImpl @Inject constructor(
         }
     }
 
-    private fun listenMessageChanges() {
+    private fun listenMessageChanges(coroutineScope: CoroutineScope) {
         messageListener.changes.onEach { action ->
             when (action) {
                 is PostgresAction.Update -> {

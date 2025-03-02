@@ -15,4 +15,5 @@ object Constants {
     const val BASE_APP_URL = "https://anshtya.com"
     const val CHAT_ARG = "chat"
     const val CHAT_ID_ARG = "chatId"
+    const val CHAT_TITLE = "chatTitle"
 }
