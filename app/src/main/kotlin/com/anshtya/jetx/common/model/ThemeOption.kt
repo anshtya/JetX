@@ -1,4 +1,4 @@
-package com.anshtya.jetx.settings.data.model
+package com.anshtya.jetx.common.model
 
 enum class ThemeOption(
     val displayName: String

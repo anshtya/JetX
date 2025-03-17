@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.auth.data.AuthRepository
 import com.anshtya.jetx.auth.data.model.AuthStatus
-import com.anshtya.jetx.profile.ProfileRepository
+import com.anshtya.jetx.preferences.PreferencesStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     authRepository: AuthRepository,
-    profileRepository: ProfileRepository
+    preferencesStore: PreferencesStore
 ) : ViewModel() {
     val userState: StateFlow<UserState?> = authRepository.authStatus
         .map {
@@ -24,7 +24,7 @@ class HomeViewModel @Inject constructor(
                 AuthStatus.AUTHORIZED -> {
                     UserState(
                         authenticated = true,
-                        profileCreated = profileRepository.profileStatus.first()
+                        profileCreated = preferencesStore.profileFlow.first().profileCreated
                     )
                 }
                 AuthStatus.UNAUTHORIZED -> {

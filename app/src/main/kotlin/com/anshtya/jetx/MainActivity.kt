@@ -23,7 +23,7 @@ import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.request.crossfade
-import com.anshtya.jetx.settings.data.model.ThemeOption
+import com.anshtya.jetx.common.model.ThemeOption
 import com.anshtya.jetx.ui.navigation.JetXNavigation
 import com.anshtya.jetx.ui.theme.JetXTheme
 import dagger.hilt.android.AndroidEntryPoint

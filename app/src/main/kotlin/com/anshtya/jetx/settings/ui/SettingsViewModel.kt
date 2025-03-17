@@ -3,10 +3,8 @@ package com.anshtya.jetx.settings.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.auth.data.AuthRepository
+import com.anshtya.jetx.common.model.ThemeOption
 import com.anshtya.jetx.preferences.PreferencesStore
-import com.anshtya.jetx.preferences.values.SettingsValues.THEME
-import com.anshtya.jetx.settings.data.SettingsRepository
-import com.anshtya.jetx.settings.data.model.ThemeOption
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,11 +16,10 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    preferencesStore: PreferencesStore,
-    private val settingsRepository: SettingsRepository
+    private val preferencesStore: PreferencesStore
 ) : ViewModel() {
     val userSettings: StateFlow<UserSettings?> = preferencesStore
-        .getStringFlow(THEME)
+        .themeFlow
         .map {
             UserSettings(
                 theme = enumValueOf<ThemeOption>(it ?: ThemeOption.SYSTEM_DEFAULT.name)
@@ -36,7 +33,7 @@ class SettingsViewModel @Inject constructor(
 
     fun changeTheme(option: ThemeOption) {
         viewModelScope.launch {
-            settingsRepository.setTheme(option)
+            preferencesStore.setTheme(option.name)
         }
     }
 

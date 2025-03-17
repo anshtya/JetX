@@ -8,7 +8,6 @@ object Constants {
     const val MESSAGE_TABLE = "messages"
     const val PROFILE_TABLE = "profile"
 
-    const val FULL_DATE = "d MMMM yyyy"
     val defaultPadding = 10.dp
 
     // Deeplink

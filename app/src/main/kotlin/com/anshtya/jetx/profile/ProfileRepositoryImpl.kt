@@ -7,7 +7,6 @@ import com.anshtya.jetx.database.entity.UserProfileEntity
 import com.anshtya.jetx.database.entity.toExternalModel
 import com.anshtya.jetx.fcm.FcmTokenManager
 import com.anshtya.jetx.preferences.PreferencesStore
-import com.anshtya.jetx.preferences.values.ProfileValues
 import com.anshtya.jetx.profile.model.CreateProfileRequest
 import com.anshtya.jetx.profile.model.NetworkProfile
 import com.anshtya.jetx.profile.model.toEntity
@@ -16,10 +15,9 @@ import com.anshtya.jetx.util.Constants.MEDIA_STORAGE
 import com.anshtya.jetx.util.Constants.PROFILE_TABLE
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.storage.storage
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 import java.io.ByteArrayOutputStream
 import java.util.UUID
 import javax.inject.Inject
@@ -31,12 +29,10 @@ class ProfileRepositoryImpl @Inject constructor(
     private val userProfileDao: UserProfileDao
 ) : ProfileRepository {
     private val supabaseStorage = client.storage
-    private val supabasePostgrest = client.postgrest
     private val supabaseAuth = client.auth
 
-    override val profileStatus: Flow<Boolean> = preferencesStore
-        .getBooleanFlow(ProfileValues.PROFILE_CREATED)
-        .map { it ?: false }
+    private val profileTable = client.from(PROFILE_TABLE)
+    private val mediaBucket = supabaseStorage.from(MEDIA_STORAGE)
 
     override suspend fun createProfile(
         name: String,
@@ -50,7 +46,6 @@ class ProfileRepositoryImpl @Inject constructor(
 
             if (profilePicture != null) {
                 val imageByteArray = getByteArrayFromBitmap(profilePicture)
-                val mediaBucket = supabaseStorage.from(MEDIA_STORAGE)
                 val path = "${userId}/profile-${username}.png"
                 mediaBucket.upload(
                     path = path,
@@ -59,36 +54,48 @@ class ProfileRepositoryImpl @Inject constructor(
                 profilePicturePath = mediaBucket.publicUrl(path)
             }
 
-            supabasePostgrest.from(PROFILE_TABLE).insert(
+            profileTable.insert(
                 value = CreateProfileRequest(
                     name = name,
                     username = username,
                     profilePictureUrl = profilePicturePath
                 )
             )
-            fetchAndSaveProfile(userId)
+            saveProfile(
+                UserProfileEntity(
+                    id = UUID.fromString(userId),
+                    name = name,
+                    username = username,
+                    profilePicture = profilePicturePath
+                )
+            )
             fcmTokenManager.addToken()
+            preferencesStore.setProfile(true, userId)
         }
     }
 
-    override suspend fun fetchAndSaveProfile(id: String) {
-        val userProfile = supabasePostgrest.from(PROFILE_TABLE).select {
-            filter { eq(column = "user_id", value = id) }
-        }.decodeSingleOrNull<NetworkProfile>()
+    override suspend fun saveProfile(userId: String) {
+        val networkProfile = fetchProfile(userId)
+        networkProfile?.let { saveProfile(it.toEntity()) }
+    }
 
-        if (userProfile != null) {
-            saveProfile(userProfile.toEntity())
+    override suspend fun getProfile(userId: UUID): UserProfile? {
+        val userProfile = userProfileDao.getUserProfile(userId)
+        return if (userProfile != null) {
+            userProfile.toExternalModel()
         } else {
-            throw IllegalStateException("Profile doesn't exist")
+            val networkProfile = fetchProfile(userId.toString())
+
+            networkProfile?.let {
+                saveProfile(it.toEntity())
+                return@let it.toExternalModel()
+            }
         }
     }
-
-    override suspend fun getProfile(id: UUID): UserProfile? =
-        userProfileDao.getUserProfile(id)?.toExternalModel()
 
     override suspend fun searchProfiles(query: String): List<UserProfile> {
         val pattern = "%${query}%"
-        return supabasePostgrest.from(PROFILE_TABLE).select {
+        return profileTable.select {
             filter {
                 or {
                     ilike(column = "username", pattern = pattern)
@@ -97,7 +104,7 @@ class ProfileRepositoryImpl @Inject constructor(
                 and {
                     neq(
                         column = "user_id",
-                        value = preferencesStore.getString(ProfileValues.USER_ID)!!
+                        value = preferencesStore.profileFlow.first().userId!!
                     )
                 }
             }
@@ -111,22 +118,21 @@ class ProfileRepositoryImpl @Inject constructor(
         preferencesStore.clearPreferences()
     }
 
+    private suspend fun fetchProfile(userId: String): NetworkProfile? {
+        return profileTable.select {
+            filter { eq(column = "user_id", value = userId) }
+        }.decodeSingleOrNull<NetworkProfile>()
+    }
+
+    private suspend fun saveProfile(userProfileEntity: UserProfileEntity) {
+        userProfileDao.upsertUserProfile(userProfileEntity)
+    }
+
     private fun getByteArrayFromBitmap(imageBitmap: Bitmap): ByteArray {
         val outputStream = ByteArrayOutputStream()
         imageBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
         val byteArray = outputStream.toByteArray()
         outputStream.close()
         return byteArray
-    }
-
-    private suspend fun saveProfile(userProfileEntity: UserProfileEntity) {
-        userProfileDao.upsertUserProfile(userProfileEntity)
-
-        // If there's no user logged in, then update preferences
-        val currentUserId = preferencesStore.getString(ProfileValues.USER_ID)
-        if (currentUserId == null) {
-            preferencesStore.setString(ProfileValues.USER_ID, userProfileEntity.id.toString())
-            preferencesStore.setBoolean(ProfileValues.PROFILE_CREATED, true)
-        }
     }
 }

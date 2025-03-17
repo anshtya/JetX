@@ -1,7 +1,7 @@
 package com.anshtya.jetx.chats.data
 
-import com.anshtya.jetx.chats.data.model.DateChatMessages
 import com.anshtya.jetx.common.model.Chat
+import com.anshtya.jetx.database.model.ChatIds
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
@@ -13,23 +13,9 @@ interface ChatsRepository {
 
     fun getArchivedChats(): Flow<List<Chat>>
 
-    suspend fun getChatId(recipientId: UUID): Int?
+    suspend fun getChatIds(recipientId: UUID): ChatIds?
 
-    suspend fun getChatRecipientId(chatId: Int): UUID?
-
-    fun getChatMessages(chatId: Int): Flow<DateChatMessages>
-
-    suspend fun sendChatMessage(
-        recipientId: UUID,
-        text: String?
-    )
-
-    suspend fun sendChatMessage(
-        chatId: Int,
-        text: String
-    )
+    suspend fun getChatIds(chatId: Int): ChatIds?
 
     suspend fun deleteChats(chatIds: List<Int>)
-
-    suspend fun markChatMessagesAsSeen(chatId: Int)
 }

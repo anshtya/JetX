@@ -1,7 +1,10 @@
 package com.anshtya.jetx.auth.data
 
 import com.anshtya.jetx.auth.data.model.AuthStatus
+import com.anshtya.jetx.chats.data.MessageUpdatesListener
+import com.anshtya.jetx.database.dao.UserProfileDao
 import com.anshtya.jetx.fcm.FcmTokenManager
+import com.anshtya.jetx.preferences.PreferencesStore
 import com.anshtya.jetx.profile.ProfileRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
@@ -14,7 +17,10 @@ import javax.inject.Inject
 class AuthRepositoryImpl @Inject constructor(
     client: SupabaseClient,
     private val fcmTokenManager: FcmTokenManager,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val preferencesStore: PreferencesStore,
+    private val userProfileDao: UserProfileDao,
+    private val messageUpdatesListener: MessageUpdatesListener
 ) : AuthRepository {
     private val supabaseAuth = client.auth
 
@@ -38,7 +44,7 @@ class AuthRepositoryImpl @Inject constructor(
             }
             val userId = supabaseAuth.currentUserOrNull()?.id
                 ?: throw IllegalStateException("User is not authenticated. Can't create profile")
-            profileRepository.fetchAndSaveProfile(userId)
+            profileRepository.saveProfile(userId)
             fcmTokenManager.addToken()
         }
     }
@@ -57,8 +63,10 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun signOut(): Result<Unit> {
         return kotlin.runCatching {
-            profileRepository.deleteProfiles()
+            messageUpdatesListener.unsubscribe()
             fcmTokenManager.removeToken()
+            userProfileDao.deleteAllProfiles()
+            preferencesStore.clearPreferences()
             supabaseAuth.signOut()
         }
     }

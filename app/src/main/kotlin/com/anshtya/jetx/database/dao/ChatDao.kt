@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import com.anshtya.jetx.database.model.ChatIds
 import com.anshtya.jetx.database.entity.ChatEntity
 import com.anshtya.jetx.database.model.ChatWithRecentMessage
 import kotlinx.coroutines.flow.Flow
@@ -50,11 +51,11 @@ interface ChatDao {
         showUnreadChats: Boolean
     ): Flow<List<ChatWithRecentMessage>>
 
-    @Query("SELECT * FROM chat WHERE recipient_id =:recipientId")
-    suspend fun getChat(recipientId: UUID): ChatEntity?
+    @Query("SELECT id, recipient_id FROM chat WHERE recipient_id =:recipientId")
+    suspend fun getChatIds(recipientId: UUID): ChatIds?
 
-    @Query("SELECT * FROM chat WHERE id =:chatId")
-    suspend fun getChat(chatId: Int): ChatEntity?
+    @Query("SELECT id, recipient_id FROM chat WHERE id =:chatId")
+    suspend fun getChatIds(chatId: Int): ChatIds?
 
     @Insert
     suspend fun insertChat(chatEntity: ChatEntity): Long

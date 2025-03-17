@@ -3,8 +3,7 @@ package com.anshtya.jetx
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.preferences.PreferencesStore
-import com.anshtya.jetx.preferences.values.SettingsValues.THEME
-import com.anshtya.jetx.settings.data.model.ThemeOption
+import com.anshtya.jetx.common.model.ThemeOption
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +25,7 @@ class MainActivityViewModel @Inject constructor(
 
     private fun loadData() {
         viewModelScope.launch {
-            preferencesStore.getStringFlow(THEME)
+            preferencesStore.themeFlow
                 .map { it?.let { enumValueOf<ThemeOption>(it) } ?: ThemeOption.SYSTEM_DEFAULT }
                 .collect { theme ->
                     _state.update {

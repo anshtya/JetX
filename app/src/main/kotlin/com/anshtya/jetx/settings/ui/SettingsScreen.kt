@@ -44,7 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
-import com.anshtya.jetx.settings.data.model.ThemeOption
+import com.anshtya.jetx.common.model.ThemeOption
 
 @Composable
 fun SettingsRoute(

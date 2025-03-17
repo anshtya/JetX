@@ -7,7 +7,7 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.RemoteInput
 import com.anshtya.jetx.R
-import com.anshtya.jetx.chats.data.ChatsRepository
+import com.anshtya.jetx.chats.data.MessagesRepository
 import com.anshtya.jetx.common.coroutine.DefaultScope
 import com.anshtya.jetx.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
@@ -18,7 +18,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class ReplyReceiver: BroadcastReceiver() {
     @Inject
-    lateinit var chatsRepository: ChatsRepository
+    lateinit var messagesRepository: MessagesRepository
 
     @Inject
     @DefaultScope
@@ -46,8 +46,8 @@ class ReplyReceiver: BroadcastReceiver() {
 
         val finisher = goAsync()
         coroutineScope.launch {
-            chatsRepository.markChatMessagesAsSeen(chatId)
-            chatsRepository.sendChatMessage(chatId, replyText)
+            messagesRepository.markChatMessagesAsSeen(chatId)
+            messagesRepository.sendChatMessage(chatId, replyText)
             finisher.finish()
         }
     }

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.anshtya.jetx.chats.data.ChatsRepository
+import com.anshtya.jetx.chats.data.MessagesRepository
 import com.anshtya.jetx.chats.data.model.DateChatMessages
 import com.anshtya.jetx.chats.ui.navigation.ChatsDestinations
 import com.anshtya.jetx.profile.ProfileRepository
@@ -27,6 +28,7 @@ import javax.inject.Inject
 class ChatViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val chatsRepository: ChatsRepository,
+    private val messagesRepository: MessagesRepository,
     private val profileRepository: ProfileRepository
 ) : ViewModel() {
     private val chatArgs = savedStateHandle.toRoute<ChatsDestinations.Chat>()
@@ -41,8 +43,8 @@ class ChatViewModel @Inject constructor(
             when {
                 chatArgs.chatId != null -> {
                     chatId.update { chatArgs.chatId }
-                    val userId = chatsRepository.getChatRecipientId(chatArgs.chatId)
-                    val user = profileRepository.getProfile(userId!!)
+                    val userId = chatsRepository.getChatIds(chatArgs.chatId)!!.recipientId
+                    val user = profileRepository.getProfile(userId)
 
                     _recipientUser.update {
                         RecipientUser(
@@ -54,7 +56,7 @@ class ChatViewModel @Inject constructor(
                 }
                 chatArgs.recipientId != null -> {
                     val recipientId = UUID.fromString(chatArgs.recipientId)
-                    chatId.update { chatsRepository.getChatId(recipientId) }
+                    chatId.update { chatsRepository.getChatIds(recipientId)?.id }
 
                     _recipientUser.update {
                         RecipientUser(
@@ -70,7 +72,7 @@ class ChatViewModel @Inject constructor(
 
     val chatMessages: StateFlow<DateChatMessages> = chatId
         .filterNotNull()
-        .flatMapLatest { chatsRepository.getChatMessages(it) }
+        .flatMapLatest { messagesRepository.getChatMessages(it) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -80,12 +82,12 @@ class ChatViewModel @Inject constructor(
     fun sendMessage(message: String) {
         viewModelScope.launch {
             val recipientUser = _recipientUser.value
-            chatsRepository.sendChatMessage(
+            messagesRepository.sendChatMessage(
                 recipientId = recipientUser!!.id,
                 text = message
             )
             if (chatId.value == null) {
-                chatId.update { chatsRepository.getChatId(recipientUser.id) }
+                chatId.update { chatsRepository.getChatIds(recipientUser.id)?.id }
             }
         }
     }
@@ -94,7 +96,7 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             val id = chatId.value
             if (id != null) {
-                chatsRepository.markChatMessagesAsSeen(id)
+                messagesRepository.markChatMessagesAsSeen(id)
             }
         }
     }

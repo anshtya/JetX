@@ -1,19 +1,51 @@
 package com.anshtya.jetx.preferences
 
-import kotlinx.coroutines.flow.Flow
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import com.anshtya.jetx.common.model.ProfileData
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
 
-interface PreferencesStore {
-    suspend fun getBoolean(key: String): Boolean?
+@Singleton
+class PreferencesStore @Inject constructor(
+    private val dataStore: DataStore<Preferences>
+) {
+    companion object {
+        val PROFILE_CREATED = booleanPreferencesKey("profile_created")
+        val USER_ID = stringPreferencesKey("user_id")
 
-    fun getBooleanFlow(key: String): Flow<Boolean?>
+        val THEME = stringPreferencesKey("theme")
+    }
 
-    suspend fun setBoolean(key: String, value: Boolean)
+    val profileFlow = dataStore.data.map {
+        ProfileData(
+            profileCreated = it[PROFILE_CREATED] ?: false,
+            userId = it[USER_ID]
+        )
+    }
+    val themeFlow = dataStore.data.map { it[THEME] }
 
-    suspend fun getString(key: String): String?
+    suspend fun setProfile(
+        profileCreated: Boolean,
+        userId: String
+    ) {
+        dataStore.edit {
+            it[PROFILE_CREATED] = profileCreated
+            it[USER_ID] = userId
+        }
+    }
 
-    fun getStringFlow(key: String): Flow<String?>
+    suspend fun setTheme(theme: String) {
+        dataStore.edit {
+            it[THEME] = theme
+        }
+    }
 
-    suspend fun setString(key: String, value: String)
-
-    suspend fun clearPreferences()
+    suspend fun clearPreferences() {
+        dataStore.edit { it.clear() }
+    }
 }

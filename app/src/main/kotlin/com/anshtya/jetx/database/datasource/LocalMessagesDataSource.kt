@@ -18,8 +18,6 @@ class LocalMessagesDataSource @Inject constructor(
 ) {
     fun getChatMessages(chatId: Int): Flow<List<MessageEntity>> = messageDao.getChatMessages(chatId)
 
-    suspend fun getChatMessage(id: UUID): MessageEntity = messageDao.getChatMessage(id)
-
     suspend fun insertMessage(
         id: UUID,
         senderId: UUID,
@@ -30,10 +28,10 @@ class LocalMessagesDataSource @Inject constructor(
     ): MessageEntity {
         return db.withTransaction {
             val chatId = if (currentUser) {
-                chatDao.getChat(recipientId)?.id
+                chatDao.getChatIds(recipientId)?.id
                     ?: chatDao.insertChat(ChatEntity(recipientId = recipientId)).toInt()
             } else {
-                chatDao.getChat(senderId)?.id
+                chatDao.getChatIds(senderId)?.id
                     ?: chatDao.insertChat(ChatEntity(recipientId = senderId)).toInt()
             }
 
@@ -53,10 +51,6 @@ class LocalMessagesDataSource @Inject constructor(
 
             return@withTransaction messageEntity
         }
-    }
-
-    suspend fun updateMessage(messageEntity: MessageEntity) {
-        messageDao.upsertMessage(messageEntity)
     }
 
     suspend fun markChatMessagesAsSeen(chatId: Int): List<UUID> {

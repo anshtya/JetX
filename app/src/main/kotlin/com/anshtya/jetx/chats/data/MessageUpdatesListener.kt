@@ -1,6 +1,9 @@
 package com.anshtya.jetx.chats.data
 
+import com.anshtya.jetx.chats.data.model.NetworkMessage
 import com.anshtya.jetx.common.coroutine.DefaultScope
+import com.anshtya.jetx.common.model.MessageStatus
+import com.anshtya.jetx.database.dao.MessageDao
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.query.filter.FilterOperation
@@ -8,36 +11,33 @@ import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.PostgresAction
 import io.github.jan.supabase.realtime.RealtimeChannel
 import io.github.jan.supabase.realtime.channel
+import io.github.jan.supabase.realtime.decodeRecord
 import io.github.jan.supabase.realtime.postgresChangeFlow
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
-class MessageListenerImpl @Inject constructor(
+class MessageUpdatesListener @Inject constructor(
     client: SupabaseClient,
+    private val messageDao: MessageDao,
     @DefaultScope private val coroutineScope: CoroutineScope
-) : MessageListener {
+) {
     private val supabaseAuth = client.auth
     private val messagesChannel = client.channel("messages-db-changes")
 
-    private val _changes = MutableSharedFlow<PostgresAction>()
-    override val changes = _changes.asSharedFlow()
-
-    override suspend fun subscribe() {
+    suspend fun subscribe() {
         val userId = supabaseAuth.currentUserOrNull()?.id
             ?: throw IllegalStateException("User should be logged in to observe messages")
-        listenSenderMessageUpdates(messagesChannel, userId)
+        listenSentMessageUpdates(messagesChannel, userId)
         messagesChannel.subscribe()
     }
 
-    override suspend fun unsubscribe() {
+    suspend fun unsubscribe() {
         messagesChannel.unsubscribe()
     }
 
-    private fun listenSenderMessageUpdates(channel: RealtimeChannel, userId: String) {
+    private fun listenSentMessageUpdates(channel: RealtimeChannel, userId: String) {
         channel.postgresChangeFlow<PostgresAction.Update>(
             schema = "public",
             filter = {
@@ -50,6 +50,19 @@ class MessageListenerImpl @Inject constructor(
                     )
                 )
             }
-        ).onEach { action -> _changes.emit(action) }.launchIn(coroutineScope)
+        ).onEach { action ->
+            val networkMessage = action.decodeRecord<NetworkMessage>()
+            val storedMessage = messageDao.getChatMessage(networkMessage.id)
+            messageDao.upsertMessage(
+                storedMessage.copy(
+                    text = networkMessage.text,
+                    status = if (networkMessage.hasSeen) {
+                        MessageStatus.SEEN
+                    } else if (networkMessage.hasReceived) {
+                        MessageStatus.RECEIVED
+                    } else storedMessage.status
+                )
+            )
+        }.launchIn(coroutineScope)
     }
 }
