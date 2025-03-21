@@ -42,6 +42,7 @@
 
     <string name="chat_selected">Chat selected</string>
 
+    <string name="delete">Delete</string>
     <string name="delete_chat">Delete chat</string>
     <string name="archive_chat">Archive chat</string>
     <string name="unarchive_chat">Unarchive chat</string>
@@ -49,11 +50,13 @@
     <string name="delete_chat_dialog_text">Also delete media received in this chat from the device gallery</string>
     <string name="delete_chat_dialog_confirm_single">Delete chat</string>
     <string name="delete_chat_dialog_confirm_multiple">Delete chats</string>
-    <string name="delete_chat_dialog_dismiss">Cancel</string>
+    <string name="delete_dialog_dismiss">Cancel</string>
 
     <!--Settings-->
     <string name="sign_out">Sign Out</string>
     <string name="theme">Theme</string>
+
     <string name="mark_as_read">Mark as read</string>
     <string name="reply">Reply</string>
+    <string name="star_message">Star message</string>
 </resources>

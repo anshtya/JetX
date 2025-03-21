@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -35,16 +36,15 @@ fun ArchivedChatListRoute(
     viewModel: ChatListViewModel
 ) {
     val archivedChatListState by viewModel.archivedChatList.collectAsStateWithLifecycle()
-    val selectedChatCount by viewModel.selectedChatCount.collectAsStateWithLifecycle()
     val selectedChats by viewModel.selectedChats.collectAsStateWithLifecycle()
 
     ArchivedChatListScreen(
         state = archivedChatListState,
         selectedChats = selectedChats,
-        selectedChatCount = selectedChatCount,
         onChatClick = onNavigateToChat,
         onChatLongClick = viewModel::selectChat,
         onClearSelectedChats = viewModel::clearSelectedChats,
+        onUnarchiveClick = viewModel::unarchiveChat,
         onBackClick = onBackClick
     )
 }
@@ -53,18 +53,19 @@ fun ArchivedChatListRoute(
 private fun ArchivedChatListScreen(
     state: ChatListState,
     selectedChats: Set<Int>,
-    selectedChatCount: Int,
     onChatClick: (ChatUserArgs) -> Unit,
     onChatLongClick: (Int) -> Unit,
     onClearSelectedChats: () -> Unit,
+    onUnarchiveClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
+    val selectedChatCount = remember(selectedChats) { selectedChats.size }
     var showDeleteChatDialog by rememberSaveable { mutableStateOf(false) }
     if (showDeleteChatDialog) {
         DeleteChatDialog(
             chatCount = selectedChatCount,
             onDismissRequest = { showDeleteChatDialog = false },
-            onConfirmClick = { deleteMedia ->
+            onConfirmClick = {
                 showDeleteChatDialog = false
             }
         )
@@ -80,7 +81,7 @@ private fun ArchivedChatListScreen(
             topBarActions = { chatsSelected ->
                 if (chatsSelected) {
                     IconButton(
-                        onClick = {},
+                        onClick = onUnarchiveClick,
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Unarchive,
@@ -98,7 +99,7 @@ private fun ArchivedChatListScreen(
                 }
             },
             topBarNavigationIcon = { BackButton(onClick = onBackClick) }
-        ) { innerPadding, chatsSelected ->
+        ) { innerPadding, _ ->
             ChatList(
                 chatList = state.list,
                 selectedChats = selectedChats,
@@ -119,10 +120,10 @@ private fun ArchivedChatsScreenPreview() {
         ArchivedChatListScreen(
             state = ChatListState.Success(sampleChats),
             selectedChats = emptySet(),
-            selectedChatCount = 0,
             onChatClick = {},
             onChatLongClick = {},
             onClearSelectedChats = {},
+            onUnarchiveClick = {},
             onBackClick = {}
         )
     }

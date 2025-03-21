@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "d4e411c358efc7b216a66cf47e67f372",
+    "identityHash": "30d281365f9aa1b2cecf93e84ef2a6aa",
     "entities": [
       {
         "tableName": "chat",
@@ -72,11 +72,17 @@
       },
       {
         "tableName": "message",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `sender_id` TEXT NOT NULL, `recipient_id` TEXT NOT NULL, `chat_id` INTEGER NOT NULL, `text` TEXT, `is_starred` INTEGER NOT NULL, `attachment_uri` TEXT, `created_at` INTEGER NOT NULL, `status` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`sender_id`) REFERENCES `user_profile`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`recipient_id`) REFERENCES `user_profile`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`chat_id`) REFERENCES `chat`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uid` TEXT NOT NULL, `sender_id` TEXT NOT NULL, `recipient_id` TEXT NOT NULL, `chat_id` INTEGER NOT NULL, `text` TEXT, `is_starred` INTEGER NOT NULL, `attachment_uri` TEXT, `created_at` INTEGER NOT NULL, `status` TEXT NOT NULL, FOREIGN KEY(`sender_id`) REFERENCES `user_profile`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`recipient_id`) REFERENCES `user_profile`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`chat_id`) REFERENCES `chat`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -130,7 +136,7 @@
           }
         ],
         "primaryKey": {
-          "autoGenerate": false,
+          "autoGenerate": true,
           "columnNames": [
             "id"
           ]
@@ -254,7 +260,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd4e411c358efc7b216a66cf47e67f372')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '30d281365f9aa1b2cecf93e84ef2a6aa')"
     ]
   }
 }

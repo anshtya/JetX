@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -26,14 +27,6 @@ class ChatListViewModel @Inject constructor(
 
     private val _selectedChats = MutableStateFlow<Set<Int>>(emptySet())
     val selectedChats = _selectedChats.asStateFlow()
-
-    val selectedChatCount = _selectedChats
-        .map { it.size }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = 0
-        )
 
     val chatList: StateFlow<ChatListState> = _selectedFilter
         .flatMapLatest { filter ->
@@ -77,6 +70,27 @@ class ChatListViewModel @Inject constructor(
 
     fun clearSelectedChats() {
         _selectedChats.update { emptySet() }
+    }
+
+    fun deleteChat() {
+        viewModelScope.launch {
+            chatsRepository.deleteChats(_selectedChats.value.toList())
+            clearSelectedChats()
+        }
+    }
+
+    fun archiveChat() {
+        viewModelScope.launch {
+            chatsRepository.archiveChats(_selectedChats.value.toList())
+            clearSelectedChats()
+        }
+    }
+
+    fun unarchiveChat() {
+        viewModelScope.launch {
+            chatsRepository.unarchiveChats(_selectedChats.value.toList())
+            clearSelectedChats()
+        }
     }
 }
 

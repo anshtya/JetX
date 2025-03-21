@@ -26,7 +26,7 @@ data class NetworkMessage(
 )
 
 fun MessageEntity.toNetworkMessage() = NetworkMessage(
-    id = id,
+    id = uid,
     senderId = senderId,
     recipientId = recipientId,
     text = text,

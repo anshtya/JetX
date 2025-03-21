@@ -27,26 +27,26 @@ fun ChatList(
     modifier: Modifier = Modifier,
     listHeader: LazyListScope.() -> Unit = {}
 ) {
-    Box(modifier) {
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = modifier
+    ) {
+        listHeader()
         when {
-            chatList.isEmpty() -> EmptyChatsItem(Modifier.fillMaxSize())
-            else -> {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    listHeader()
-                    items(
-                        items = chatList,
-                        key = { it.id }
-                    ) {
-                        ChatItem(
-                            chat = it,
-                            selected = selectedChats.contains(it.id),
-                            onClick = onChatClick,
-                            onLongClick = onChatLongClick
-                        )
-                    }
-                }
+            chatList.isEmpty() -> item {
+                EmptyChatsItem(Modifier.fillMaxSize())
+            }
+
+            else -> items(
+                items = chatList,
+                key = { it.id }
+            ) {
+                ChatItem(
+                    chat = it,
+                    selected = selectedChats.contains(it.id),
+                    onClick = onChatClick,
+                    onLongClick = onChatLongClick
+                )
             }
         }
     }

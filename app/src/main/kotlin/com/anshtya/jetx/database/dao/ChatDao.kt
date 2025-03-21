@@ -30,7 +30,7 @@ interface ChatDao {
             AND
                 CASE WHEN :showArchivedChats
                     THEN chat.is_archived = 1
-                    ELSE 1
+                    ELSE chat.is_archived = 0
                 END
             AND
                 CASE WHEN :showFavoriteChats
@@ -62,6 +62,12 @@ interface ChatDao {
 
     @Query("DELETE FROM chat WHERE id in (:chatIds)")
     suspend fun deleteChats(chatIds: List<Int>)
+
+    @Query("UPDATE chat SET is_archived = 1 WHERE id in (:chatIds)")
+    suspend fun archiveChat(chatIds: List<Int>)
+
+    @Query("UPDATE chat SET is_archived = 0 WHERE id in (:chatIds)")
+    suspend fun unarchiveChat(chatIds: List<Int>)
 
     @Query("UPDATE chat SET unread_count = unread_count + 1 WHERE id = :chatId")
     suspend fun updateUnreadCount(chatId: Int)

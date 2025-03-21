@@ -3,7 +3,7 @@ package com.anshtya.jetx.common.model
 import java.util.UUID
 
 data class Message(
-    val id: UUID,
+    val id: Int,
     val senderId: UUID,
     val text: String,
     val isStarred: Boolean,

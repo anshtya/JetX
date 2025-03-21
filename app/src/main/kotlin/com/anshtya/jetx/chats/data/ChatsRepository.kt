@@ -18,4 +18,8 @@ interface ChatsRepository {
     suspend fun getChatIds(chatId: Int): ChatIds?
 
     suspend fun deleteChats(chatIds: List<Int>)
+
+    suspend fun archiveChats(chatIds: List<Int>)
+
+    suspend fun unarchiveChats(chatIds: List<Int>)
 }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -57,7 +58,6 @@ fun ChatListRoute(
     val chatListState by viewModel.chatList.collectAsStateWithLifecycle()
     val archivedChatEmpty by viewModel.archivedChatsEmpty.collectAsStateWithLifecycle()
     val selectedFilter by viewModel.selectedFilter.collectAsStateWithLifecycle()
-    val selectedChatCount by viewModel.selectedChatCount.collectAsStateWithLifecycle()
     val selectedChats by viewModel.selectedChats.collectAsStateWithLifecycle()
 
     ChatListScreen(
@@ -65,10 +65,11 @@ fun ChatListRoute(
         selectedChats = selectedChats,
         archivedChatEmpty = archivedChatEmpty,
         selectedFilter = selectedFilter,
-        selectedChatCount = selectedChatCount,
         onChatClick = onNavigateToChat,
         onChatLongClick = viewModel::selectChat,
         onClearSelectedChats = viewModel::clearSelectedChats,
+        onDeleteChatClick = viewModel::deleteChat,
+        onArchiveClick = viewModel::archiveChat,
         onFilterOptionClick = viewModel::changeFilter,
         onArchivedChatsClick = onNavigateToArchivedChats,
         onSearchButtonClick = onNavigateToSearch,
@@ -85,16 +86,18 @@ private fun ChatListScreen(
     selectedChats: Set<Int>,
     archivedChatEmpty: Boolean,
     selectedFilter: FilterOption,
-    selectedChatCount: Int,
     onChatClick: (ChatUserArgs) -> Unit,
     onChatLongClick: (Int) -> Unit,
     onClearSelectedChats: () -> Unit,
+    onDeleteChatClick: () -> Unit,
+    onArchiveClick: () -> Unit,
     onFilterOptionClick: (FilterOption) -> Unit,
     onArchivedChatsClick: () -> Unit,
     onSearchButtonClick: () -> Unit,
     onStarredMessagesClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
+    val selectedChatCount = remember(selectedChats) { selectedChats.size }
     val filterOptions = remember { FilterOption.entries }
     var showDropdownMenu by remember { mutableStateOf(false) }
 
@@ -104,6 +107,7 @@ private fun ChatListScreen(
             chatCount = selectedChatCount,
             onDismissRequest = { showDeleteChatDialog = false },
             onConfirmClick = { deleteMedia ->
+                onDeleteChatClick()
                 showDeleteChatDialog = false
             }
         )
@@ -124,7 +128,7 @@ private fun ChatListScreen(
             topBarActions = { chatsSelected ->
                 if (chatsSelected) {
                     IconButton(
-                        onClick = {},
+                        onClick = onArchiveClick,
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Archive,
@@ -205,7 +209,7 @@ private fun ChatListScreen(
                     }
                 },
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(innerPadding)
             )
         }
@@ -283,10 +287,11 @@ private fun ChatsScreenPreview() {
             selectedChats = emptySet(),
             archivedChatEmpty = true,
             selectedFilter = FilterOption.ALL,
-            selectedChatCount = 1,
             onChatClick = {},
             onChatLongClick = {},
             onClearSelectedChats = {},
+            onDeleteChatClick = {},
+            onArchiveClick = {},
             onFilterOptionClick = {},
             onArchivedChatsClick = {},
             onSearchButtonClick = {},

@@ -44,8 +44,9 @@ import java.util.UUID
     ]
 )
 data class MessageEntity(
-    @PrimaryKey
-    val id: UUID,
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    val uid: UUID,
     @ColumnInfo(name = "sender_id", index = true)
     val senderId: UUID,
     @ColumnInfo(name = "recipient_id", index = true)

@@ -6,7 +6,7 @@ import java.util.UUID
 
 val sampleChatMessages = listOf(
     Message(
-        id = UUID.fromString("1"),
+        id = 1,
         senderId = UUID.fromString("1"),
         text = "Hey! Did you check out the new cafe downtown?",
         isStarred = false,
@@ -14,7 +14,7 @@ val sampleChatMessages = listOf(
         createdAt = "10:00am"
     ),
     Message(
-        id = UUID.fromString("2"),
+        id = 2,
         senderId = UUID.fromString("me"),
         text = "Absolutely! The mocha is amazing.",
         isStarred = false,

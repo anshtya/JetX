@@ -56,8 +56,15 @@ class ChatsRepositoryImpl @Inject constructor(
 
     override suspend fun getChatIds(chatId: Int): ChatIds? = chatDao.getChatIds(chatId)
 
-
     override suspend fun deleteChats(chatIds: List<Int>) {
         chatDao.deleteChats(chatIds)
+    }
+
+    override suspend fun archiveChats(chatIds: List<Int>) {
+        chatDao.archiveChat(chatIds)
+    }
+
+    override suspend fun unarchiveChats(chatIds: List<Int>) {
+        chatDao.unarchiveChat(chatIds)
     }
 }

@@ -1,7 +1,6 @@
 package com.anshtya.jetx.database.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Upsert
 import com.anshtya.jetx.common.model.MessageStatus
@@ -15,11 +14,11 @@ interface MessageDao {
     @Query("SELECT * FROM message WHERE chat_id = :chatId ORDER BY created_at DESC")
     fun getChatMessages(chatId: Int): Flow<List<MessageEntity>>
 
-    @Query("SELECT * FROM message WHERE id = :messageId")
+    @Query("SELECT * FROM message WHERE uid = :messageId")
     suspend fun getChatMessage(messageId: UUID): MessageEntity
 
     @Query("""
-        SELECT id FROM message 
+        SELECT uid FROM message 
         WHERE chat_id = :chatId AND status = :receivedStatus
     """)
     suspend fun getUnreadMessagesId(
@@ -30,12 +29,12 @@ interface MessageDao {
     @Upsert
     suspend fun upsertMessage(message: MessageEntity)
 
-    @Delete
-    suspend fun deleteMessages(messages: List<MessageEntity>)
+    @Query("DELETE FROM message WHERE id in (:ids)")
+    suspend fun deleteMessages(ids: List<Int>)
 
-    @Query("UPDATE message SET status = :status WHERE id = :id")
+    @Query("UPDATE message SET status = :status WHERE uid = :uid")
     suspend fun updateMessageStatus(
-        id: UUID,
+        uid: UUID,
         status: MessageStatus
     )
 

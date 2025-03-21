@@ -46,6 +46,7 @@ class AuthRepositoryImpl @Inject constructor(
                 ?: throw IllegalStateException("User is not authenticated. Can't create profile")
             profileRepository.saveProfile(userId)
             fcmTokenManager.addToken()
+            preferencesStore.setProfile(true, userId)
         }
     }
 

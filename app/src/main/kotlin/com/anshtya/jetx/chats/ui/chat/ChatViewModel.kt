@@ -38,6 +38,9 @@ class ChatViewModel @Inject constructor(
     private val _recipientUser = MutableStateFlow<RecipientUser?>(null)
     val recipientUser = _recipientUser.asStateFlow()
 
+    private val _selectedMessages = MutableStateFlow<Set<Int>>(emptySet())
+    val selectedMessages = _selectedMessages.asStateFlow()
+
     init {
         viewModelScope.launch {
             when {
@@ -54,6 +57,7 @@ class ChatViewModel @Inject constructor(
                         )
                     }
                 }
+
                 chatArgs.recipientId != null -> {
                     val recipientId = UUID.fromString(chatArgs.recipientId)
                     chatId.update { chatsRepository.getChatIds(recipientId)?.id }
@@ -98,6 +102,29 @@ class ChatViewModel @Inject constructor(
             if (id != null) {
                 messagesRepository.markChatMessagesAsSeen(id)
             }
+        }
+    }
+
+    fun selectMessage(id: Int) {
+        _selectedMessages.update {
+            it.toMutableSet().apply { add(id) }
+        }
+    }
+
+    fun unselectMessage(id: Int) {
+        _selectedMessages.update {
+            it.toMutableSet().apply { remove(id) }
+        }
+    }
+
+    fun clearSelectedMessages() {
+        _selectedMessages.update { emptySet() }
+    }
+
+    fun deleteMessages() {
+        viewModelScope.launch {
+            messagesRepository.deleteMessages(_selectedMessages.value.toList())
+            clearSelectedMessages()
         }
     }
 }

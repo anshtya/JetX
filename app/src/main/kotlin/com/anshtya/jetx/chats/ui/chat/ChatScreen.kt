@@ -1,5 +1,9 @@
 package com.anshtya.jetx.chats.ui.chat
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,6 +22,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,16 +55,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
 import com.anshtya.jetx.chats.data.model.DateChatMessages
+import com.anshtya.jetx.chats.ui.components.DeleteMessageDialog
 import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
-import com.anshtya.jetx.common.ui.IconButtonDropdownMenu
 import com.anshtya.jetx.common.ui.ProfilePicture
 import com.anshtya.jetx.common.ui.message.MessageDetails
 import com.anshtya.jetx.common.ui.message.MessageItemContent
 import com.anshtya.jetx.sampledata.sampleChatMessages
 import com.anshtya.jetx.sampledata.sampleUsers
-import com.anshtya.jetx.util.Constants.defaultPadding
 
 @Composable
 fun ChatRoute(
@@ -67,11 +72,17 @@ fun ChatRoute(
 ) {
     val chatUser by viewModel.recipientUser.collectAsStateWithLifecycle()
     val chatMessages by viewModel.chatMessages.collectAsStateWithLifecycle()
+    val selectedMessages by viewModel.selectedMessages.collectAsStateWithLifecycle()
 
     ChatScreen(
         recipientUser = chatUser,
         chatMessages = chatMessages,
+        selectedMessages = selectedMessages,
         onMessageSent = viewModel::sendMessage,
+        onMessageSelect = viewModel::selectMessage,
+        onMessageUnselect = viewModel::unselectMessage,
+        onClearSelectedMessages = viewModel::clearSelectedMessages,
+        onDeleteMessageClick = viewModel::deleteMessages,
         onChatSeen = viewModel::markChatMessagesAsSeen,
         onBackClick = onBackClick
     )
@@ -81,7 +92,12 @@ fun ChatRoute(
 private fun ChatScreen(
     recipientUser: RecipientUser?,
     chatMessages: DateChatMessages,
+    selectedMessages: Set<Int>,
     onMessageSent: (String) -> Unit,
+    onMessageSelect: (Int) -> Unit,
+    onMessageUnselect: (Int) -> Unit,
+    onClearSelectedMessages: () -> Unit,
+    onDeleteMessageClick: () -> Unit,
     onChatSeen: () -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -101,11 +117,36 @@ private fun ChatScreen(
         }
     }
 
+    val selectedMessagesCount = remember(selectedMessages) { selectedMessages.size }
+    val messagesSelected by remember(selectedMessagesCount > 0) {
+        mutableStateOf(selectedMessagesCount > 0)
+    }
+
+    BackHandler(messagesSelected) {
+        onClearSelectedMessages()
+    }
+
+    var showDeleteMessageDialog by rememberSaveable { mutableStateOf(false) }
+    if (showDeleteMessageDialog) {
+        DeleteMessageDialog(
+            messageCount = selectedMessagesCount,
+            onDismissRequest = { showDeleteMessageDialog = false },
+            onConfirmClick = {
+                onDeleteMessageClick()
+                showDeleteMessageDialog = false
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             ChatTopAppBar(
+                selectedMessagesCount = selectedMessagesCount,
                 recipientUser = recipientUser,
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                onClearSelectedMessages = onClearSelectedMessages,
+                onDeleteClick = { showDeleteMessageDialog = true },
+                onStarClick = {}
             )
         },
         bottomBar = {
@@ -117,7 +158,7 @@ private fun ChatScreen(
         LazyColumn(
             state = listState,
             reverseLayout = true,
-            contentPadding = PaddingValues(horizontal = defaultPadding, vertical = 2.dp),
+            contentPadding = PaddingValues(vertical = 2.dp),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -134,10 +175,15 @@ private fun ChatScreen(
                     } else 0.dp
 
                     MessageItem(
+                        id = message.id,
                         text = message.text,
                         time = message.createdAt,
                         status = message.status,
                         isAuthor = isAuthor,
+                        messagesSelected = messagesSelected,
+                        isSelected = selectedMessages.any { it == message.id },
+                        onSelect = onMessageSelect,
+                        onUnselect = onMessageUnselect,
                         modifier = Modifier.padding(top = 2.dp, bottom = bottomPadding)
                     )
                 }
@@ -152,15 +198,20 @@ private fun ChatScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ChatTopAppBar(
+    selectedMessagesCount: Int,
     recipientUser: RecipientUser?,
     onBackClick: () -> Unit,
+    onClearSelectedMessages: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onStarClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var showDropdownMenu by remember { mutableStateOf(false) }
+    val messageSelected = remember(selectedMessagesCount) { selectedMessagesCount > 0 }
 
     TopAppBar(
         title = {
-            Row(
+            if (messageSelected) Text("$selectedMessagesCount")
+            else Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -179,15 +230,26 @@ private fun ChatTopAppBar(
             }
         },
         navigationIcon = {
-            BackButton { onBackClick() }
+            BackButton { if (messageSelected) onClearSelectedMessages() else onBackClick() }
         },
         actions = {
-            IconButtonDropdownMenu(
-                expanded = showDropdownMenu,
-                onIconClick = { showDropdownMenu = !showDropdownMenu },
-                onDismissRequest = { showDropdownMenu = false },
-            ) {
-                // TODO: add menu items
+            if (messageSelected) {
+                IconButton(
+                    onClick = onStarClick,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.StarBorder,
+                        contentDescription = stringResource(id = R.string.star_message)
+                    )
+                }
+                IconButton(
+                    onClick = onDeleteClick,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = stringResource(id = R.string.delete)
+                    )
+                }
             }
         },
         modifier = modifier
@@ -291,17 +353,40 @@ private fun DateHeader(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun MessageItem(
+    id: Int,
     text: String,
     time: String,
     status: MessageStatus,
     isAuthor: Boolean,
+    messagesSelected: Boolean,
+    isSelected: Boolean,
+    onSelect: (Int) -> Unit,
+    onUnselect: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
         horizontalArrangement = if (isAuthor) Arrangement.End else Arrangement.Start,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                color = if (isSelected) {
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+                } else Color.Transparent,
+            )
+            .combinedClickable(
+                onClick = {
+                    if (isSelected && messagesSelected) {
+                        onUnselect(id)
+                    } else if (messagesSelected) {
+                        onSelect(id)
+                    }
+                },
+                onLongClick = { onSelect(id) }
+            )
+            .padding(horizontal = 8.dp)
     ) {
         Surface(
             shape = RoundedCornerShape(
@@ -310,7 +395,9 @@ private fun MessageItem(
                 bottomStart = if (isAuthor) 8.dp else 0.dp,
                 bottomEnd = if (isAuthor) 0.dp else 8.dp
             ),
-            color = if (isAuthor) {
+            color = if (isSelected) {
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+            } else if (isAuthor) {
                 MaterialTheme.colorScheme.primary
             } else {
                 MaterialTheme.colorScheme.surfaceContainerHighest
@@ -337,15 +424,20 @@ private fun ChatScreenPreview() {
     ComponentPreview {
         val user = sampleUsers.first()
         ChatScreen(
-            onBackClick = {},
-            chatMessages = DateChatMessages(emptyMap()),
             recipientUser = RecipientUser(
                 id = user.id,
                 username = user.username,
                 pictureUrl = user.pictureUrl
             ),
+            chatMessages = DateChatMessages(emptyMap()),
+            selectedMessages = emptySet(),
             onMessageSent = {},
+            onMessageSelect = {},
+            onMessageUnselect = {},
+            onClearSelectedMessages = {},
+            onDeleteMessageClick = {},
             onChatSeen = {},
+            onBackClick = {},
         )
     }
 }
@@ -356,10 +448,15 @@ private fun MessageItemPreview() {
     ComponentPreview {
         val message = sampleChatMessages.first()
         MessageItem(
+            id = 1,
             text = message.text,
             time = message.createdAt,
             status = message.status,
-            isAuthor = true
+            isAuthor = true,
+            messagesSelected = false,
+            isSelected = false,
+            onSelect = {},
+            onUnselect = {}
         )
     }
 }

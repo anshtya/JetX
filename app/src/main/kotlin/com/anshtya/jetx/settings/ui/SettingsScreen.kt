@@ -213,7 +213,7 @@ private fun ThemeSelectDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismissDialog) {
-                Text(text = stringResource(id = R.string.delete_chat_dialog_dismiss))
+                Text(text = stringResource(id = R.string.delete_dialog_dismiss))
             }
         },
         modifier = modifier

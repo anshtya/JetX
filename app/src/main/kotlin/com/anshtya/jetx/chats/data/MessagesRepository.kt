@@ -18,4 +18,6 @@ interface MessagesRepository {
     )
 
     suspend fun markChatMessagesAsSeen(chatId: Int)
+
+    suspend fun deleteMessages(ids: List<Int>)
 }

@@ -69,7 +69,7 @@ class MessagesRepositoryImpl @Inject constructor(
         networkMessagesTable.update(
             update = { set("has_received", true) },
             request = {
-                filter { eq("id", message.id) }
+                filter { eq("id", message.uid) }
             }
         )
         return message.chatId
@@ -93,7 +93,7 @@ class MessagesRepositoryImpl @Inject constructor(
             currentUser = true
         )
         networkMessagesTable.insert(message.toNetworkMessage())
-        localMessagesDataSource.updateMessageStatus(message.id, MessageStatus.SENT)
+        localMessagesDataSource.updateMessageStatus(message.uid, MessageStatus.SENT)
     }
 
     override suspend fun markChatMessagesAsSeen(chatId: Int) {
@@ -130,5 +130,9 @@ class MessagesRepositoryImpl @Inject constructor(
             attachmentUri = attachmentUri,
             currentUser = currentUser
         )
+    }
+
+    override suspend fun deleteMessages(ids: List<Int>) {
+        localMessagesDataSource.deleteMessages(ids)
     }
 }

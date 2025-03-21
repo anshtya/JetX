@@ -36,7 +36,7 @@ class LocalMessagesDataSource @Inject constructor(
             }
 
             val messageEntity = MessageEntity(
-                id = id,
+                uid = id,
                 senderId = senderId,
                 recipientId = recipientId,
                 chatId = chatId,
@@ -64,5 +64,9 @@ class LocalMessagesDataSource @Inject constructor(
 
     suspend fun updateMessageStatus(messageId: UUID, status: MessageStatus) {
         messageDao.updateMessageStatus(messageId, status)
+    }
+
+    suspend fun deleteMessages(ids: List<Int>) {
+        messageDao.deleteMessages(ids)
     }
 }
