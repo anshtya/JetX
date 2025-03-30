@@ -2,6 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
@@ -16,6 +21,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.JetX"
         tools:targetApi="31">
+        <activity
+            android:name=".camera.CameraActivity"
+            android:exported="false"
+            android:label="@string/title_activity_camera" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -51,6 +60,7 @@
             android:authorities="${applicationId}.androidx-startup"
             android:exported="false"
             tools:node="merge">
+
             <!-- If you are using androidx.startup to initialize other components -->
             <meta-data
                 android:name="androidx.work.WorkManagerInitializer"

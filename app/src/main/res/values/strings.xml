@@ -59,4 +59,9 @@
     <string name="mark_as_read">Mark as read</string>
     <string name="reply">Reply</string>
     <string name="star_message">Star message</string>
+    <string name="title_activity_camera">CameraActivity</string>
+    <string name="flip_camera">Flip Camera</string>
+
+    <string name="capture_preview_retake">Retake</string>
+    <string name="capture_preview_send">Send</string>
 </resources>

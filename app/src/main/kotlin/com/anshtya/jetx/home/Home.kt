@@ -27,7 +27,6 @@ import com.anshtya.jetx.calls.ui.navigation.calls
 import com.anshtya.jetx.chats.ui.navigation.Chats
 import com.anshtya.jetx.chats.ui.navigation.chats
 import com.anshtya.jetx.home.navigation.TopLevelHomeDestination
-import com.anshtya.jetx.home.navigation.camera
 import com.anshtya.jetx.home.navigation.isDestinationInHierarchy
 import com.anshtya.jetx.home.navigation.navigateToTopLevelHomeDestination
 import com.anshtya.jetx.settings.ui.navigation.navigateToSettings
@@ -113,13 +112,7 @@ private fun BottomNavigationBar(
             val selected = currentDestination.isDestinationInHierarchy(destination.route::class)
             NavigationBarItem(
                 selected = selected,
-                onClick = {
-                    if (destination.route == camera) {
-                        // launch camera activity
-                    } else {
-                        onNavigateToDestination(destination.route)
-                    }
-                },
+                onClick = { onNavigateToDestination(destination.route) },
                 icon = {
                     Icon(
                         imageVector = if (selected) {

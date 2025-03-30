@@ -4,7 +4,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.automirrored.outlined.Message
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.anshtya.jetx.R
@@ -24,12 +23,6 @@ enum class TopLevelHomeDestination(
         route = ChatsDestinations.ChatList,
         selectedIcon = Icons.AutoMirrored.Filled.Message,
         unselectedIcon = Icons.AutoMirrored.Outlined.Message
-    ),
-    CAMERA(
-        text = R.string.Camera,
-        route = camera,
-        selectedIcon = Icons.Filled.PhotoCamera,
-        unselectedIcon = Icons.Filled.PhotoCamera
     ),
     CALLS(
         text = R.string.Calls,
