@@ -6,7 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.anshtya.jetx.camera.ui.CameraScreen
-import com.anshtya.jetx.camera.ui.CapturePreviewScreen
+import com.anshtya.jetx.camera.ui.CapturePreviewRoute
 import kotlinx.serialization.Serializable
 
 private sealed interface CameraDestination {
@@ -36,7 +36,7 @@ fun CameraNavigation(
             )
         }
         composable<CameraDestination.CapturePreview> {
-            CapturePreviewScreen(
+            CapturePreviewRoute(
                 image = capturedImageObject.capturedImage,
                 onRetakeClick = {
                     capturedImageObject = capturedImageObject.apply { capturedImage = null }

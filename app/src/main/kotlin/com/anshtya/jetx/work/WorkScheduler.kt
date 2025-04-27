@@ -8,6 +8,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.anshtya.jetx.work.worker.AttachmentDownloadWorker
 import com.anshtya.jetx.work.worker.MessageReceiveWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.UUID
@@ -21,7 +22,10 @@ class WorkScheduler @Inject constructor(
 ) {
     private val workManager = WorkManager.getInstance(context)
 
-    fun createMessageReceiveWork(messageId: UUID, encodedMessage: String) {
+    fun createMessageReceiveWork(
+        messageId: UUID,
+        encodedMessage: String
+    ) {
         val workRequest = OneTimeWorkRequestBuilder<MessageReceiveWorker>()
             .setConstraints(
                 Constraints.Builder()
@@ -42,5 +46,37 @@ class WorkScheduler @Inject constructor(
             ExistingWorkPolicy.REPLACE,
             workRequest
         )
+    }
+
+    fun createAttachmentDownloadWork(
+        attachmentId: Int,
+        messageId: Int
+    ) {
+        val workRequest = OneTimeWorkRequestBuilder<AttachmentDownloadWorker>()
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .setInputData(
+                Data.Builder()
+                    .putInt(AttachmentDownloadWorker.ATTACHMENT_ID, attachmentId)
+                    .putInt(AttachmentDownloadWorker.MESSAGE_ID, messageId)
+                    .build()
+            )
+            .build()
+
+        workManager.enqueueUniqueWork(
+            "${AttachmentDownloadWorker.WORKER_NAME}-$attachmentId-$messageId",
+            ExistingWorkPolicy.REPLACE,
+            workRequest
+        )
+    }
+
+    fun cancelAttachmentDownloadWork(
+        attachmentId: Int,
+        messageId: Int
+    ) {
+        workManager.cancelUniqueWork("${AttachmentDownloadWorker.WORKER_NAME}-$attachmentId-$messageId")
     }
 }

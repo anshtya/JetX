@@ -2,6 +2,8 @@ package com.anshtya.jetx.common.coroutine.di
 
 import com.anshtya.jetx.common.coroutine.DefaultDispatcher
 import com.anshtya.jetx.common.coroutine.DefaultScope
+import com.anshtya.jetx.common.coroutine.IoDispatcher
+import com.anshtya.jetx.common.coroutine.IoScope
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,9 +19,18 @@ object CoroutineScopeModule {
     @Singleton
     @DefaultScope
     @Provides
-    fun providesCoroutineScope(
-        @DefaultDispatcher defaultDispatcher: CoroutineDispatcher
+    fun providesDefaultCoroutineScope(
+        @DefaultDispatcher dispatcher: CoroutineDispatcher
     ): CoroutineScope {
-        return CoroutineScope(SupervisorJob() + defaultDispatcher)
+        return CoroutineScope(SupervisorJob() + dispatcher)
+    }
+
+    @Singleton
+    @IoScope
+    @Provides
+    fun providesIoCoroutineScope(
+        @IoDispatcher dispatcher: CoroutineDispatcher
+    ): CoroutineScope {
+        return CoroutineScope(SupervisorJob() + dispatcher)
     }
 }

@@ -46,7 +46,7 @@ class ProfileRepositoryImpl @Inject constructor(
 
             if (profilePicture != null) {
                 val imageByteArray = getByteArrayFromBitmap(profilePicture)
-                val path = "${userId}/profile-${username}.png"
+                val path = "profile-${userId}.png"
                 mediaBucket.upload(
                     path = path,
                     data = imageByteArray
@@ -128,6 +128,7 @@ class ProfileRepositoryImpl @Inject constructor(
         userProfileDao.upsertUserProfile(userProfileEntity)
     }
 
+    // TODO: move to util
     private fun getByteArrayFromBitmap(imageBitmap: Bitmap): ByteArray {
         val outputStream = ByteArrayOutputStream()
         imageBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)

@@ -17,7 +17,7 @@ data class ChatWithRecentMessage(
     @ColumnInfo(name = "profile_picture")
     val profilePicture: String?,
     @ColumnInfo(name = "text")
-    val message: String,
+    val message: String?,
     @ColumnInfo(name = "unread_count")
     val unreadCount: Int,
     @ColumnInfo(name = "created_at")
@@ -32,7 +32,7 @@ fun ChatWithRecentMessage.toExternalModel(): Chat {
         recipientId = recipientId,
         username = username,
         profilePicture = profilePicture,
-        message = message,
+        message = message ?: "a message", // TODO: replace if message is null
         unreadCount = unreadCount,
         timestamp = createdAt.getDateOrTime(getYesterday = true),
         messageStatus = messageStatus,

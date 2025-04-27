@@ -21,6 +21,7 @@ kotlin = "2.0.20"
 kotlinxSerializationJson = "1.7.3"
 ktor-client = "3.0.2"
 ksp = "2.0.20-1.0.25"
+okhttp3 = "4.12.0"
 room = "2.6.1"
 supabase = "3.0.3"
 
@@ -64,6 +65,7 @@ hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-comp
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor-client" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp3" }
 supabase-bom = { group = "io.github.jan-tennert.supabase", name = "bom", version.ref = "supabase" }
 supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt" }
 supabase-realtime = { group = "io.github.jan-tennert.supabase", name = "realtime-kt" }

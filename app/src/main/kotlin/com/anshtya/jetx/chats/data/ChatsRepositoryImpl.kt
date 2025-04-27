@@ -2,7 +2,6 @@ package com.anshtya.jetx.chats.data
 
 import com.anshtya.jetx.common.coroutine.DefaultScope
 import com.anshtya.jetx.common.model.Chat
-import com.anshtya.jetx.database.model.ChatIds
 import com.anshtya.jetx.database.dao.ChatDao
 import com.anshtya.jetx.database.model.ChatWithRecentMessage
 import com.anshtya.jetx.database.model.toExternalModel
@@ -52,9 +51,9 @@ class ChatsRepositoryImpl @Inject constructor(
             }
     }
 
-    override suspend fun getChatIds(recipientId: UUID): ChatIds? = chatDao.getChatIds(recipientId)
+    override suspend fun getChatId(recipientId: UUID): Int? = chatDao.getChatId(recipientId)
 
-    override suspend fun getChatIds(chatId: Int): ChatIds? = chatDao.getChatIds(chatId)
+    override suspend fun getChatRecipientId(chatId: Int): UUID = chatDao.getChatRecipientId(chatId)
 
     override suspend fun deleteChats(chatIds: List<Int>) {
         chatDao.deleteChats(chatIds)

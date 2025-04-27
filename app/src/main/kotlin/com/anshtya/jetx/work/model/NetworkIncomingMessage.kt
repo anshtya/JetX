@@ -15,5 +15,7 @@ data class NetworkIncomingMessage(
     @SerialName("recipient_id")
     @Serializable(UUIDSerializer::class)
     val recipientId: UUID,
-    val text: String?,
+    val text: String,
+    @SerialName("attachment_id")
+    val attachmentId: String
 )

@@ -5,17 +5,13 @@ import androidx.room.Query
 import androidx.room.Upsert
 import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.database.entity.MessageEntity
-import kotlinx.coroutines.flow.Flow
 import java.time.ZonedDateTime
 import java.util.UUID
 
 @Dao
 interface MessageDao {
-    @Query("SELECT * FROM message WHERE chat_id = :chatId ORDER BY created_at DESC")
-    fun getChatMessages(chatId: Int): Flow<List<MessageEntity>>
-
     @Query("SELECT * FROM message WHERE uid = :messageId")
-    suspend fun getChatMessage(messageId: UUID): MessageEntity
+    suspend fun getMessage(messageId: UUID): MessageEntity
 
     @Query("""
         SELECT uid FROM message 
@@ -27,7 +23,7 @@ interface MessageDao {
     ): List<UUID>
 
     @Upsert
-    suspend fun upsertMessage(message: MessageEntity)
+    suspend fun upsertMessage(message: MessageEntity): Long
 
     @Query("DELETE FROM message WHERE id in (:ids)")
     suspend fun deleteMessages(ids: List<Int>)

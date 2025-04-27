@@ -14,7 +14,7 @@ interface Message {
   sender_id: string
   recipient_id: string
   text: string | null
-  attachment_url: string | null
+  attachment_id: number | null
 }
 
 interface WebhookPayload {
@@ -61,8 +61,8 @@ Deno.serve(async (req) => {
             id: message.id,
             sender_id: message.sender_id,
             recipient_id: message.recipient_id,
-            text: message.text,
-            attachment_url: message.attachment_url,
+            text: message.text !== null ? message.text : '',
+            attachment_id: message.attachment_id !== null ? String(message.attachment_id) : '',
           },
         },
       }),

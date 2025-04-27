@@ -1,4 +1,4 @@
-package com.anshtya.jetx.common.ui.message
+package com.anshtya.jetx.chats.ui.chat.message
 
 data class MessageItemProperties(
     var itemWidth: Int = 0,

@@ -1,5 +1,6 @@
 package com.anshtya.jetx.chats.data
 
+import com.anshtya.jetx.attachments.AttachmentFormat
 import java.util.UUID
 
 interface MessageReceiveRepository {
@@ -8,6 +9,6 @@ interface MessageReceiveRepository {
         senderId: UUID,
         recipientId: UUID,
         text: String?,
-        attachmentUri: String?
+        attachment: AttachmentFormat
     ): Int
 }

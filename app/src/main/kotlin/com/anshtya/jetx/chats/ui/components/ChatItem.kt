@@ -26,12 +26,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
+import com.anshtya.jetx.chats.ui.chat.message.MessageStatusIcon
 import com.anshtya.jetx.chats.ui.chat.toChatUserArgs
 import com.anshtya.jetx.common.model.Chat
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.DayNightPreview
 import com.anshtya.jetx.common.ui.ProfilePicture
-import com.anshtya.jetx.common.ui.message.MessageStatusIcon
 import com.anshtya.jetx.sampledata.sampleChats
 import com.anshtya.jetx.util.Constants.defaultPadding
 

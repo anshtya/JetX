@@ -1,7 +1,9 @@
 package com.anshtya.jetx.database.di
 
 import com.anshtya.jetx.database.JetXDatabase
+import com.anshtya.jetx.database.dao.AttachmentDao
 import com.anshtya.jetx.database.dao.ChatDao
+import com.anshtya.jetx.database.dao.MessageAttachmentsDao
 import com.anshtya.jetx.database.dao.MessageDao
 import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
 import dagger.Module
@@ -16,8 +18,10 @@ object DataSourceModule {
     @Provides
     @Singleton
     fun provideLocalMessagesDataSource(
-        db: JetXDatabase,
+        attachmentDao: AttachmentDao,
         chatDao: ChatDao,
-        messageDao: MessageDao
-    ) = LocalMessagesDataSource(db, messageDao, chatDao)
+        db: JetXDatabase,
+        messageDao: MessageDao,
+        messageAttachmentsDao: MessageAttachmentsDao
+    ) = LocalMessagesDataSource(attachmentDao, chatDao, db, messageDao, messageAttachmentsDao)
 }

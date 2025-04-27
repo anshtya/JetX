@@ -13,7 +13,9 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.anshtya.jetx.ui.theme.Typography
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class CameraActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

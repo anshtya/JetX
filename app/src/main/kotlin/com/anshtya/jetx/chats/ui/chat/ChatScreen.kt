@@ -1,6 +1,15 @@
 package com.anshtya.jetx.chats.ui.chat
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -15,14 +24,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -44,6 +54,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -54,16 +65,22 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
-import com.anshtya.jetx.chats.data.model.DateChatMessages
+import com.anshtya.jetx.camera.CameraActivity
+import com.anshtya.jetx.chats.ui.chat.message.MessageDetails
+import com.anshtya.jetx.chats.ui.chat.message.MessageItemContent
 import com.anshtya.jetx.chats.ui.components.DeleteMessageDialog
 import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.ProfilePicture
-import com.anshtya.jetx.common.ui.message.MessageDetails
-import com.anshtya.jetx.common.ui.message.MessageItemContent
+import com.anshtya.jetx.database.model.AttachmentInfo
+import com.anshtya.jetx.database.model.MessageWithAttachment
 import com.anshtya.jetx.sampledata.sampleChatMessages
 import com.anshtya.jetx.sampledata.sampleUsers
+import com.anshtya.jetx.util.Constants
+import com.anshtya.jetx.util.getDateOrTime
+import com.anshtya.jetx.util.isNotSameDay
+import java.time.ZonedDateTime
 
 @Composable
 fun ChatRoute(
@@ -73,17 +90,23 @@ fun ChatRoute(
     val chatUser by viewModel.recipientUser.collectAsStateWithLifecycle()
     val chatMessages by viewModel.chatMessages.collectAsStateWithLifecycle()
     val selectedMessages by viewModel.selectedMessages.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
 
     ChatScreen(
         recipientUser = chatUser,
         chatMessages = chatMessages,
         selectedMessages = selectedMessages,
+        errorMessage = errorMessage,
         onMessageSent = viewModel::sendMessage,
+        onPhotoSelect = viewModel::sendAttachment,
         onMessageSelect = viewModel::selectMessage,
         onMessageUnselect = viewModel::unselectMessage,
         onClearSelectedMessages = viewModel::clearSelectedMessages,
         onDeleteMessageClick = viewModel::deleteMessages,
         onChatSeen = viewModel::markChatMessagesAsSeen,
+        onAttachmentDownloadClick = viewModel::downloadAttachment,
+        onCancelDownloadClick = viewModel::cancelAttachmentDownload,
+        onErrorShown = viewModel::errorShown,
         onBackClick = onBackClick
     )
 }
@@ -91,25 +114,29 @@ fun ChatRoute(
 @Composable
 private fun ChatScreen(
     recipientUser: RecipientUser?,
-    chatMessages: DateChatMessages,
+    chatMessages: List<MessageWithAttachment>,
     selectedMessages: Set<Int>,
+    errorMessage: String?,
     onMessageSent: (String) -> Unit,
+    onPhotoSelect: (Uri) -> Unit,
     onMessageSelect: (Int) -> Unit,
     onMessageUnselect: (Int) -> Unit,
     onClearSelectedMessages: () -> Unit,
     onDeleteMessageClick: () -> Unit,
     onChatSeen: () -> Unit,
+    onAttachmentDownloadClick: (Int, Int) -> Unit,
+    onCancelDownloadClick: (Int, Int) -> Unit,
+    onErrorShown: () -> Unit,
     onBackClick: () -> Unit
 ) {
+    val context = LocalContext.current
     val listState = rememberLazyListState()
 
     LaunchedEffect(chatMessages) {
         listState.scrollToItem(0)
-        if (chatMessages.messages.isNotEmpty()) {
-            val hasUnseenMessages = chatMessages.messages.any { (_, messages) ->
-                messages.any {
-                    it.senderId == recipientUser?.id && it.status == MessageStatus.RECEIVED
-                }
+        if (chatMessages.isNotEmpty()) {
+            val hasUnseenMessages = chatMessages.any {
+                it.messageInfo.senderId == recipientUser?.id && it.messageInfo.status == MessageStatus.RECEIVED
             }
             if (hasUnseenMessages) {
                 onChatSeen()
@@ -138,6 +165,11 @@ private fun ChatScreen(
         )
     }
 
+    if (errorMessage != null) {
+        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+        onErrorShown()
+    }
+
     Scaffold(
         topBar = {
             ChatTopAppBar(
@@ -150,11 +182,12 @@ private fun ChatScreen(
             )
         },
         bottomBar = {
-            ChatInput(onMessageSent = onMessageSent)
+            ChatInput(
+                onMessageSent = onMessageSent,
+                onPhotoSelect = onPhotoSelect
+            )
         }
     ) { paddingValues ->
-        var isAuthorState: Boolean? = remember { false }
-
         LazyColumn(
             state = listState,
             reverseLayout = true,
@@ -163,32 +196,49 @@ private fun ChatScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            chatMessages.messages.forEach { (date, messages) ->
-                itemsIndexed(
-                    items = messages,
-                    key = { _, message -> message.id }
-                ) { index, message ->
-                    val isAuthor = message.senderId != recipientUser?.id
-                    val bottomPadding = if (isAuthorState != isAuthor && index > 0) {
-                        isAuthorState = isAuthor
-                        4.dp
-                    } else 0.dp
+            chatMessages.forEachIndexed { index, message ->
+                val messageInfo = message.messageInfo
 
+                val previousIndex = (index - 1).takeIf { it > 0 }
+                val previousMessageInfo = previousIndex?.let { chatMessages[it].messageInfo }
+                if (previousMessageInfo != null &&
+                    isNotSameDay(messageInfo.createdAt, previousMessageInfo.createdAt)
+                ) {
+                    item(key = previousMessageInfo.createdAt.toLocalDate()) {
+                        DateHeader(
+                            date = previousMessageInfo.createdAt.getDateOrTime(getToday = true),
+                            modifier = Modifier.padding(vertical = 10.dp)
+                        )
+                    }
+                }
+
+                val isAuthor = messageInfo.senderId != recipientUser?.id
+
+                item(key = messageInfo.id) {
                     MessageItem(
-                        id = message.id,
-                        text = message.text,
-                        time = message.createdAt,
-                        status = message.status,
+                        id = messageInfo.id,
+                        text = messageInfo.text,
+                        time = messageInfo.createdAt.getDateOrTime(getTimeOnly = true),
+                        status = messageInfo.status,
                         isAuthor = isAuthor,
                         messagesSelected = messagesSelected,
-                        isSelected = selectedMessages.any { it == message.id },
+                        isSelected = selectedMessages.any { it == messageInfo.id },
+                        attachmentInfo = message.attachment,
                         onSelect = onMessageSelect,
                         onUnselect = onMessageUnselect,
-                        modifier = Modifier.padding(top = 2.dp, bottom = bottomPadding)
+                        onAttachmentDownloadClick = onAttachmentDownloadClick,
+                        onCancelDownloadClick = onCancelDownloadClick,
+                        modifier = Modifier.padding(vertical = 2.dp)
                     )
                 }
-                item(key = date) {
-                    DateHeader(date = date)
+
+                if (index == chatMessages.size - 1) {
+                    item(key = messageInfo.createdAt.toLocalDate()) {
+                        DateHeader(
+                            date = messageInfo.createdAt.getDateOrTime(getToday = true),
+                            modifier = Modifier.padding(vertical = 10.dp)
+                        )
+                    }
                 }
             }
         }
@@ -259,6 +309,7 @@ private fun ChatTopAppBar(
 @Composable
 private fun ChatInput(
     onMessageSent: (String) -> Unit,
+    onPhotoSelect: (Uri) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var inputText by rememberSaveable { mutableStateOf("") }
@@ -273,6 +324,7 @@ private fun ChatInput(
             inputText = inputText,
             onInputTextChange = { inputText = it },
             onMessageSent = onMessageSent,
+            onPhotoSelect = onPhotoSelect,
             modifier = Modifier.weight(1f)
         )
 
@@ -297,8 +349,27 @@ private fun ChatInputField(
     inputText: String,
     onInputTextChange: (String) -> Unit,
     onMessageSent: (String) -> Unit,
+    onPhotoSelect: (Uri) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
+    val pickMediaLauncher = rememberLauncherForActivityResult(PickVisualMedia()) { uri ->
+        uri?.let { onPhotoSelect(it) }
+    }
+    val mediaCaptureLauncher = rememberLauncherForActivityResult(StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            val intent = it.data
+            val imageUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent?.getParcelableExtra(Constants.PHOTO_INTENT_KEY, Uri::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent?.getParcelableExtra<Uri>(Constants.PHOTO_INTENT_KEY)
+            }
+            imageUri?.let { onPhotoSelect(it) }
+        }
+    }
+
     TextField(
         value = inputText,
         onValueChange = onInputTextChange,
@@ -311,6 +382,33 @@ private fun ChatInputField(
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent
         ),
+        trailingIcon = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                IconButton(
+                    onClick = {
+                        pickMediaLauncher.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly))
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PhotoLibrary,
+                        contentDescription = null
+                    )
+                }
+                IconButton(
+                    onClick = {
+                        mediaCaptureLauncher.launch(Intent(context, CameraActivity::class.java))
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CameraAlt,
+                        contentDescription = null
+                    )
+                }
+            }
+        },
         keyboardOptions = KeyboardOptions(
             capitalization = KeyboardCapitalization.Sentences,
             keyboardType = KeyboardType.Text,
@@ -333,9 +431,7 @@ private fun DateHeader(
 ) {
     Row(
         horizontalArrangement = Arrangement.Center,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 10.dp)
+        modifier = modifier.fillMaxWidth()
     ) {
         Surface(
             shape = RoundedCornerShape(4.dp),
@@ -357,14 +453,17 @@ private fun DateHeader(
 @Composable
 private fun MessageItem(
     id: Int,
-    text: String,
+    text: String?,
     time: String,
     status: MessageStatus,
     isAuthor: Boolean,
     messagesSelected: Boolean,
     isSelected: Boolean,
+    attachmentInfo: AttachmentInfo?,
     onSelect: (Int) -> Unit,
     onUnselect: (Int) -> Unit,
+    onAttachmentDownloadClick: (Int, Int) -> Unit,
+    onCancelDownloadClick: (Int, Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -405,15 +504,19 @@ private fun MessageItem(
         ) {
             MessageItemContent(
                 message = text,
+                attachmentInfo = attachmentInfo,
+                onAttachmentDownloadClick = { onAttachmentDownloadClick(it, id) },
+                onCancelDownloadClick = { onCancelDownloadClick(it, id) },
                 modifier = Modifier
                     .sizeIn(maxWidth = 250.dp)
-                    .padding(horizontal = 8.dp, vertical = 6.dp)
-            ) {
-                MessageDetails(
-                    time = time,
-                    status = if (isAuthor) status else null
-                )
-            }
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                details = {
+                    MessageDetails(
+                        time = time,
+                        status = if (isAuthor) status else null
+                    )
+                }
+            )
         }
     }
 }
@@ -429,15 +532,20 @@ private fun ChatScreenPreview() {
                 username = user.username,
                 pictureUrl = user.pictureUrl
             ),
-            chatMessages = DateChatMessages(emptyMap()),
+            chatMessages = emptyList(),
             selectedMessages = emptySet(),
+            errorMessage = null,
             onMessageSent = {},
+            onPhotoSelect = {},
             onMessageSelect = {},
             onMessageUnselect = {},
             onClearSelectedMessages = {},
             onDeleteMessageClick = {},
+            onAttachmentDownloadClick = { _, _ -> },
+            onCancelDownloadClick = { _, _ -> },
             onChatSeen = {},
-            onBackClick = {},
+            onErrorShown = {},
+            onBackClick = {}
         )
     }
 }
@@ -450,13 +558,16 @@ private fun MessageItemPreview() {
         MessageItem(
             id = 1,
             text = message.text,
-            time = message.createdAt,
+            time = ZonedDateTime.now().getDateOrTime(getTimeOnly = true),
             status = message.status,
             isAuthor = true,
             messagesSelected = false,
             isSelected = false,
+            attachmentInfo = null,
             onSelect = {},
-            onUnselect = {}
+            onUnselect = {},
+            onAttachmentDownloadClick = { _, _ -> },
+            onCancelDownloadClick = { _, _ -> }
         )
     }
 }

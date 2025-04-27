@@ -52,7 +52,7 @@ class MessageUpdatesListener @Inject constructor(
             }
         ).onEach { action ->
             val networkMessage = action.decodeRecord<NetworkMessage>()
-            val storedMessage = messageDao.getChatMessage(networkMessage.id)
+            val storedMessage = messageDao.getMessage(networkMessage.id)
             messageDao.upsertMessage(
                 storedMessage.copy(
                     text = networkMessage.text,

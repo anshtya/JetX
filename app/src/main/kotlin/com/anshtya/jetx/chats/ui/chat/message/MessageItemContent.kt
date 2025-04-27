@@ -1,5 +1,6 @@
-package com.anshtya.jetx.common.ui.message
+package com.anshtya.jetx.chats.ui.chat.message
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -7,30 +8,43 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.Constraints
+import com.anshtya.jetx.database.model.AttachmentInfo
 
 @Composable
 fun MessageItemContent(
-    message: String,
+    message: String?,
+    attachmentInfo: AttachmentInfo?,
+    onAttachmentDownloadClick: (Int) -> Unit,
+    onCancelDownloadClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
     details: @Composable () -> Unit
 ) {
     val itemProperties = remember { MessageItemProperties() }
 
-    MessageLayout(
-        itemProperties = itemProperties,
-        modifier = modifier
-    ) {
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            onTextLayout = { textLayoutResult ->
-                itemProperties.textLineCount = textLayoutResult.lineCount
-                itemProperties.textWidth = textLayoutResult.size.width
-                itemProperties.lastLineWidth =
-                    textLayoutResult.getLineRight(textLayoutResult.lineCount - 1)
-            }
-        )
-        details()
+    Column(modifier) {
+        attachmentInfo?.let {
+            MessageAttachmentItem(
+                attachmentInfo = attachmentInfo,
+                onClick = {}, //TODO: implement media view
+                onDownloadClick = onAttachmentDownloadClick,
+                onCancelDownloadClick = onCancelDownloadClick
+            )
+        }
+        MessageLayout(
+            itemProperties = itemProperties
+        ) {
+            Text(
+                text = message ?: "",
+                style = MaterialTheme.typography.bodyMedium,
+                onTextLayout = { textLayoutResult ->
+                    itemProperties.textLineCount = textLayoutResult.lineCount
+                    itemProperties.textWidth = textLayoutResult.size.width
+                    itemProperties.lastLineWidth =
+                        textLayoutResult.getLineRight(textLayoutResult.lineCount - 1)
+                }
+            )
+            details()
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-package com.anshtya.jetx.common.ui.message
+package com.anshtya.jetx.chats.ui.chat.message
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,8 +16,8 @@ import com.anshtya.jetx.common.model.MessageStatus
 @Composable
 fun MessageDetails(
     time: String,
+    modifier: Modifier = Modifier,
     status: MessageStatus? = null,
-    modifier: Modifier = Modifier
 ) {
     Row(
         verticalAlignment = Alignment.Bottom,

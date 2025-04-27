@@ -2,7 +2,10 @@ package com.anshtya.jetx.sampledata
 
 import com.anshtya.jetx.common.model.Message
 import com.anshtya.jetx.common.model.MessageStatus
+import java.time.ZonedDateTime
 import java.util.UUID
+
+private val zdt = ZonedDateTime.now()
 
 val sampleChatMessages = listOf(
     Message(
@@ -11,7 +14,7 @@ val sampleChatMessages = listOf(
         text = "Hey! Did you check out the new cafe downtown?",
         isStarred = false,
         status = MessageStatus.SENT,
-        createdAt = "10:00am"
+        createdAt = zdt
     ),
     Message(
         id = 2,
@@ -19,6 +22,6 @@ val sampleChatMessages = listOf(
         text = "Absolutely! The mocha is amazing.",
         isStarred = false,
         status = MessageStatus.SENT,
-        createdAt = "10:02am"
+        createdAt = zdt.plusMinutes(2)
     )
 )

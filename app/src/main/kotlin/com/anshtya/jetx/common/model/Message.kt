@@ -1,5 +1,6 @@
 package com.anshtya.jetx.common.model
 
+import java.time.ZonedDateTime
 import java.util.UUID
 
 data class Message(
@@ -7,6 +8,6 @@ data class Message(
     val senderId: UUID,
     val text: String,
     val isStarred: Boolean,
-    val createdAt: String,
+    val createdAt: ZonedDateTime,
     val status: MessageStatus
 )

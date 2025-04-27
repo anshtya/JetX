@@ -17,20 +17,20 @@ data class NetworkMessage(
     @Serializable(UUIDSerializer::class)
     val recipientId: UUID,
     val text: String?,
-    @SerialName("attachment_url")
-    val attachmentUrl: String?,
+    @SerialName("attachment_id")
+    val attachmentId: Int?,
     @SerialName("has_seen")
     val hasSeen: Boolean,
     @SerialName("has_received")
     val hasReceived: Boolean
 )
 
-fun MessageEntity.toNetworkMessage() = NetworkMessage(
+fun MessageEntity.toNetworkMessage(attachmentId: Int?) = NetworkMessage(
     id = uid,
     senderId = senderId,
     recipientId = recipientId,
     text = text,
-    attachmentUrl = attachmentUri,
+    attachmentId = attachmentId,
     hasSeen = false,
     hasReceived = false
 )

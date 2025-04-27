@@ -1,4 +1,4 @@
-package com.anshtya.jetx.common.ui.message
+package com.anshtya.jetx.chats.ui.chat.message
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done

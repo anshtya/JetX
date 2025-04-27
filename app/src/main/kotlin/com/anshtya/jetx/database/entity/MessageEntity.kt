@@ -7,7 +7,6 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.anshtya.jetx.common.model.Message
 import com.anshtya.jetx.common.model.MessageStatus
-import com.anshtya.jetx.util.getDateOrTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -56,8 +55,6 @@ data class MessageEntity(
     val text: String?,
     @ColumnInfo(name = "is_starred")
     val isStarred: Boolean = false,
-    @ColumnInfo(name = "attachment_uri")
-    val attachmentUri: String?,
     @ColumnInfo(name = "created_at")
     val createdAt: ZonedDateTime = ZonedDateTime.now(ZoneId.of("UTC")),
     val status: MessageStatus
@@ -69,7 +66,7 @@ fun MessageEntity.toExternalModel(): Message {
         senderId = senderId,
         text = text ?: "",
         isStarred = isStarred,
-        createdAt = createdAt.getDateOrTime(getTimeOnly = true),
+        createdAt = createdAt,
         status = status
     )
 }

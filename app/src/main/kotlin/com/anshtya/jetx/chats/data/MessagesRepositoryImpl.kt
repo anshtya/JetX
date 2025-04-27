@@ -1,23 +1,22 @@
 package com.anshtya.jetx.chats.data
 
+import android.net.Uri
 import android.util.Log
-import com.anshtya.jetx.chats.data.model.DateChatMessages
+import com.anshtya.jetx.attachments.AttachmentFormat
+import com.anshtya.jetx.attachments.AttachmentManager
+import com.anshtya.jetx.attachments.AttachmentType
 import com.anshtya.jetx.chats.data.model.toNetworkMessage
 import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.database.dao.ChatDao
 import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
 import com.anshtya.jetx.database.entity.MessageEntity
-import com.anshtya.jetx.database.entity.toExternalModel
+import com.anshtya.jetx.database.model.MessageWithAttachment
 import com.anshtya.jetx.profile.ProfileRepository
 import com.anshtya.jetx.util.Constants.MESSAGE_TABLE
-import com.anshtya.jetx.util.getDateOrTime
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,43 +26,28 @@ class MessagesRepositoryImpl @Inject constructor(
     client: SupabaseClient,
     private val chatDao: ChatDao,
     private val localMessagesDataSource: LocalMessagesDataSource,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val attachmentManager: AttachmentManager
 ) : MessagesRepository, MessageReceiveRepository {
     private val supabaseAuth = client.auth
     private val networkMessagesTable = client.from(MESSAGE_TABLE)
 
-    override fun getChatMessages(chatId: Int): Flow<DateChatMessages> {
-        return localMessagesDataSource.getChatMessages(chatId)
-            .distinctUntilChanged()
-            .map { messages ->
-                DateChatMessages(
-                    messages = messages.groupBy(
-                        keySelector = { message -> message.createdAt.truncatedTo(ChronoUnit.DAYS) },
-                        valueTransform = { message -> message.toExternalModel() }
-                    ).mapKeys { (createdAt, _) ->
-                        createdAt.getDateOrTime(
-                            datePattern = "d MMMM yyyy",
-                            getToday = true,
-                            getYesterday = true
-                        )
-                    }
-                )
-            }
-    }
+    override fun getChatMessages(chatId: Int): Flow<List<MessageWithAttachment>> =
+        localMessagesDataSource.getChatMessages(chatId)
 
     override suspend fun insertChatMessage(
         id: UUID,
         senderId: UUID,
         recipientId: UUID,
         text: String?,
-        attachmentUri: String?
+        attachment: AttachmentFormat
     ): Int {
         val message = saveChatMessage(
             id = id,
             senderId = senderId,
             recipientId = recipientId,
             text = text,
-            attachmentUri = null,
+            attachmentFormat = attachment,
             currentUser = false
         )
         networkMessagesTable.update(
@@ -75,24 +59,36 @@ class MessagesRepositoryImpl @Inject constructor(
         return message.chatId
     }
 
-    override suspend fun sendChatMessage(chatId: Int, text: String?) {
-        val recipientId = chatDao.getChatIds(chatId)!!.recipientId
-        sendChatMessage(recipientId, text)
+    override suspend fun sendChatMessage(chatId: Int, text: String) {
+        val recipientId = chatDao.getChatRecipientId(chatId)
+        sendChatMessage(recipientId, text, attachmentUri = null)
     }
 
     override suspend fun sendChatMessage(
         recipientId: UUID,
-        text: String?
+        text: String?,
+        attachmentUri: Uri?
     ) {
         val message = saveChatMessage(
             id = UUID.randomUUID(),
             senderId = UUID.fromString(supabaseAuth.currentUserOrNull()?.id),
             recipientId = recipientId,
             text = text,
-            attachmentUri = null,
+            attachmentFormat = if (attachmentUri != null) {
+                AttachmentFormat.UriAttachment(
+                    uri = attachmentUri,
+                    type = AttachmentType.fromMimeType(
+                        attachmentManager.getMimeTypeFromUri(attachmentUri)
+                    )!!
+                )
+            } else AttachmentFormat.None,
             currentUser = true
         )
-        networkMessagesTable.insert(message.toNetworkMessage())
+
+        val attachmentId = if (attachmentUri != null) {
+            attachmentManager.uploadMediaAttachment(attachmentUri)
+        } else null
+        networkMessagesTable.insert(message.toNetworkMessage(attachmentId))
         localMessagesDataSource.updateMessageStatus(message.uid, MessageStatus.SENT)
     }
 
@@ -114,7 +110,7 @@ class MessagesRepositoryImpl @Inject constructor(
         senderId: UUID,
         recipientId: UUID,
         text: String?,
-        attachmentUri: String?,
+        attachmentFormat: AttachmentFormat,
         currentUser: Boolean
     ): MessageEntity {
         val profileId = if (currentUser) recipientId else senderId
@@ -127,7 +123,7 @@ class MessagesRepositoryImpl @Inject constructor(
             senderId = senderId,
             recipientId = recipientId,
             text = text,
-            attachmentUri = attachmentUri,
+            attachment = attachmentFormat,
             currentUser = currentUser
         )
     }

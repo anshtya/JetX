@@ -1,0 +1,43 @@
+package com.anshtya.jetx.database.entity
+
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import com.anshtya.jetx.attachments.AttachmentTransferState
+import com.anshtya.jetx.attachments.AttachmentType
+
+@Entity(
+    tableName = "attachment",
+    indices = [
+        Index(value = ["storage_location", "remote_location", "thumbnail_location"], unique = true)
+    ],
+    foreignKeys = [
+        ForeignKey(
+            entity = MessageEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["message_id"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
+data class AttachmentEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    @ColumnInfo(name = "message_id")
+    val messageId: Int,
+    @ColumnInfo(name = "file_name")
+    val fileName: String?,
+    @ColumnInfo(name = "storage_location")
+    val storageLocation: String?,
+    @ColumnInfo(name = "remote_location")
+    val remoteLocation: String?,
+    @ColumnInfo(name = "thumbnail_location")
+    val thumbnailLocation: String?,
+    val type: AttachmentType,
+    @ColumnInfo(name = "transfer_state")
+    val transferState: AttachmentTransferState? = null,
+    @ColumnInfo(name = "download_progress")
+    val downloadProgress: Float = 0f
+)

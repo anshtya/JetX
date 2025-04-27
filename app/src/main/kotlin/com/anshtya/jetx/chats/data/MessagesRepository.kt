@@ -1,20 +1,22 @@
 package com.anshtya.jetx.chats.data
 
-import com.anshtya.jetx.chats.data.model.DateChatMessages
+import android.net.Uri
+import com.anshtya.jetx.database.model.MessageWithAttachment
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
 interface MessagesRepository {
-    fun getChatMessages(chatId: Int): Flow<DateChatMessages>
+    fun getChatMessages(chatId: Int): Flow<List<MessageWithAttachment>>
 
     suspend fun sendChatMessage(
         recipientId: UUID,
-        text: String?
+        text: String?,
+        attachmentUri: Uri?
     )
 
     suspend fun sendChatMessage(
         chatId: Int,
-        text: String?
+        text: String,
     )
 
     suspend fun markChatMessagesAsSeen(chatId: Int)

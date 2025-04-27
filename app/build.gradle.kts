@@ -106,6 +106,7 @@ dependencies {
     ksp(libs.hilt.android.compiler)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.ktor.client.cio)
+    implementation(libs.okhttp)
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.realtime)

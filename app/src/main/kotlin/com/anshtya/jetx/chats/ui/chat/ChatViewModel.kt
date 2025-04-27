@@ -1,14 +1,19 @@
 package com.anshtya.jetx.chats.ui.chat
 
+import android.content.ContentResolver
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.anshtya.jetx.attachments.AttachmentManager
 import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
-import com.anshtya.jetx.chats.data.model.DateChatMessages
 import com.anshtya.jetx.chats.ui.navigation.ChatsDestinations
+import com.anshtya.jetx.common.model.Result
+import com.anshtya.jetx.database.model.MessageWithAttachment
 import com.anshtya.jetx.profile.ProfileRepository
+import com.anshtya.jetx.work.WorkScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,7 +34,9 @@ class ChatViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val chatsRepository: ChatsRepository,
     private val messagesRepository: MessagesRepository,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val attachmentManager: AttachmentManager,
+    private val workScheduler: WorkScheduler
 ) : ViewModel() {
     private val chatArgs = savedStateHandle.toRoute<ChatsDestinations.Chat>()
 
@@ -38,20 +45,41 @@ class ChatViewModel @Inject constructor(
     private val _recipientUser = MutableStateFlow<RecipientUser?>(null)
     val recipientUser = _recipientUser.asStateFlow()
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage = _errorMessage.asStateFlow()
+
     private val _selectedMessages = MutableStateFlow<Set<Int>>(emptySet())
     val selectedMessages = _selectedMessages.asStateFlow()
 
+    val chatMessages: StateFlow<List<MessageWithAttachment>> = chatId
+        .filterNotNull()
+        .flatMapLatest { messagesRepository.getChatMessages(it) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     init {
+        initializeChatData()
+    }
+
+    private fun initializeChatData() {
         viewModelScope.launch {
             when {
                 chatArgs.chatId != null -> {
                     chatId.update { chatArgs.chatId }
-                    val userId = chatsRepository.getChatIds(chatArgs.chatId)!!.recipientId
+                    val userId = chatsRepository.getChatRecipientId(chatArgs.chatId)
                     val user = profileRepository.getProfile(userId)
+
+                    if (user == null) {
+                        _errorMessage.update { "User not found" }
+                        return@launch
+                    }
 
                     _recipientUser.update {
                         RecipientUser(
-                            id = user!!.id,
+                            id = user.id,
                             username = user.username,
                             pictureUrl = user.pictureUrl
                         )
@@ -60,7 +88,7 @@ class ChatViewModel @Inject constructor(
 
                 chatArgs.recipientId != null -> {
                     val recipientId = UUID.fromString(chatArgs.recipientId)
-                    chatId.update { chatsRepository.getChatIds(recipientId)?.id }
+                    chatId.update { chatsRepository.getChatId(recipientId) }
 
                     _recipientUser.update {
                         RecipientUser(
@@ -74,26 +102,48 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    val chatMessages: StateFlow<DateChatMessages> = chatId
-        .filterNotNull()
-        .flatMapLatest { messagesRepository.getChatMessages(it) }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = DateChatMessages(emptyMap())
-        )
-
-    fun sendMessage(message: String) {
+    fun sendMessage(
+        message: String?,
+        attachmentUri: Uri? = null
+    ) {
         viewModelScope.launch {
-            val recipientUser = _recipientUser.value
+            val recipientUser = _recipientUser.value!!
             messagesRepository.sendChatMessage(
-                recipientId = recipientUser!!.id,
-                text = message
+                recipientId = recipientUser.id,
+                text = message,
+                attachmentUri = attachmentUri
             )
             if (chatId.value == null) {
-                chatId.update { chatsRepository.getChatIds(recipientUser.id)?.id }
+                chatId.update { chatsRepository.getChatId(recipientUser.id) }
             }
         }
+    }
+
+    fun sendAttachment(uri: Uri) {
+        viewModelScope.launch {
+            /**
+             * Content URI must be converted to File URI
+             */
+            if (uri.scheme == ContentResolver.SCHEME_CONTENT) {
+                val saveImageResult = attachmentManager.saveImage(uri)
+                when (saveImageResult) {
+                    is Result.Success -> sendMessage(message = null, attachmentUri = uri)
+                    is Result.Error -> {
+                        _errorMessage.update { saveImageResult.errorMessage }
+                    }
+                }
+            } else {
+                sendMessage(message = null, attachmentUri = uri)
+            }
+        }
+    }
+
+    fun downloadAttachment(attachmentId: Int, messageId: Int) {
+        workScheduler.createAttachmentDownloadWork(attachmentId, messageId)
+    }
+
+    fun cancelAttachmentDownload(attachmentId: Int, messageId: Int) {
+        workScheduler.cancelAttachmentDownloadWork(attachmentId, messageId)
     }
 
     fun markChatMessagesAsSeen() {
@@ -126,5 +176,9 @@ class ChatViewModel @Inject constructor(
             messagesRepository.deleteMessages(_selectedMessages.value.toList())
             clearSelectedMessages()
         }
+    }
+
+    fun errorShown() {
+        _errorMessage.update { null }
     }
 }

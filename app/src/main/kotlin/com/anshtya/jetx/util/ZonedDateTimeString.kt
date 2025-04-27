@@ -38,3 +38,8 @@ private fun ZonedDateTime.getTime(timePattern: String): String {
 private fun ZonedDateTime.getDate(datePattern: String): String {
     return this.format(DateTimeFormatter.ofPattern(datePattern))
 }
+
+fun isSameDay(zdt1: ZonedDateTime, zdt2: ZonedDateTime): Boolean =
+    zdt1.toLocalDate() == zdt2.toLocalDate()
+
+fun isNotSameDay(zdt1: ZonedDateTime, zdt2: ZonedDateTime): Boolean = !isSameDay(zdt1, zdt2)
