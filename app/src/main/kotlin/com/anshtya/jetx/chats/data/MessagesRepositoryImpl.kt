@@ -123,7 +123,7 @@ class MessagesRepositoryImpl @Inject constructor(
             senderId = senderId,
             recipientId = recipientId,
             text = text,
-            attachment = attachmentFormat,
+            attachmentFormat = attachmentFormat,
             currentUser = currentUser
         )
     }

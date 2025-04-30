@@ -4,18 +4,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class NetworkAttachment(
-    val id: Int,
     val url: String,
-    val type: AttachmentType
+    val type: AttachmentType,
+    val width: Int? = null,
+    val height: Int? = null
 )
 
 @Serializable
-data class NetworkAttachmentUpload(
-    val url: String,
-    val type: AttachmentType
-)
-
-@Serializable
-data class NetworkAttachmentUploadResponse(
+data class AttachmentUploadResponse(
     val id: Int
 )

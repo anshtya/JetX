@@ -25,7 +25,7 @@ import com.anshtya.jetx.attachments.AttachmentType
 data class AttachmentEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    @ColumnInfo(name = "message_id")
+    @ColumnInfo(name = "message_id", index = true)
     val messageId: Int,
     @ColumnInfo(name = "file_name")
     val fileName: String?,
@@ -39,5 +39,7 @@ data class AttachmentEntity(
     @ColumnInfo(name = "transfer_state")
     val transferState: AttachmentTransferState? = null,
     @ColumnInfo(name = "download_progress")
-    val downloadProgress: Float = 0f
+    val downloadProgress: Float = 0f,
+    val width: Int?,
+    val height: Int?
 )

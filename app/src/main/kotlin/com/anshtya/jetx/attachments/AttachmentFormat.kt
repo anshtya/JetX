@@ -7,9 +7,6 @@ sealed class AttachmentFormat {
         val uri: Uri,
         val type: AttachmentType
     ) : AttachmentFormat()
-    data class UrlAttachment(
-        val url: String,
-        val type: AttachmentType
-    ) : AttachmentFormat()
+    data class UrlAttachment(val networkAttachment: NetworkAttachment) : AttachmentFormat()
     object None : AttachmentFormat()
 }

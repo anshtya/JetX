@@ -8,6 +8,7 @@ import android.webkit.MimeTypeMap
 import androidx.core.net.toUri
 import com.anshtya.jetx.common.coroutine.IoDispatcher
 import com.anshtya.jetx.common.model.Result
+import com.anshtya.jetx.util.BitmapUtil
 import com.anshtya.jetx.util.Constants
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.SupabaseClient
@@ -37,13 +38,35 @@ class AttachmentManager @Inject constructor(
         val file = File(uri.path!!)
         val inputByteArray = withContext(ioDispatcher) { file.readBytes() }
         val path = file.name
+
+        val attachmentType = AttachmentType.fromMimeType(getMimeTypeFromUri(context, uri))!!
+        var attachmentHeight: Int? = null
+        var attachmentWidth: Int? = null
+
+        when (attachmentType) {
+            AttachmentType.IMAGE -> {
+                val imageDimensions = BitmapUtil.getDimensionsFromUri(uri)
+                attachmentHeight = imageDimensions.height
+                attachmentWidth = imageDimensions.width
+            }
+
+            AttachmentType.VIDEO -> {
+                // TODO: get width and height for video
+            }
+
+            else -> {}
+        }
+
         mediaBucket.upload(path = path, data = inputByteArray)
         val attachmentUploadResponse = attachmentTable.insert(
-            NetworkAttachmentUpload(
+            NetworkAttachment(
                 url = mediaBucket.publicUrl(path),
-                type = AttachmentType.fromMimeType(getMimeTypeFromUri(context, uri))!!
+                type = attachmentType,
+                height = attachmentHeight,
+                width = attachmentWidth
             )
-        ) { select(Columns.list("id")) }.decodeSingle<NetworkAttachmentUploadResponse>()
+        ) { select(Columns.list("id")) }.decodeSingle<AttachmentUploadResponse>()
+
         return attachmentUploadResponse.id
     }
 

@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -66,7 +65,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
 import com.anshtya.jetx.camera.CameraActivity
-import com.anshtya.jetx.chats.ui.chat.message.MessageDetails
 import com.anshtya.jetx.chats.ui.chat.message.MessageItemContent
 import com.anshtya.jetx.chats.ui.components.DeleteMessageDialog
 import com.anshtya.jetx.common.model.MessageStatus
@@ -503,19 +501,13 @@ private fun MessageItem(
             }
         ) {
             MessageItemContent(
-                message = text,
+                text = text,
+                time = time,
+                status = if (isAuthor) status else null,
                 attachmentInfo = attachmentInfo,
                 onAttachmentDownloadClick = { onAttachmentDownloadClick(it, id) },
                 onCancelDownloadClick = { onCancelDownloadClick(it, id) },
-                modifier = Modifier
-                    .sizeIn(maxWidth = 250.dp)
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
-                details = {
-                    MessageDetails(
-                        time = time,
-                        status = if (isAuthor) status else null
-                    )
-                }
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
             )
         }
     }

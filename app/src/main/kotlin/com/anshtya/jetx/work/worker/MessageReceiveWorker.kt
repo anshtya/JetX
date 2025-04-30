@@ -58,10 +58,7 @@ class MessageReceiveWorker @AssistedInject constructor(
                 recipientId = message.recipientId,
                 text = message.text.takeIf { it.isNotBlank() },
                 attachment = if (networkAttachment != null) {
-                    AttachmentFormat.UrlAttachment(
-                        url = networkAttachment.url,
-                        type = networkAttachment.type
-                    )
+                    AttachmentFormat.UrlAttachment(networkAttachment)
                 } else AttachmentFormat.None
             )
 

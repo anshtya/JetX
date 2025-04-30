@@ -2,6 +2,7 @@ package com.anshtya.jetx.database.datasource
 
 import androidx.room.withTransaction
 import com.anshtya.jetx.attachments.AttachmentFormat
+import com.anshtya.jetx.attachments.AttachmentType
 import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.database.JetXDatabase
 import com.anshtya.jetx.database.dao.AttachmentDao
@@ -12,6 +13,7 @@ import com.anshtya.jetx.database.entity.AttachmentEntity
 import com.anshtya.jetx.database.entity.ChatEntity
 import com.anshtya.jetx.database.entity.MessageEntity
 import com.anshtya.jetx.database.model.MessageWithAttachment
+import com.anshtya.jetx.util.BitmapUtil
 import kotlinx.coroutines.flow.Flow
 import java.io.File
 import java.util.UUID
@@ -32,7 +34,7 @@ class LocalMessagesDataSource @Inject constructor(
         senderId: UUID,
         recipientId: UUID,
         text: String?,
-        attachment: AttachmentFormat,
+        attachmentFormat: AttachmentFormat,
         currentUser: Boolean
     ): MessageEntity {
         return db.withTransaction {
@@ -53,10 +55,13 @@ class LocalMessagesDataSource @Inject constructor(
                 status = if (currentUser) MessageStatus.SENDING else MessageStatus.RECEIVED
             )
             val messageId = messageDao.upsertMessage(messageEntity)
-
-            when (attachment) {
+            when (attachmentFormat) {
                 is AttachmentFormat.UriAttachment -> {
-                    val file = File(attachment.uri.path!!)
+                    val file = File(attachmentFormat.uri.path!!)
+                    val attachmentDimensions = when (attachmentFormat.type) {
+                        AttachmentType.IMAGE -> BitmapUtil.getDimensionsFromUri(attachmentFormat.uri)
+                        else -> null
+                    }
                     attachmentDao.insertAttachment(
                         AttachmentEntity(
                             messageId = messageId.toInt(),
@@ -64,20 +69,25 @@ class LocalMessagesDataSource @Inject constructor(
                             storageLocation = file.absolutePath,
                             remoteLocation = null,
                             thumbnailLocation = null,
-                            type = attachment.type
+                            type = attachmentFormat.type,
+                            width = attachmentDimensions?.width,
+                            height = attachmentDimensions?.height
                         )
                     ).toInt()
                 }
 
                 is AttachmentFormat.UrlAttachment -> {
+                    val networkAttachment = attachmentFormat.networkAttachment
                     attachmentDao.insertAttachment(
                         AttachmentEntity(
                             messageId = messageId.toInt(),
                             fileName = null,
                             storageLocation = null,
-                            remoteLocation = attachment.url,
+                            remoteLocation = networkAttachment.url,
                             thumbnailLocation = null,
-                            type = attachment.type
+                            type = networkAttachment.type,
+                            width = networkAttachment.width,
+                            height = networkAttachment.height
                         )
                     ).toInt()
                 }

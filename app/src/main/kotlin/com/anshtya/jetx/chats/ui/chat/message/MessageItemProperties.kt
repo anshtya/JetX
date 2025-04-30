@@ -5,5 +5,5 @@ data class MessageItemProperties(
     var itemHeight: Int = 0,
     var textWidth: Int = 0,
     var textLineCount: Int = 0,
-    var lastLineWidth: Float = 0f
+    var lastTextLineWidth: Float = 0f
 )

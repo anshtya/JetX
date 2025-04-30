@@ -16,7 +16,9 @@ data class MessageWithAttachment(
             "thumbnail_location",
             "type",
             "download_progress",
-            "transfer_state"
+            "transfer_state",
+            "width",
+            "height"
         ]
     )
     val attachment: AttachmentInfo?

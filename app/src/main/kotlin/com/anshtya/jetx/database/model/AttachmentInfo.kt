@@ -14,5 +14,7 @@ data class AttachmentInfo(
     @ColumnInfo(name = "transfer_state")
     val transferState: AttachmentTransferState?,
     @ColumnInfo(name = "download_progress")
-    val downloadProgress: Float
+    val downloadProgress: Float,
+    val height: Int?,
+    val width: Int?
 )
