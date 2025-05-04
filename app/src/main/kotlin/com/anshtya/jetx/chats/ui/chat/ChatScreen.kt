@@ -210,6 +210,8 @@ private fun ChatScreen(
                     }
                 }
 
+                val authorChanged = previousMessageInfo != null &&
+                    previousMessageInfo.senderId != messageInfo.senderId
                 val isAuthor = messageInfo.senderId != recipientUser?.id
 
                 item(key = messageInfo.id) {
@@ -226,7 +228,10 @@ private fun ChatScreen(
                         onUnselect = onMessageUnselect,
                         onAttachmentDownloadClick = onAttachmentDownloadClick,
                         onCancelDownloadClick = onCancelDownloadClick,
-                        modifier = Modifier.padding(vertical = 2.dp)
+                        modifier = Modifier
+                            .padding(
+                                top = 2.dp,
+                                bottom = if (authorChanged) 8.dp else 2.dp)
                     )
                 }
 
