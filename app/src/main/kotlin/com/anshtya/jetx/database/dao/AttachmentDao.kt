@@ -18,7 +18,7 @@ interface AttachmentDao {
     suspend fun getRemoteUrlForAttachment(attachmentId: Int, messageId: Int): String
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAttachment(attachment: AttachmentEntity): Long
+    suspend fun insertAttachment(attachment: AttachmentEntity)
 
     @Query(
         """

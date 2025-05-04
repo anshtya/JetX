@@ -10,6 +10,7 @@ import com.anshtya.jetx.common.coroutine.IoDispatcher
 import com.anshtya.jetx.common.model.Result
 import com.anshtya.jetx.util.BitmapUtil
 import com.anshtya.jetx.util.Constants
+import com.anshtya.jetx.util.getReadableFileSize
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
@@ -63,7 +64,8 @@ class AttachmentManager @Inject constructor(
                 url = mediaBucket.publicUrl(path),
                 type = attachmentType,
                 height = attachmentHeight,
-                width = attachmentWidth
+                width = attachmentWidth,
+                size = getFileSizeFromUri(uri)
             )
         ) { select(Columns.list("id")) }.decodeSingle<AttachmentUploadResponse>()
 
@@ -130,6 +132,11 @@ class AttachmentManager @Inject constructor(
 
     fun getMimeTypeFromUri(uri: Uri): String? {
         return getMimeTypeFromUri(context, uri)
+    }
+
+    private fun getFileSizeFromUri(uri: Uri): String {
+        val file = File(uri.path!!)
+        return getReadableFileSize(file.length())
     }
 
     private suspend fun saveImage(

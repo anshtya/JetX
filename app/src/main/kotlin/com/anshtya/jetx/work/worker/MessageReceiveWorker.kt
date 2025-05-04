@@ -19,6 +19,7 @@ import com.anshtya.jetx.R
 import com.anshtya.jetx.attachments.AttachmentFormat
 import com.anshtya.jetx.attachments.NetworkAttachment
 import com.anshtya.jetx.chats.data.MessageReceiveRepository
+import com.anshtya.jetx.database.dao.ChatDao
 import com.anshtya.jetx.notifications.MarkAsReadReceiver
 import com.anshtya.jetx.notifications.NotificationChannels
 import com.anshtya.jetx.notifications.ReplyReceiver
@@ -37,7 +38,8 @@ class MessageReceiveWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     client: SupabaseClient,
     private val profileRepository: ProfileRepository,
-    private val messageReceiveRepository: MessageReceiveRepository
+    private val messageReceiveRepository: MessageReceiveRepository,
+    private val chatDao: ChatDao
 ) : CoroutineWorker(appContext, workerParams) {
     private val attachmentTable = client.from(Constants.ATTACHMENT_TABLE)
 
@@ -65,7 +67,7 @@ class MessageReceiveWorker @AssistedInject constructor(
             val senderProfile = profileRepository.getProfile(message.senderId)!!
             postMessageNotification(
                 senderName = senderProfile.username,
-                message = message.text.takeIf { it.isNotBlank() } ?: "New Message", // TODO: change it for null attachments
+                message = chatDao.getRecentMessageText(chatId),
                 chatId = chatId
             )
 

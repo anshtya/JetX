@@ -7,9 +7,9 @@ data class Chat(
     val recipientId: UUID,
     val username: String,
     val profilePicture: String?,
-    val message: String,
+    val message: String?,
     val unreadCount: Int,
-    val timestamp: String,
-    val messageStatus: MessageStatus,
+    val timestamp: String?,
+    val messageStatus: MessageStatus?,
     val isSender: Boolean
 )

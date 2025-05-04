@@ -10,9 +10,6 @@ import com.anshtya.jetx.attachments.AttachmentType
 
 @Entity(
     tableName = "attachment",
-    indices = [
-        Index(value = ["storage_location", "remote_location", "thumbnail_location"], unique = true)
-    ],
     foreignKeys = [
         ForeignKey(
             entity = MessageEntity::class,
@@ -20,7 +17,10 @@ import com.anshtya.jetx.attachments.AttachmentType
             childColumns = ["message_id"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [
+        Index(value = ["id", "message_id"])
+    ],
 )
 data class AttachmentEntity(
     @PrimaryKey(autoGenerate = true)
@@ -35,6 +35,7 @@ data class AttachmentEntity(
     val remoteLocation: String?,
     @ColumnInfo(name = "thumbnail_location")
     val thumbnailLocation: String?,
+    val size: String? = null,
     val type: AttachmentType,
     @ColumnInfo(name = "transfer_state")
     val transferState: AttachmentTransferState? = null,

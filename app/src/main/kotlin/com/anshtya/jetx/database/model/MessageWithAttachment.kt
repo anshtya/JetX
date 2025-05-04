@@ -15,6 +15,7 @@ data class MessageWithAttachment(
             "storage_location",
             "thumbnail_location",
             "type",
+            "size",
             "download_progress",
             "transfer_state",
             "width",

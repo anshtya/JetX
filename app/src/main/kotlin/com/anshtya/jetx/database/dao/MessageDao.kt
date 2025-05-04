@@ -1,8 +1,9 @@
 package com.anshtya.jetx.database.dao
 
 import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Upsert
 import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.database.entity.MessageEntity
 import java.time.ZonedDateTime
@@ -10,8 +11,8 @@ import java.util.UUID
 
 @Dao
 interface MessageDao {
-    @Query("SELECT * FROM message WHERE uid = :messageId")
-    suspend fun getMessage(messageId: UUID): MessageEntity
+    @Query("SELECT chat_id FROM message WHERE uid = :messageId")
+    suspend fun getMessageChatId(messageId: UUID): Int
 
     @Query("""
         SELECT uid FROM message 
@@ -22,8 +23,8 @@ interface MessageDao {
         receivedStatus: MessageStatus = MessageStatus.RECEIVED
     ): List<UUID>
 
-    @Upsert
-    suspend fun upsertMessage(message: MessageEntity): Long
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMessage(message: MessageEntity): Long
 
     @Query("DELETE FROM message WHERE id in (:ids)")
     suspend fun deleteMessages(ids: List<Int>)
@@ -32,6 +33,17 @@ interface MessageDao {
     suspend fun updateMessageStatus(
         uid: UUID,
         status: MessageStatus
+    )
+
+    @Query("""
+        UPDATE message 
+        SET text = :text, status = :status 
+        WHERE uid = :uid
+    """)
+    suspend fun updateMessage(
+        uid: UUID,
+        text: String,
+        status: MessageStatus,
     )
 
     @Query("""

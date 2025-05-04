@@ -5,6 +5,8 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.anshtya.jetx.common.model.MessageStatus
+import java.time.ZonedDateTime
 import java.util.UUID
 
 @Entity(
@@ -31,6 +33,14 @@ data class ChatEntity(
     val recipientId: UUID,
     @ColumnInfo(name = "unread_count")
     val unreadCount: Int = 0,
+    @ColumnInfo(name = "recent_message_sender_id")
+    val recentMessageSenderId: UUID? = null,
+    @ColumnInfo(name = "recent_message_text")
+    val recentMessageText: String? = null,
+    @ColumnInfo(name = "recent_message_status")
+    val recentMessageStatus: MessageStatus? = null,
+    @ColumnInfo(name = "recent_message_timestamp")
+    val recentMessageTimestamp: ZonedDateTime? = null,
     @ColumnInfo(name = "is_archived")
     val isArchived: Boolean = false,
     @ColumnInfo(name = "is_favorite")

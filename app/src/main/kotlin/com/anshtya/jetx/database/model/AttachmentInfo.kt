@@ -11,6 +11,7 @@ data class AttachmentInfo(
     @ColumnInfo(name = "thumbnail_location")
     val thumbnailLocation: String?,
     val type: AttachmentType,
+    val size: String?,
     @ColumnInfo(name = "transfer_state")
     val transferState: AttachmentTransferState?,
     @ColumnInfo(name = "download_progress")

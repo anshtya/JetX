@@ -2,7 +2,7 @@ package com.anshtya.jetx.chats.di
 
 import com.anshtya.jetx.chats.data.MessageUpdatesListener
 import com.anshtya.jetx.common.coroutine.DefaultScope
-import com.anshtya.jetx.database.dao.MessageDao
+import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,7 +18,7 @@ object MessageUpdatesListenerModule {
     @Singleton
     fun provideMessageUpdatesListener(
         client: SupabaseClient,
-        messageDao: MessageDao,
+        localMessagesDataSource: LocalMessagesDataSource,
         @DefaultScope coroutineScope: CoroutineScope
-    ) = MessageUpdatesListener(client, messageDao, coroutineScope)
+    ) = MessageUpdatesListener(client, localMessagesDataSource, coroutineScope)
 }

@@ -4,9 +4,11 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.database.entity.ChatEntity
 import com.anshtya.jetx.database.model.ChatWithRecentMessage
 import kotlinx.coroutines.flow.Flow
+import java.time.ZonedDateTime
 import java.util.UUID
 
 @Dao
@@ -15,17 +17,11 @@ interface ChatDao {
     @Query(
         value = """
             SELECT 
-                chat.id, chat.recipient_id, chat.unread_count,
-                user_profile.username, user_profile.profile_picture, 
-                message.text, message.sender_id, message.created_at, message.status
+                chat.id, chat.recipient_id, chat.unread_count, chat.recent_message_text, 
+                chat.recent_message_status, chat.recent_message_timestamp, chat.recent_message_sender_id,
+                user_profile.username, user_profile.profile_picture
             FROM chat
-            JOIN message ON chat.id = message.chat_id
             JOIN user_profile ON chat.recipient_id = user_profile.id
-            WHERE 
-                message.created_at = (
-                    SELECT MAX(message.created_at) from message
-                    WHERE chat.id = message.chat_id 
-                )
             AND
                 CASE WHEN :showArchivedChats
                     THEN chat.is_archived = 1
@@ -38,16 +34,17 @@ interface ChatDao {
                 END
             AND
                 CASE WHEN :showUnreadChats
-                    THEN message.status = 'RECEIVED'
+                    THEN chat.recent_message_status = :receivedStatus
                     ELSE 1
                 END
-            ORDER BY message.created_at DESC
+            ORDER BY chat.recent_message_timestamp DESC
         """
     )
     fun getChatsWithRecentMessage(
         showArchivedChats: Boolean,
         showFavoriteChats: Boolean,
-        showUnreadChats: Boolean
+        showUnreadChats: Boolean,
+        receivedStatus: String = MessageStatus.RECEIVED.name
     ): Flow<List<ChatWithRecentMessage>>
 
     @Query("SELECT id FROM chat WHERE recipient_id =:recipientId")
@@ -55,6 +52,9 @@ interface ChatDao {
 
     @Query("SELECT recipient_id FROM chat WHERE id =:chatId")
     suspend fun getChatRecipientId(chatId: Int): UUID
+
+    @Query("SELECT recent_message_text FROM chat WHERE id =:chatId")
+    suspend fun getRecentMessageText(chatId: Int): String
 
     @Insert
     suspend fun insertChat(chatEntity: ChatEntity): Long
@@ -70,6 +70,41 @@ interface ChatDao {
 
     @Query("UPDATE chat SET unread_count = unread_count + 1 WHERE id = :chatId")
     suspend fun updateUnreadCount(chatId: Int)
+
+    @Query("""
+        UPDATE chat
+        SET recent_message_text = :messageText, recent_message_timestamp = :messageTimestamp,
+        recent_message_status = :messageStatus, recent_message_sender_id = :senderId
+        WHERE id = :chatId
+    """)
+    suspend fun updateRecentMessage(
+        chatId: Int,
+        senderId: UUID,
+        messageText: String,
+        messageTimestamp: ZonedDateTime,
+        messageStatus: MessageStatus
+    )
+
+    @Query("""
+        UPDATE chat
+        SET recent_message_status = :messageStatus
+        WHERE id = :chatId
+    """)
+    suspend fun updateRecentMessageStatus(
+        chatId: Int,
+        messageStatus: MessageStatus
+    )
+
+    @Query("""
+        UPDATE chat
+        SET recent_message_text = :messageText, recent_message_status = :messageStatus
+        WHERE id = :chatId
+    """)
+    suspend fun updateRecentMessageTextAndStatus(
+        chatId: Int,
+        messageText: String,
+        messageStatus: MessageStatus
+    )
 
     @Query("UPDATE chat SET unread_count = 0 WHERE id = :chatId")
     suspend fun markChatAsRead(chatId: Int)

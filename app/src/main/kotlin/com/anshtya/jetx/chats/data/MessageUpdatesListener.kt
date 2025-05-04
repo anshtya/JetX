@@ -3,7 +3,7 @@ package com.anshtya.jetx.chats.data
 import com.anshtya.jetx.chats.data.model.NetworkMessage
 import com.anshtya.jetx.common.coroutine.DefaultScope
 import com.anshtya.jetx.common.model.MessageStatus
-import com.anshtya.jetx.database.dao.MessageDao
+import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.query.filter.FilterOperation
@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 class MessageUpdatesListener @Inject constructor(
     client: SupabaseClient,
-    private val messageDao: MessageDao,
+    private val localMessagesDataSource: LocalMessagesDataSource,
     @DefaultScope private val coroutineScope: CoroutineScope
 ) {
     private val supabaseAuth = client.auth
@@ -52,16 +52,14 @@ class MessageUpdatesListener @Inject constructor(
             }
         ).onEach { action ->
             val networkMessage = action.decodeRecord<NetworkMessage>()
-            val storedMessage = messageDao.getMessage(networkMessage.id)
-            messageDao.upsertMessage(
-                storedMessage.copy(
-                    text = networkMessage.text,
-                    status = if (networkMessage.hasSeen) {
-                        MessageStatus.SEEN
-                    } else if (networkMessage.hasReceived) {
-                        MessageStatus.RECEIVED
-                    } else storedMessage.status
-                )
+            localMessagesDataSource.updateMessage(
+                messageId = networkMessage.id,
+                text = networkMessage.text,
+                status = if (networkMessage.hasSeen) {
+                    MessageStatus.SEEN
+                } else if (networkMessage.hasReceived) {
+                    MessageStatus.RECEIVED
+                } else null
             )
         }.launchIn(coroutineScope)
     }

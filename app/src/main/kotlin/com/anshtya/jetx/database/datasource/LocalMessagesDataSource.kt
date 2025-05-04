@@ -16,6 +16,8 @@ import com.anshtya.jetx.database.model.MessageWithAttachment
 import com.anshtya.jetx.util.BitmapUtil
 import kotlinx.coroutines.flow.Flow
 import java.io.File
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.UUID
 import javax.inject.Inject
 
@@ -52,49 +54,65 @@ class LocalMessagesDataSource @Inject constructor(
                 recipientId = recipientId,
                 chatId = chatId,
                 text = text,
-                status = if (currentUser) MessageStatus.SENDING else MessageStatus.RECEIVED
+                status = if (currentUser) MessageStatus.SENDING else MessageStatus.RECEIVED,
+                createdAt = ZonedDateTime.now(ZoneId.of("UTC"))
             )
-            val messageId = messageDao.upsertMessage(messageEntity)
-            when (attachmentFormat) {
+            val messageId = messageDao.insertMessage(messageEntity)
+            val attachmentEntity = when (attachmentFormat) {
                 is AttachmentFormat.UriAttachment -> {
                     val file = File(attachmentFormat.uri.path!!)
                     val attachmentDimensions = when (attachmentFormat.type) {
                         AttachmentType.IMAGE -> BitmapUtil.getDimensionsFromUri(attachmentFormat.uri)
                         else -> null
                     }
-                    attachmentDao.insertAttachment(
-                        AttachmentEntity(
-                            messageId = messageId.toInt(),
-                            fileName = file.name,
-                            storageLocation = file.absolutePath,
-                            remoteLocation = null,
-                            thumbnailLocation = null,
-                            type = attachmentFormat.type,
-                            width = attachmentDimensions?.width,
-                            height = attachmentDimensions?.height
-                        )
-                    ).toInt()
+                    val entity = AttachmentEntity(
+                        messageId = messageId.toInt(),
+                        fileName = file.name,
+                        storageLocation = file.absolutePath,
+                        remoteLocation = null,
+                        thumbnailLocation = null,
+                        type = attachmentFormat.type,
+                        width = attachmentDimensions?.width,
+                        height = attachmentDimensions?.height
+                    )
+                    attachmentDao.insertAttachment(entity)
+
+                    entity
                 }
 
                 is AttachmentFormat.UrlAttachment -> {
                     val networkAttachment = attachmentFormat.networkAttachment
-                    attachmentDao.insertAttachment(
-                        AttachmentEntity(
-                            messageId = messageId.toInt(),
-                            fileName = null,
-                            storageLocation = null,
-                            remoteLocation = networkAttachment.url,
-                            thumbnailLocation = null,
-                            type = networkAttachment.type,
-                            width = networkAttachment.width,
-                            height = networkAttachment.height
-                        )
-                    ).toInt()
+                    val entity = AttachmentEntity(
+                        messageId = messageId.toInt(),
+                        fileName = null,
+                        storageLocation = null,
+                        remoteLocation = networkAttachment.url,
+                        thumbnailLocation = null,
+                        type = networkAttachment.type,
+                        width = networkAttachment.width,
+                        height = networkAttachment.height,
+                        size = networkAttachment.size
+                    )
+                    attachmentDao.insertAttachment(entity)
+
+                    entity
                 }
 
                 is AttachmentFormat.None -> null
             }
 
+            val messageText = messageEntity.text ?: when (attachmentEntity!!.type) {
+                AttachmentType.IMAGE -> "Photo"
+                AttachmentType.VIDEO -> "Video"
+                AttachmentType.DOCUMENT -> "Document"
+            }
+            chatDao.updateRecentMessage(
+                chatId = chatId,
+                senderId = messageEntity.senderId,
+                messageText = messageText,
+                messageTimestamp = messageEntity.createdAt,
+                messageStatus = messageEntity.status
+            )
             if (!currentUser) {
                 chatDao.updateUnreadCount(messageEntity.chatId)
             }
@@ -106,14 +124,44 @@ class LocalMessagesDataSource @Inject constructor(
     suspend fun markChatMessagesAsSeen(chatId: Int): List<UUID> {
         val unreadMessageIds = messageDao.getUnreadMessagesId(chatId)
         db.withTransaction {
-            chatDao.markChatAsRead(chatId)
             messageDao.markMessagesAsRead(chatId)
+            chatDao.markChatAsRead(chatId)
         }
         return unreadMessageIds
     }
 
-    suspend fun updateMessageStatus(messageId: UUID, status: MessageStatus) {
-        messageDao.updateMessageStatus(messageId, status)
+    suspend fun updateMessageStatus(
+        messageId: UUID,
+        messageChatId: Int,
+        status: MessageStatus
+    ) {
+        db.withTransaction {
+            messageDao.updateMessageStatus(messageId, status)
+            chatDao.updateRecentMessageStatus(messageChatId, status)
+        }
+    }
+
+    suspend fun updateMessage(
+        messageId: UUID,
+        text: String?,
+        status: MessageStatus?
+    ) {
+        db.withTransaction {
+            if (text != null && status != null) {
+                messageDao.updateMessage(messageId, text, status)
+                chatDao.updateRecentMessageTextAndStatus(
+                    chatId = messageDao.getMessageChatId(messageId),
+                    messageText = text,
+                    messageStatus = status
+                )
+            } else if (status != null) {
+                updateMessageStatus(
+                    messageId = messageId,
+                    messageChatId = messageDao.getMessageChatId(messageId),
+                    status = status
+                )
+            }
+        }
     }
 
     suspend fun deleteMessages(ids: List<Int>) {

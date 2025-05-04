@@ -41,7 +41,7 @@ fun MessageAttachmentItem(
         AttachmentType.IMAGE -> {
             ImageView(
                 id = attachmentInfo.id,
-                downloadSize = 123,
+                downloadSize = attachmentInfo.size,
                 transferState = attachmentInfo.transferState,
                 storageLocation = attachmentInfo.storageLocation,
                 onClick = onClick,
@@ -64,7 +64,7 @@ fun MessageAttachmentItem(
 @Composable
 private fun ImageView(
     id: Int,
-    downloadSize: Int,
+    downloadSize: String?,
     transferState: AttachmentTransferState?,
     storageLocation: String?,
     onClick: () -> Unit,
@@ -115,7 +115,7 @@ private fun ImageView(
                                 imageVector = Icons.Default.Download,
                                 contentDescription = null
                             )
-                            Text("$downloadSize")
+                            Text(downloadSize!!)
                         }
                     }
                 }

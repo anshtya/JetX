@@ -89,7 +89,7 @@ class MessagesRepositoryImpl @Inject constructor(
             attachmentManager.uploadMediaAttachment(attachmentUri)
         } else null
         networkMessagesTable.insert(message.toNetworkMessage(attachmentId))
-        localMessagesDataSource.updateMessageStatus(message.uid, MessageStatus.SENT)
+        localMessagesDataSource.updateMessageStatus(message.uid, message.chatId, MessageStatus.SENT)
     }
 
     override suspend fun markChatMessagesAsSeen(chatId: Int) {

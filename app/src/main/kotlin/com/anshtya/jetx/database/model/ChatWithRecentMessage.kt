@@ -11,19 +11,19 @@ data class ChatWithRecentMessage(
     val id: Int,
     @ColumnInfo(name = "recipient_id")
     val recipientId: UUID,
-    @ColumnInfo(name = "sender_id")
-    val senderId: UUID,
     val username: String,
     @ColumnInfo(name = "profile_picture")
     val profilePicture: String?,
-    @ColumnInfo(name = "text")
-    val message: String?,
     @ColumnInfo(name = "unread_count")
     val unreadCount: Int,
-    @ColumnInfo(name = "created_at")
-    val createdAt: ZonedDateTime,
-    @ColumnInfo(name = "status")
-    val messageStatus: MessageStatus
+    @ColumnInfo(name = "recent_message_sender_id")
+    val recentMessageSenderId: UUID?,
+    @ColumnInfo(name = "recent_message_text")
+    val recentMessageText: String?,
+    @ColumnInfo(name = "recent_message_status")
+    val recentMessageStatus: MessageStatus?,
+    @ColumnInfo(name = "recent_message_timestamp")
+    val recentMessageTimestamp: ZonedDateTime?,
 )
 
 fun ChatWithRecentMessage.toExternalModel(): Chat {
@@ -32,10 +32,10 @@ fun ChatWithRecentMessage.toExternalModel(): Chat {
         recipientId = recipientId,
         username = username,
         profilePicture = profilePicture,
-        message = message ?: "a message", // TODO: replace if message is null
+        message = recentMessageText,
         unreadCount = unreadCount,
-        timestamp = createdAt.getDateOrTime(getYesterday = true),
-        messageStatus = messageStatus,
-        isSender = recipientId != senderId
+        timestamp = recentMessageTimestamp?.getDateOrTime(getYesterday = true),
+        messageStatus = recentMessageStatus,
+        isSender = recipientId != recentMessageSenderId
     )
 }

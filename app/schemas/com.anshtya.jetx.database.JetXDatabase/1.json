@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "5c0361e363f9386c8c4ffbc653bd29d2",
+    "identityHash": "e9951db951be474ef4138e96ce53e9c4",
     "entities": [
       {
         "tableName": "attachment",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `message_id` INTEGER NOT NULL, `file_name` TEXT, `storage_location` TEXT, `remote_location` TEXT, `thumbnail_location` TEXT, `type` TEXT NOT NULL, `transfer_state` TEXT, `download_progress` REAL NOT NULL, `width` INTEGER, `height` INTEGER, FOREIGN KEY(`message_id`) REFERENCES `message`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `message_id` INTEGER NOT NULL, `file_name` TEXT, `storage_location` TEXT, `remote_location` TEXT, `thumbnail_location` TEXT, `size` TEXT, `type` TEXT NOT NULL, `transfer_state` TEXT, `download_progress` REAL NOT NULL, `width` INTEGER, `height` INTEGER, FOREIGN KEY(`message_id`) REFERENCES `message`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -41,6 +41,12 @@
           {
             "fieldPath": "thumbnailLocation",
             "columnName": "thumbnail_location",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "size",
+            "columnName": "size",
             "affinity": "TEXT",
             "notNull": false
           },
@@ -83,15 +89,14 @@
         },
         "indices": [
           {
-            "name": "index_attachment_storage_location_remote_location_thumbnail_location",
-            "unique": true,
+            "name": "index_attachment_id_message_id",
+            "unique": false,
             "columnNames": [
-              "storage_location",
-              "remote_location",
-              "thumbnail_location"
+              "id",
+              "message_id"
             ],
             "orders": [],
-            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_attachment_storage_location_remote_location_thumbnail_location` ON `${TABLE_NAME}` (`storage_location`, `remote_location`, `thumbnail_location`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_attachment_id_message_id` ON `${TABLE_NAME}` (`id`, `message_id`)"
           },
           {
             "name": "index_attachment_message_id",
@@ -119,7 +124,7 @@
       },
       {
         "tableName": "chat",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `recipient_id` TEXT NOT NULL, `unread_count` INTEGER NOT NULL, `is_archived` INTEGER NOT NULL, `is_favorite` INTEGER NOT NULL, FOREIGN KEY(`recipient_id`) REFERENCES `user_profile`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `recipient_id` TEXT NOT NULL, `unread_count` INTEGER NOT NULL, `recent_message_sender_id` TEXT, `recent_message_text` TEXT, `recent_message_status` TEXT, `recent_message_timestamp` INTEGER, `is_archived` INTEGER NOT NULL, `is_favorite` INTEGER NOT NULL, FOREIGN KEY(`recipient_id`) REFERENCES `user_profile`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -138,6 +143,30 @@
             "columnName": "unread_count",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "recentMessageSenderId",
+            "columnName": "recent_message_sender_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "recentMessageText",
+            "columnName": "recent_message_text",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "recentMessageStatus",
+            "columnName": "recent_message_status",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "recentMessageTimestamp",
+            "columnName": "recent_message_timestamp",
+            "affinity": "INTEGER",
+            "notNull": false
           },
           {
             "fieldPath": "isArchived",
@@ -250,16 +279,15 @@
         },
         "indices": [
           {
-            "name": "index_message_time_sender_recipient_chat",
+            "name": "index_message_chat_id_created_at_status",
             "unique": false,
             "columnNames": [
+              "chat_id",
               "created_at",
-              "sender_id",
-              "recipient_id",
-              "chat_id"
+              "status"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_message_time_sender_recipient_chat` ON `${TABLE_NAME}` (`created_at`, `sender_id`, `recipient_id`, `chat_id`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_message_chat_id_created_at_status` ON `${TABLE_NAME}` (`chat_id`, `created_at`, `status`)"
           },
           {
             "name": "index_message_sender_id",
@@ -278,15 +306,6 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_message_recipient_id` ON `${TABLE_NAME}` (`recipient_id`)"
-          },
-          {
-            "name": "index_message_chat_id",
-            "unique": false,
-            "columnNames": [
-              "chat_id"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_message_chat_id` ON `${TABLE_NAME}` (`chat_id`)"
           }
         ],
         "foreignKeys": [
@@ -367,7 +386,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5c0361e363f9386c8c4ffbc653bd29d2')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e9951db951be474ef4138e96ce53e9c4')"
     ]
   }
 }

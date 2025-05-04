@@ -93,7 +93,7 @@ fun ChatItem(
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = chat.timestamp,
+                    text = chat.timestamp!!,
                     style = MaterialTheme.typography.bodySmall,
                     color = if (chat.unreadCount > 0) MaterialTheme.colorScheme.primary else Color.Gray,
                 )
@@ -106,7 +106,7 @@ fun ChatItem(
             ) {
                 if (chat.isSender) {
                     MessageStatusIcon(
-                        status = chat.messageStatus,
+                        status = chat.messageStatus!!,
                         modifier = Modifier
                             .size(24.dp)
                             .padding(end = 4.dp)
@@ -114,7 +114,7 @@ fun ChatItem(
                     Spacer(Modifier.width(2.dp))
                 }
                 Text(
-                    text = chat.message,
+                    text = chat.message!!,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
                     style = MaterialTheme.typography.bodyLarge,
