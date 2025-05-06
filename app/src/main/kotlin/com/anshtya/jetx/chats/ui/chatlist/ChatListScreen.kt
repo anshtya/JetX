@@ -42,6 +42,7 @@ import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
 import com.anshtya.jetx.chats.ui.components.ChatList
 import com.anshtya.jetx.chats.ui.components.ChatListScaffold
 import com.anshtya.jetx.chats.ui.components.DeleteChatDialog
+import com.anshtya.jetx.chats.ui.permissions.NotificationPermissionHandler
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.IconButtonDropdownMenu
 import com.anshtya.jetx.sampledata.sampleChats
@@ -114,6 +115,8 @@ private fun ChatListScreen(
     }
 
     if (state is ChatListState.Success) {
+        NotificationPermissionHandler()
+
         ChatListScaffold(
             selectedChatCount = selectedChatCount,
             onClearSelectedChats = onClearSelectedChats,

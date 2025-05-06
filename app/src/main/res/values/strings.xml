@@ -64,4 +64,15 @@
 
     <string name="capture_preview_retake">Retake</string>
     <string name="capture_preview_send">Send</string>
+
+    <!--Permissions-->
+    <string name="notification_permission_confirm">Continue</string>
+    <string name="notification_permission_dismiss">Not now</string>
+    <string name="notification_permission_title">Notification permission needed</string>
+    <string name="notification_permission_text">We need permission to send you notifications so you don\'t miss important updates.</string>
+
+    <string name="camera_permission_continue">Continue</string>
+    <string name="camera_permission_not_now">Not now</string>
+    <string name="camera_permission_title">Camera permission needed</string>
+    <string name="camera_permission_text">Allow JetX to access your camera.</string>
 </resources>
