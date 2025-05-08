@@ -37,7 +37,6 @@
     <string name="notification_message_channel">Message notifications</string>
     <string name="notification_other_channel">Other notifications</string>
 
-    <string name="checking_for_new_messages">Checking for new messages</string>
     <string name="may_have_new_messages">You may have new messages</string>
 
     <string name="chat_selected">Chat selected</string>

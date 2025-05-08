@@ -18,6 +18,7 @@ import com.anshtya.jetx.MainActivity
 import com.anshtya.jetx.R
 import com.anshtya.jetx.attachments.AttachmentFormat
 import com.anshtya.jetx.attachments.NetworkAttachment
+import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.MessageReceiveRepository
 import com.anshtya.jetx.database.dao.ChatDao
 import com.anshtya.jetx.notifications.MarkAsReadReceiver
@@ -37,6 +38,7 @@ class MessageReceiveWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     client: SupabaseClient,
+    private val chatsRepository: ChatsRepository,
     private val profileRepository: ProfileRepository,
     private val messageReceiveRepository: MessageReceiveRepository,
     private val chatDao: ChatDao
@@ -64,12 +66,14 @@ class MessageReceiveWorker @AssistedInject constructor(
                 } else AttachmentFormat.None
             )
 
-            val senderProfile = profileRepository.getProfile(message.senderId)!!
-            postMessageNotification(
-                senderName = senderProfile.username,
-                message = chatDao.getRecentMessageText(chatId),
-                chatId = chatId
-            )
+            if (chatsRepository.currentChatId != chatId) {
+                val senderProfile = profileRepository.getProfile(message.senderId)!!
+                postMessageNotification(
+                    senderName = senderProfile.username,
+                    message = chatDao.getRecentMessageText(chatId),
+                    chatId = chatId
+                )
+            }
 
             Result.success()
         } catch (e: Exception) {

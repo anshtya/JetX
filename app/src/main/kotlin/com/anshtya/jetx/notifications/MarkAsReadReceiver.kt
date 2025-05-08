@@ -4,8 +4,8 @@ import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import com.anshtya.jetx.chats.data.MessagesRepository
 import com.anshtya.jetx.common.coroutine.DefaultScope
-import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
 import com.anshtya.jetx.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -15,7 +15,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MarkAsReadReceiver: BroadcastReceiver() {
     @Inject
-    lateinit var localMessagesDataSource: LocalMessagesDataSource
+    lateinit var messagesRepository: MessagesRepository
 
     @Inject
     @DefaultScope
@@ -29,7 +29,7 @@ class MarkAsReadReceiver: BroadcastReceiver() {
 
         val finisher = goAsync()
         coroutineScope.launch {
-            localMessagesDataSource.markChatMessagesAsSeen(chatId)
+            messagesRepository.markChatMessagesAsSeen(chatId)
             finisher.finish()
         }
     }

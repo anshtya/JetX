@@ -18,10 +18,17 @@ class ChatsRepositoryImpl @Inject constructor(
     private val messageUpdatesListener: MessageUpdatesListener,
     @DefaultScope private val coroutineScope: CoroutineScope
 ) : ChatsRepository {
+    override var currentChatId: Int? = null
+        private set
+
     init {
         coroutineScope.launch {
             messageUpdatesListener.subscribe()
         }
+    }
+
+    override fun setCurrentChatId(id: Int?) {
+        currentChatId = id
     }
 
     override fun getChats(

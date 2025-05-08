@@ -5,6 +5,10 @@ import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
 interface ChatsRepository {
+    val currentChatId: Int?
+
+    fun setCurrentChatId(id: Int?)
+
     fun getChats(
         showFavoriteChats: Boolean,
         showUnreadChats: Boolean

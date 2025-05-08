@@ -99,6 +99,7 @@ class ChatViewModel @Inject constructor(
                     }
                 }
             }
+            chatId.value?.let { chatsRepository.setCurrentChatId(it) }
         }
     }
 
@@ -115,6 +116,7 @@ class ChatViewModel @Inject constructor(
             )
             if (chatId.value == null) {
                 chatId.update { chatsRepository.getChatId(recipientUser.id) }
+                chatsRepository.setCurrentChatId(chatId.value)
             }
         }
     }
@@ -180,5 +182,10 @@ class ChatViewModel @Inject constructor(
 
     fun errorShown() {
         _errorMessage.update { null }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        chatsRepository.setCurrentChatId(null)
     }
 }
