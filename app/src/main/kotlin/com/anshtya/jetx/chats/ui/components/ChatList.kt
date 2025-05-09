@@ -23,7 +23,8 @@ fun ChatList(
     chatList: List<Chat>,
     selectedChats: Set<Int>,
     onChatClick: (ChatUserArgs) -> Unit,
-    onChatLongClick: (Int) -> Unit,
+    onSelectChat: (Int) -> Unit,
+    onUnselectChat: (Int) -> Unit,
     modifier: Modifier = Modifier,
     listHeader: LazyListScope.() -> Unit = {}
 ) {
@@ -45,7 +46,8 @@ fun ChatList(
                     chat = it,
                     selected = selectedChats.contains(it.id),
                     onClick = onChatClick,
-                    onLongClick = onChatLongClick
+                    onLongClick = onSelectChat,
+                    onUnselectChat = onUnselectChat
                 )
             }
         }

@@ -17,18 +17,30 @@ class FcmTokenManager @Inject constructor(
     suspend fun addToken() {
         val userId = client.auth.currentUserOrNull()?.id!!
         val fcmToken = firebaseMessaging.token.await()
-        profileTable.update(
-            update = { set("fcm_token", fcmToken) },
-            request = {
-                filter { eq("user_id", userId) }
-            }
-        )
+        addTokenToServer(token = fcmToken, userId = userId)
     }
 
     suspend fun removeToken() {
         val userId = client.auth.currentUserOrNull()?.id!!
         profileTable.update(
             update = { set<Any>("fcm_token", null) },
+            request = {
+                filter { eq("user_id", userId) }
+            }
+        )
+    }
+
+    suspend fun addTokenToServer(token: String) {
+        val userId = client.auth.currentUserOrNull()?.id!!
+        addTokenToServer(token = token, userId = userId)
+    }
+
+    private suspend fun addTokenToServer(
+        token: String,
+        userId: String
+    ) {
+        profileTable.update(
+            update = { set("fcm_token", token) },
             request = {
                 filter { eq("user_id", userId) }
             }

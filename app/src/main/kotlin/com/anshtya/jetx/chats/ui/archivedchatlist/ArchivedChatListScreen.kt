@@ -42,7 +42,8 @@ fun ArchivedChatListRoute(
         state = archivedChatListState,
         selectedChats = selectedChats,
         onChatClick = onNavigateToChat,
-        onChatLongClick = viewModel::selectChat,
+        onSelectChat = viewModel::selectChat,
+        onUnselectChat = viewModel::unSelectChat,
         onClearSelectedChats = viewModel::clearSelectedChats,
         onUnarchiveClick = viewModel::unarchiveChat,
         onBackClick = onBackClick
@@ -54,7 +55,8 @@ private fun ArchivedChatListScreen(
     state: ChatListState,
     selectedChats: Set<Int>,
     onChatClick: (ChatUserArgs) -> Unit,
-    onChatLongClick: (Int) -> Unit,
+    onSelectChat: (Int) -> Unit,
+    onUnselectChat: (Int) -> Unit,
     onClearSelectedChats: () -> Unit,
     onUnarchiveClick: () -> Unit,
     onBackClick: () -> Unit
@@ -104,7 +106,8 @@ private fun ArchivedChatListScreen(
                 chatList = state.list,
                 selectedChats = selectedChats,
                 onChatClick = onChatClick,
-                onChatLongClick = onChatLongClick,
+                onSelectChat = onSelectChat,
+                onUnselectChat = onUnselectChat,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(innerPadding)
@@ -121,7 +124,8 @@ private fun ArchivedChatsScreenPreview() {
             state = ChatListState.Success(sampleChats),
             selectedChats = emptySet(),
             onChatClick = {},
-            onChatLongClick = {},
+            onSelectChat = {},
+            onUnselectChat = {},
             onClearSelectedChats = {},
             onUnarchiveClick = {},
             onBackClick = {}

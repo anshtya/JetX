@@ -68,6 +68,12 @@ class ChatListViewModel @Inject constructor(
         }
     }
 
+    fun unSelectChat(id: Int) {
+        _selectedChats.update {
+            it.toMutableSet().apply { remove(id) }
+        }
+    }
+
     fun clearSelectedChats() {
         _selectedChats.update { emptySet() }
     }

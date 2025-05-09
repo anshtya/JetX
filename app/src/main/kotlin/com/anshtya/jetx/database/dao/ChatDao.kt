@@ -106,6 +106,13 @@ interface ChatDao {
         messageStatus: MessageStatus
     )
 
-    @Query("UPDATE chat SET unread_count = 0 WHERE id = :chatId")
-    suspend fun markChatAsRead(chatId: Int)
+    @Query("""
+        UPDATE chat 
+        SET unread_count = 0, recent_message_status = :seenMessageStatus 
+        WHERE id = :chatId
+    """)
+    suspend fun markChatAsRead(
+        chatId: Int,
+        seenMessageStatus: MessageStatus = MessageStatus.SEEN
+    )
 }

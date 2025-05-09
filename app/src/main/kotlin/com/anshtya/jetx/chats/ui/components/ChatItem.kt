@@ -42,6 +42,7 @@ fun ChatItem(
     selected: Boolean,
     onClick: (ChatUserArgs) -> Unit,
     onLongClick: (Int) -> Unit,
+    onUnselectChat: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -56,7 +57,12 @@ fun ChatItem(
                 shape = RoundedCornerShape(8.dp)
             )
             .combinedClickable(
-                onClick = { onClick(chat.toChatUserArgs()) },
+                onClick = {
+                    if (selected)
+                        onUnselectChat(chat.id)
+                    else
+                        onClick(chat.toChatUserArgs())
+                },
                 onLongClick = { onLongClick(chat.id) }
             )
             .padding(
@@ -150,7 +156,8 @@ private fun ChatItemPreview() {
             chat = sampleChats.first(),
             selected = false,
             onClick = {},
-            onLongClick = {}
+            onLongClick = {},
+            onUnselectChat = {}
         )
     }
 }
