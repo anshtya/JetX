@@ -5,7 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.anshtya.jetx.common.model.ProfileData
+import com.anshtya.jetx.preferences.model.ProfileData
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -23,7 +23,7 @@ class PreferencesStore @Inject constructor(
 
     val profileFlow = dataStore.data.map {
         ProfileData(
-            profileCreated = it[PROFILE_CREATED] ?: false,
+            profileCreated = it[PROFILE_CREATED] == true,
             userId = it[USER_ID]
         )
     }

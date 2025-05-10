@@ -25,11 +25,18 @@ class SearchViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage = _errorMessage.asStateFlow()
+
     val searchSuggestions: StateFlow<List<UserProfile>> = _searchQuery
         .debounce { if (it.isNotBlank()) 500 else 0 }
         .mapLatest {
             if (it.isNotBlank()) {
-                profileRepository.searchProfiles(it)
+                val result = profileRepository.searchProfiles(it)
+                result.getOrElse {
+                    _errorMessage.update { "An error occurred" }
+                    emptyList()
+                }
             } else {
                 emptyList()
             }
@@ -46,5 +53,9 @@ class SearchViewModel @Inject constructor(
 
     fun clearSearch() {
         _searchQuery.update { "" }
+    }
+
+    fun errorShown() {
+        _errorMessage.update { null }
     }
 }

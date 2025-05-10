@@ -23,7 +23,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,6 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.anshtya.jetx.camera.permission.CameraPermissionItem
 
 @Composable
@@ -47,10 +50,20 @@ fun CameraScreen(
 
     var showCameraPermissionText by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        val permission = Manifest.permission.CAMERA
-        showCameraPermissionText = ContextCompat.checkSelfPermission(context, permission) !=
-            PackageManager.PERMISSION_GRANTED
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START) {
+                val permission = Manifest.permission.CAMERA
+                showCameraPermissionText = ContextCompat.checkSelfPermission(context, permission) !=
+                    PackageManager.PERMISSION_GRANTED
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -58,14 +71,15 @@ fun CameraScreen(
     ) { isGranted ->
         if (isGranted) showCameraPermissionText = false
         else {
-            if ((context as Activity).shouldShowRequestPermissionRationale(
+            val activity = context as Activity
+            if (activity.shouldShowRequestPermissionRationale(
                     Manifest.permission.POST_NOTIFICATIONS
                 ) == false
             ) {
-                val intent = Intent().apply {
-                    action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                    data = Uri.fromParts("package", context.packageName, null)
-                }
+                val intent = Intent(
+                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.fromParts("package", context.packageName, null)
+                )
                 context.startActivity(intent)
             }
         }

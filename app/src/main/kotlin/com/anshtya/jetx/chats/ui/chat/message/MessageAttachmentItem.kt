@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.anshtya.jetx.attachments.AttachmentTransferState
+import com.anshtya.jetx.database.model.AttachmentTransferState
 import com.anshtya.jetx.attachments.AttachmentType
 import com.anshtya.jetx.database.model.AttachmentInfo
 import java.io.File

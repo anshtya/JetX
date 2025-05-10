@@ -15,7 +15,7 @@ interface ProfileRepository {
 
     suspend fun getProfile(userId: UUID): UserProfile?
 
-    suspend fun searchProfiles(query: String): List<UserProfile>
+    suspend fun searchProfiles(query: String): Result<List<UserProfile>>
 
     suspend fun deleteProfiles()
 }

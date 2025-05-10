@@ -1,17 +1,14 @@
 package com.anshtya.jetx.util
 
-import android.graphics.BitmapFactory
-import android.net.Uri
-import com.anshtya.jetx.util.model.ImageDimensions
-import java.io.File
+import android.graphics.Bitmap
+import java.io.ByteArrayOutputStream
 
 object BitmapUtil {
-    fun getDimensionsFromUri(uri: Uri): ImageDimensions {
-        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(File(uri.path!!).absolutePath, options)
-        return ImageDimensions(
-            width = options.outWidth,
-            height = options.outHeight
-        )
+    fun Bitmap.getByteArray(): ByteArray {
+        val outputStream = ByteArrayOutputStream()
+        this.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+        val byteArray = outputStream.toByteArray()
+        outputStream.close()
+        return byteArray
     }
 }

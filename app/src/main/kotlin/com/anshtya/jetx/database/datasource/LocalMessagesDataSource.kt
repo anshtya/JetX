@@ -13,7 +13,7 @@ import com.anshtya.jetx.database.entity.AttachmentEntity
 import com.anshtya.jetx.database.entity.ChatEntity
 import com.anshtya.jetx.database.entity.MessageEntity
 import com.anshtya.jetx.database.model.MessageWithAttachment
-import com.anshtya.jetx.util.BitmapUtil
+import com.anshtya.jetx.util.UriUtil.getDimensions
 import kotlinx.coroutines.flow.Flow
 import java.io.File
 import java.time.ZoneId
@@ -62,7 +62,7 @@ class LocalMessagesDataSource @Inject constructor(
                 is AttachmentFormat.UriAttachment -> {
                     val file = File(attachmentFormat.uri.path!!)
                     val attachmentDimensions = when (attachmentFormat.type) {
-                        AttachmentType.IMAGE -> BitmapUtil.getDimensionsFromUri(attachmentFormat.uri)
+                        AttachmentType.IMAGE -> attachmentFormat.uri.getDimensions()
                         else -> null
                     }
                     val entity = AttachmentEntity(

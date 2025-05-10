@@ -1,5 +1,6 @@
 package com.anshtya.jetx.chats.ui.search
 
+import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -62,26 +64,32 @@ fun SearchRoute(
 ) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val searchSuggestions by viewModel.searchSuggestions.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
 
     SearchScreen(
         searchQuery = searchQuery,
+        errorMessage = errorMessage,
         searchSuggestions = searchSuggestions,
         onSearchQueryChange = viewModel::changeSearchQuery,
         onClearSearch = viewModel::clearSearch,
         onProfileClick = onNavigateToChat,
-        onBackClick = onBackClick
+        onBackClick = onBackClick,
+        onErrorShown = viewModel::errorShown
     )
 }
 
 @Composable
 private fun SearchScreen(
     searchQuery: String,
+    errorMessage: String?,
     searchSuggestions: List<UserProfile>,
     onSearchQueryChange: (String) -> Unit,
     onClearSearch: () -> Unit,
     onProfileClick: (ChatUserArgs) -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onErrorShown: () -> Unit,
 ) {
+    val context = LocalContext.current
     var searchBarActive by rememberSaveable { mutableStateOf(false) }
     var searchBarExpanded by rememberSaveable { mutableStateOf(false) }
 
@@ -89,6 +97,11 @@ private fun SearchScreen(
         if (!searchBarActive) {
             onClearSearch()
         }
+    }
+
+    if (errorMessage != null) {
+        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+        onErrorShown()
     }
 
     Scaffold { paddingValues ->
@@ -224,9 +237,7 @@ private fun SearchItem(
     ) {
         ProfilePicture(
             model = userProfile.pictureUrl,
-            onClick = {
-                // TODO: add profile view
-            },
+            onClick = {},
             modifier = Modifier
                 .size(50.dp)
                 .align(Alignment.CenterVertically)
@@ -259,11 +270,13 @@ private fun SearchScreenPreview() {
     ComponentPreview {
         SearchScreen(
             searchQuery = "",
+            errorMessage = null,
             searchSuggestions = emptyList(),
             onSearchQueryChange = {},
             onClearSearch = {},
             onProfileClick = {},
-            onBackClick = {}
+            onBackClick = {},
+            onErrorShown = {}
         )
     }
 }

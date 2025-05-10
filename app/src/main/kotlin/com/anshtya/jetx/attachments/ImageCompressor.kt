@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
@@ -18,6 +19,7 @@ class ImageCompressor(
         mimeType: String?
     ): ByteArray? {
         return withContext(ioDispatcher) {
+            ensureActive()
             val inputBytes = context.contentResolver
                 .openInputStream(uri)?.use { inputStream -> inputStream.readBytes() }
                 ?: return@withContext null
@@ -44,6 +46,7 @@ class ImageCompressor(
         compressFormat: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG
     ): ByteArray? {
         return withContext(defaultDispatcher) {
+            ensureActive()
             return@withContext ByteArrayOutputStream().use { outputStream ->
                 bitmap.compress(compressFormat, 70, outputStream)
                 outputStream.toByteArray()

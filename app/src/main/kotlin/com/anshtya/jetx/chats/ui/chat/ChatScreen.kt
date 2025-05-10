@@ -73,7 +73,6 @@ import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.ProfilePicture
 import com.anshtya.jetx.database.model.AttachmentInfo
 import com.anshtya.jetx.database.model.MessageWithAttachment
-import com.anshtya.jetx.sampledata.sampleChatMessages
 import com.anshtya.jetx.sampledata.sampleUsers
 import com.anshtya.jetx.util.Constants
 import com.anshtya.jetx.util.getDateOrTime
@@ -558,12 +557,11 @@ private fun ChatScreenPreview() {
 @Composable
 private fun MessageItemPreview() {
     ComponentPreview {
-        val message = sampleChatMessages.first()
         MessageItem(
             id = 1,
-            text = message.text,
+            text = "text",
             time = ZonedDateTime.now().getDateOrTime(getTimeOnly = true),
-            status = message.status,
+            status = MessageStatus.SENT,
             isAuthor = true,
             messagesSelected = false,
             isSelected = false,

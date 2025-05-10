@@ -1,7 +1,7 @@
 package com.anshtya.jetx.chats.data.model
 
 import com.anshtya.jetx.database.entity.MessageEntity
-import com.anshtya.jetx.util.UUIDSerializer
+import com.anshtya.jetx.common.UUIDSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.UUID

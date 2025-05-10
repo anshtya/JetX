@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.anshtya.jetx.attachments.AttachmentTransferState
+import com.anshtya.jetx.database.model.AttachmentTransferState
 import com.anshtya.jetx.database.entity.AttachmentEntity
 
 @Dao

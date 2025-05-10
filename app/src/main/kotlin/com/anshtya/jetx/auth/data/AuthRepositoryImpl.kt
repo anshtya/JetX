@@ -37,7 +37,7 @@ class AuthRepositoryImpl @Inject constructor(
         email: String,
         password: String
     ): Result<Unit> {
-        return kotlin.runCatching {
+        return runCatching {
             supabaseAuth.signInWith(Email) {
                 this.email = email
                 this.password = password
@@ -54,7 +54,7 @@ class AuthRepositoryImpl @Inject constructor(
         email: String,
         password: String
     ): Result<Unit> {
-        return kotlin.runCatching {
+        return runCatching {
             supabaseAuth.signUpWith(Email) {
                 this.email = email
                 this.password = password
@@ -63,7 +63,7 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun signOut(): Result<Unit> {
-        return kotlin.runCatching {
+        return runCatching {
             messageUpdatesListener.unsubscribe()
             fcmTokenManager.removeToken()
             userProfileDao.deleteAllProfiles()

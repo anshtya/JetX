@@ -1,7 +1,6 @@
 package com.anshtya.jetx.database.model
 
 import androidx.room.ColumnInfo
-import com.anshtya.jetx.attachments.AttachmentTransferState
 import com.anshtya.jetx.attachments.AttachmentType
 
 data class AttachmentInfo(

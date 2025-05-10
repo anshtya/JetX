@@ -1,22 +1,22 @@
 package com.anshtya.jetx.attachments
 
-import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.webkit.MimeTypeMap
 import androidx.core.net.toUri
 import com.anshtya.jetx.common.coroutine.IoDispatcher
-import com.anshtya.jetx.common.model.Result
-import com.anshtya.jetx.util.BitmapUtil
 import com.anshtya.jetx.util.Constants
-import com.anshtya.jetx.util.getReadableFileSize
+import com.anshtya.jetx.util.UriUtil.getDimensions
+import com.anshtya.jetx.util.UriUtil.getMimeType
+import com.anshtya.jetx.util.UriUtil.getReadableFileSize
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
@@ -40,13 +40,13 @@ class AttachmentManager @Inject constructor(
         val inputByteArray = withContext(ioDispatcher) { file.readBytes() }
         val path = file.name
 
-        val attachmentType = AttachmentType.fromMimeType(getMimeTypeFromUri(context, uri))!!
+        val attachmentType = AttachmentType.fromMimeType(getMimeTypeFromUri(uri))!!
         var attachmentHeight: Int? = null
         var attachmentWidth: Int? = null
 
         when (attachmentType) {
             AttachmentType.IMAGE -> {
-                val imageDimensions = BitmapUtil.getDimensionsFromUri(uri)
+                val imageDimensions = uri.getDimensions()
                 attachmentHeight = imageDimensions.height
                 attachmentWidth = imageDimensions.width
             }
@@ -65,7 +65,7 @@ class AttachmentManager @Inject constructor(
                 type = attachmentType,
                 height = attachmentHeight,
                 width = attachmentWidth,
-                size = getFileSizeFromUri(uri)
+                size = uri.getReadableFileSize()
             )
         ) { select(Columns.list("id")) }.decodeSingle<AttachmentUploadResponse>()
 
@@ -74,28 +74,20 @@ class AttachmentManager @Inject constructor(
 
     suspend fun saveImage(
         uri: Uri
-    ): Result<Uri> {
-        return try {
-            val mimeType = context.contentResolver.getType(uri)
-            val fileExtension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
-            val compressedByteArray = imageCompressor.compressImage(uri, mimeType)
-            val fileName = "${generateImageName()}.${fileExtension}"
-            return Result.Success(saveImage(compressedByteArray, fileName))
-        } catch (_: Exception) {
-            Result.Error()
-        }
+    ): Uri {
+        val mimeType = context.contentResolver.getType(uri)
+        val fileExtension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
+        val compressedByteArray = imageCompressor.compressImage(uri, mimeType)
+        val fileName = "${generateImageName()}.${fileExtension}"
+        return saveImage(compressedByteArray, fileName)
     }
 
     suspend fun saveImage(
         bitmap: Bitmap
-    ): Result<Uri> {
-        return try {
-            val compressedByteArray = imageCompressor.compressImage(bitmap)
-            val fileName = "${generateImageName()}.jpg"
-            return Result.Success(saveImage(compressedByteArray, fileName))
-        } catch (_: Exception) {
-            Result.Error()
-        }
+    ): Uri {
+        val compressedByteArray = imageCompressor.compressImage(bitmap)
+        val fileName = "${generateImageName()}.jpg"
+        return saveImage(compressedByteArray, fileName)
     }
 
     suspend fun saveImage(
@@ -105,38 +97,8 @@ class AttachmentManager @Inject constructor(
         return saveImage(byteArray, "${generateImageName()}.jpg", sent)
     }
 
-    // TODO: save image in chunks
-    suspend fun saveImageInChunks(
-        buffer: ByteArray,
-        offset: Int,
-        length: Int,
-        fileUri: Uri? = null
-    ): Uri {
-        val imageFile = if (fileUri != null) {
-            File(fileUri.path!!)
-        } else {
-            val fileName = "${generateImageName()}.jpg"
-            val directory = File(context.filesDir, "Images")
-            if (!directory.exists()) {
-                directory.mkdirs()
-            }
-            File(directory, fileName)
-        }
-        withContext(ioDispatcher) {
-            FileOutputStream(imageFile).use { outputStream ->
-                outputStream.write(buffer, offset, length)
-            }
-        }
-        return imageFile.toUri()
-    }
-
     fun getMimeTypeFromUri(uri: Uri): String? {
-        return getMimeTypeFromUri(context, uri)
-    }
-
-    private fun getFileSizeFromUri(uri: Uri): String {
-        val file = File(uri.path!!)
-        return getReadableFileSize(file.length())
+        return uri.getMimeType(context)
     }
 
     private suspend fun saveImage(
@@ -150,20 +112,12 @@ class AttachmentManager @Inject constructor(
         }
         val imageFile = File(directory, fileName)
         withContext(ioDispatcher) {
+            ensureActive()
             FileOutputStream(imageFile).use { outputStream ->
                 outputStream.write(byteArray)
             }
         }
         return imageFile.toUri()
-    }
-
-    private fun getMimeTypeFromUri(context: Context, uri: Uri): String? {
-        return if (uri.scheme == ContentResolver.SCHEME_CONTENT) {
-            context.contentResolver.getType(uri)
-        } else {
-            val extension = MimeTypeMap.getFileExtensionFromUrl(uri.toString())
-            MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.lowercase())
-        }
     }
 
     private fun generateImageName(): String {

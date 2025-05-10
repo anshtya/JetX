@@ -5,7 +5,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.anshtya.jetx.common.model.Message
 import com.anshtya.jetx.common.model.MessageStatus
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -54,14 +53,3 @@ data class MessageEntity(
     val createdAt: ZonedDateTime,
     val status: MessageStatus
 )
-
-fun MessageEntity.toExternalModel(): Message {
-    return Message(
-        id = id,
-        senderId = senderId,
-        text = text ?: "",
-        isStarred = isStarred,
-        createdAt = createdAt,
-        status = status
-    )
-}

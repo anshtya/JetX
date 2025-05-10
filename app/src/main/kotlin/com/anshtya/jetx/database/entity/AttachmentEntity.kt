@@ -5,7 +5,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.anshtya.jetx.attachments.AttachmentTransferState
+import com.anshtya.jetx.database.model.AttachmentTransferState
 import com.anshtya.jetx.attachments.AttachmentType
 
 @Entity(

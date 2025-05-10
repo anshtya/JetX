@@ -1,4 +1,4 @@
-package com.anshtya.jetx.attachments
+package com.anshtya.jetx.database.model
 
 enum class AttachmentTransferState {
     STARTED,

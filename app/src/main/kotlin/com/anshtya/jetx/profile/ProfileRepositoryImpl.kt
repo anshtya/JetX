@@ -11,6 +11,7 @@ import com.anshtya.jetx.profile.model.CreateProfileRequest
 import com.anshtya.jetx.profile.model.NetworkProfile
 import com.anshtya.jetx.profile.model.toEntity
 import com.anshtya.jetx.profile.model.toExternalModel
+import com.anshtya.jetx.util.BitmapUtil.getByteArray
 import com.anshtya.jetx.util.Constants.MEDIA_STORAGE
 import com.anshtya.jetx.util.Constants.PROFILE_TABLE
 import io.github.jan.supabase.SupabaseClient
@@ -18,7 +19,6 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.flow.first
-import java.io.ByteArrayOutputStream
 import java.util.UUID
 import javax.inject.Inject
 
@@ -39,13 +39,13 @@ class ProfileRepositoryImpl @Inject constructor(
         username: String,
         profilePicture: Bitmap?
     ): Result<Unit> {
-        return kotlin.runCatching {
+        return runCatching {
             val userId = supabaseAuth.currentUserOrNull()?.id
                 ?: throw IllegalStateException("User should be logged in to create profile")
             var profilePicturePath: String? = null
 
             if (profilePicture != null) {
-                val imageByteArray = getByteArrayFromBitmap(profilePicture)
+                val imageByteArray = profilePicture.getByteArray()
                 val path = "profile-${userId}.png"
                 mediaBucket.upload(
                     path = path,
@@ -93,24 +93,26 @@ class ProfileRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun searchProfiles(query: String): List<UserProfile> {
-        val pattern = "%${query}%"
-        return profileTable.select {
-            filter {
-                or {
-                    ilike(column = "username", pattern = pattern)
-                    ilike(column = "name", pattern = pattern)
-                }
-                and {
-                    neq(
-                        column = "user_id",
-                        value = preferencesStore.profileFlow.first().userId!!
-                    )
+    override suspend fun searchProfiles(query: String): Result<List<UserProfile>> {
+        return runCatching {
+            val pattern = "%${query}%"
+            profileTable.select {
+                filter {
+                    or {
+                        ilike(column = "username", pattern = pattern)
+                        ilike(column = "name", pattern = pattern)
+                    }
+                    and {
+                        neq(
+                            column = "user_id",
+                            value = preferencesStore.profileFlow.first().userId!!
+                        )
+                    }
                 }
             }
+                .decodeList<NetworkProfile>()
+                .map(NetworkProfile::toExternalModel)
         }
-            .decodeList<NetworkProfile>()
-            .map(NetworkProfile::toExternalModel)
     }
 
     override suspend fun deleteProfiles() {
@@ -126,14 +128,5 @@ class ProfileRepositoryImpl @Inject constructor(
 
     private suspend fun saveProfile(userProfileEntity: UserProfileEntity) {
         userProfileDao.upsertUserProfile(userProfileEntity)
-    }
-
-    // TODO: move to util
-    private fun getByteArrayFromBitmap(imageBitmap: Bitmap): ByteArray {
-        val outputStream = ByteArrayOutputStream()
-        imageBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
-        val byteArray = outputStream.toByteArray()
-        outputStream.close()
-        return byteArray
     }
 }

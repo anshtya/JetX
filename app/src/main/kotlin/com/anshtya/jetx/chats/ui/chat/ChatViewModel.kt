@@ -10,7 +10,6 @@ import com.anshtya.jetx.attachments.AttachmentManager
 import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
 import com.anshtya.jetx.chats.ui.navigation.ChatsDestinations
-import com.anshtya.jetx.common.model.Result
 import com.anshtya.jetx.database.model.MessageWithAttachment
 import com.anshtya.jetx.profile.ProfileRepository
 import com.anshtya.jetx.work.WorkScheduler
@@ -123,17 +122,15 @@ class ChatViewModel @Inject constructor(
 
     fun sendAttachment(uri: Uri) {
         viewModelScope.launch {
-            /**
-             * Content URI must be converted to File URI
-             */
+            // Content URI must be converted to File URI
             if (uri.scheme == ContentResolver.SCHEME_CONTENT) {
-                val saveImageResult = attachmentManager.saveImage(uri)
-                when (saveImageResult) {
-                    is Result.Success -> sendMessage(message = null, attachmentUri = uri)
-                    is Result.Error -> {
-                        _errorMessage.update { saveImageResult.errorMessage }
-                    }
+                try {
+                    attachmentManager.saveImage(uri)
+                } catch (_: Exception) {
+                    _errorMessage.update { "An error occurred" }
+                    return@launch
                 }
+                sendMessage(message = null, attachmentUri = uri)
             } else {
                 sendMessage(message = null, attachmentUri = uri)
             }

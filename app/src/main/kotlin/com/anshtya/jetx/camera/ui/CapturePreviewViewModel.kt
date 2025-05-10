@@ -8,7 +8,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.attachments.AttachmentManager
-import com.anshtya.jetx.common.model.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,9 +28,10 @@ class CapturePreviewViewModel @Inject constructor(
     fun saveImage(bitmap: Bitmap) {
         viewModelScope.launch {
             loading = true
-            when (val result = attachmentManager.saveImage(bitmap)) {
-                is Result.Success -> savedImageUri = result.data
-                is Result.Error -> errorMessage = result.errorMessage
+            try {
+                savedImageUri = attachmentManager.saveImage(bitmap)
+            } catch (_: Exception) {
+                errorMessage = "An error occurred"
             }
             loading = false
         }

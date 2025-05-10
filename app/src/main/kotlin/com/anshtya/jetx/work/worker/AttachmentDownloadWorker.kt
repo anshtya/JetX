@@ -6,7 +6,7 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.anshtya.jetx.attachments.AttachmentManager
-import com.anshtya.jetx.attachments.AttachmentTransferState
+import com.anshtya.jetx.database.model.AttachmentTransferState
 import com.anshtya.jetx.common.coroutine.IoDispatcher
 import com.anshtya.jetx.database.dao.AttachmentDao
 import dagger.assisted.Assisted
@@ -40,30 +40,6 @@ class AttachmentDownloadWorker @AssistedInject constructor(
             val client = OkHttpClient()
             val request = Request.Builder().url(fileUrl).build()
             val response = client.newCall(request).execute()
-
-//            val totalBytes = response.body?.contentLength()
-//            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-//            var progressBytes = 0L
-//            var fileUri: Uri? = null
-//
-//            val inputByteStream = response.body?.byteStream()
-//            inputByteStream.use { inputByte ->
-//                var inputByteRead: Int = inputByte?.read(buffer) ?: 0
-//                while (inputByteRead > 0) {
-//                    fileUri = attachmentManager.saveImageInChunks(
-//                        buffer = buffer,
-//                        offset = 0,
-//                        length = inputByteRead,
-//                        fileUri = fileUri
-//                    )
-//                    progressBytes += inputByteRead
-//                    inputByteRead = inputByte?.read(buffer) ?: 0
-//
-//                    attachmentDao.updateAttachmentDownloadProgress(
-//                        attachmentId, messageId, ((progressBytes * 100) / totalBytes!!).toFloat()
-//                    )
-//                }
-//            }
 
             val fileUri = attachmentManager.saveImage(response.body!!.bytes())
             attachmentDao.updateAttachmentDownloadAsFinished(
