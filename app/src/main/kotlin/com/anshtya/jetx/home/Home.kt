@@ -23,6 +23,8 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.anshtya.jetx.attachments.imageScreen
+import com.anshtya.jetx.attachments.navigateToImageScreen
 import com.anshtya.jetx.calls.ui.navigation.calls
 import com.anshtya.jetx.chats.ui.navigation.Chats
 import com.anshtya.jetx.chats.ui.navigation.chats
@@ -92,10 +94,13 @@ private fun Home() {
             ) {
                 chats(
                     navController = navController,
-                    onNavigateToSettings = navController::navigateToSettings
+                    onNavigateToSettings = navController::navigateToSettings,
+                    onNavigateToImageScreen = navController::navigateToImageScreen
                 )
                 calls()
                 settings(onBackClick = navController::navigateUp)
+
+                imageScreen(onBackClick = navController::popBackStack)
             }
         }
     }

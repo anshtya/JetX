@@ -83,6 +83,7 @@ import java.time.ZonedDateTime
 @Composable
 fun ChatRoute(
     onBackClick: () -> Unit,
+    onNavigateToImageScreen: (String) -> Unit,
     viewModel: ChatViewModel = hiltViewModel()
 ) {
     val chatUser by viewModel.recipientUser.collectAsStateWithLifecycle()
@@ -102,6 +103,7 @@ fun ChatRoute(
         onClearSelectedMessages = viewModel::clearSelectedMessages,
         onDeleteMessageClick = viewModel::deleteMessages,
         onChatSeen = viewModel::markChatMessagesAsSeen,
+        onAttachmentClick = onNavigateToImageScreen,
         onAttachmentDownloadClick = viewModel::downloadAttachment,
         onCancelDownloadClick = viewModel::cancelAttachmentDownload,
         onErrorShown = viewModel::errorShown,
@@ -122,6 +124,7 @@ private fun ChatScreen(
     onClearSelectedMessages: () -> Unit,
     onDeleteMessageClick: () -> Unit,
     onChatSeen: () -> Unit,
+    onAttachmentClick: (String) -> Unit,
     onAttachmentDownloadClick: (Int, Int) -> Unit,
     onCancelDownloadClick: (Int, Int) -> Unit,
     onErrorShown: () -> Unit,
@@ -226,6 +229,7 @@ private fun ChatScreen(
                         attachmentInfo = message.attachment,
                         onSelect = onMessageSelect,
                         onUnselect = onMessageUnselect,
+                        onAttachmentClick = onAttachmentClick,
                         onAttachmentDownloadClick = onAttachmentDownloadClick,
                         onCancelDownloadClick = onCancelDownloadClick,
                         modifier = Modifier
@@ -465,6 +469,7 @@ private fun MessageItem(
     attachmentInfo: AttachmentInfo?,
     onSelect: (Int) -> Unit,
     onUnselect: (Int) -> Unit,
+    onAttachmentClick: (String) -> Unit,
     onAttachmentDownloadClick: (Int, Int) -> Unit,
     onCancelDownloadClick: (Int, Int) -> Unit,
     modifier: Modifier = Modifier
@@ -510,6 +515,7 @@ private fun MessageItem(
                 time = time,
                 status = if (isAuthor) status else null,
                 attachmentInfo = attachmentInfo,
+                onAttachmentClick = onAttachmentClick,
                 onAttachmentDownloadClick = { onAttachmentDownloadClick(it, id) },
                 onCancelDownloadClick = { onCancelDownloadClick(it, id) },
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
@@ -541,6 +547,7 @@ private fun ChatScreenPreview() {
             onAttachmentDownloadClick = { _, _ -> },
             onCancelDownloadClick = { _, _ -> },
             onChatSeen = {},
+            onAttachmentClick = {},
             onErrorShown = {},
             onBackClick = {}
         )
@@ -563,6 +570,7 @@ private fun MessageItemPreview() {
             attachmentInfo = null,
             onSelect = {},
             onUnselect = {},
+            onAttachmentClick = {},
             onAttachmentDownloadClick = { _, _ -> },
             onCancelDownloadClick = { _, _ -> }
         )

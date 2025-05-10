@@ -21,6 +21,7 @@ data object Chats
 
 fun NavGraphBuilder.chats(
     navController: NavController,
+    onNavigateToImageScreen: (String) -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
     navigation<Chats>(
@@ -66,6 +67,7 @@ fun NavGraphBuilder.chats(
             )
         ) {
             ChatRoute(
+                onNavigateToImageScreen = onNavigateToImageScreen,
                 onBackClick = navController::navigateUp
             )
         }

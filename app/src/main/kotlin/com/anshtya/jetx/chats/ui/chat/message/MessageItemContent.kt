@@ -27,6 +27,7 @@ fun MessageItemContent(
     time: String,
     status: MessageStatus?,
     attachmentInfo: AttachmentInfo?,
+    onAttachmentClick: (String) -> Unit,
     onAttachmentDownloadClick: (Int) -> Unit,
     onCancelDownloadClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -45,7 +46,7 @@ fun MessageItemContent(
         attachmentInfo?.let {
             MessageAttachmentItem(
                 attachmentInfo = attachmentInfo,
-                onClick = {}, //TODO: implement media view
+                onClick = onAttachmentClick,
                 onDownloadClick = onAttachmentDownloadClick,
                 onCancelDownloadClick = onCancelDownloadClick,
                 modifier = Modifier

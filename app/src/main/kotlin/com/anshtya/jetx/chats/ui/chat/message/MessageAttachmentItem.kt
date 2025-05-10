@@ -1,6 +1,7 @@
 package com.anshtya.jetx.chats.ui.chat.message
 
 import android.net.Uri
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -32,7 +33,7 @@ import java.io.File
 @Composable
 fun MessageAttachmentItem(
     attachmentInfo: AttachmentInfo,
-    onClick: () -> Unit,
+    onClick: (String) -> Unit,
     onDownloadClick: (Int) -> Unit,
     onCancelDownloadClick: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -67,18 +68,21 @@ private fun ImageView(
     downloadSize: String?,
     transferState: AttachmentTransferState?,
     storageLocation: String?,
-    onClick: () -> Unit,
+    onClick: (String) -> Unit,
     onDownloadClick: (Int) -> Unit,
     onCancelDownloadClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(modifier.fillMaxSize()) {
         if (storageLocation != null) {
+            val model = Uri.fromFile(File(storageLocation))
             AsyncImage(
-                model = Uri.fromFile(File(storageLocation)),
+                model = model,
                 contentDescription = null,
                 contentScale = ContentScale.FillBounds,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable { onClick(model.toString()) }
             )
         } else {
             when (transferState) {
