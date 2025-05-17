@@ -4,7 +4,7 @@ A real-time chat application built using [Supabase](https://supabase.com/), util
 ## Core Functionalities
 - Realtime message updates.
 - Push notifications with Firebase Cloud Messaging.
-- WorkManager to reliably downloading attachments and receive messages.
+- WorkManager to reliably send and receive messages.
 - Deeplink support.
 - Image sharing.
 
