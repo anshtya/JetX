@@ -1,50 +1,36 @@
 package com.anshtya.jetx.work
 
-import android.content.Context
 import androidx.work.BackoffPolicy
-import androidx.work.Constraints
-import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.anshtya.jetx.work.worker.AttachmentDownloadWorker
 import com.anshtya.jetx.work.worker.MessageReceiveWorker
-import dagger.hilt.android.qualifiers.ApplicationContext
+import com.anshtya.jetx.work.worker.MessageSendWorker
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class WorkScheduler @Inject constructor(
-    @ApplicationContext private val context: Context
+    private val workManagerHelper: WorkManagerHelper
 ) {
-    private val workManager = WorkManager.getInstance(context)
-
     fun createMessageReceiveWork(
-        messageId: UUID,
         encodedMessage: String
     ) {
-        val workRequest = OneTimeWorkRequestBuilder<MessageReceiveWorker>()
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-            )
-            .setBackoffCriteria(BackoffPolicy.LINEAR, 10L, TimeUnit.SECONDS)
-            .setInputData(
-                Data.Builder()
-                    .putString(MessageReceiveWorker.MESSAGE_KEY, encodedMessage)
-                    .build()
-            )
-            .setId(messageId)
-            .build()
+        workManagerHelper.scheduleOneTimeWork(
+            workerClass = MessageReceiveWorker::class,
+            dataParams = mapOf(MessageReceiveWorker.MESSAGE_KEY to encodedMessage),
+            uniqueWorkName = MessageReceiveWorker.WORKER_NAME,
+            existingWorkPolicy = ExistingWorkPolicy.APPEND_OR_REPLACE,
+            backoffPolicy = BackoffPolicy.LINEAR
+        )
+    }
 
-        workManager.enqueueUniqueWork(
-            MessageReceiveWorker.WORKER_NAME,
-            ExistingWorkPolicy.REPLACE,
-            workRequest
+    fun createMessageSendWork(
+        messageId: UUID
+    ) {
+        workManagerHelper.scheduleOneTimeWork(
+            workerClass = MessageSendWorker::class,
+            dataParams = mapOf(MessageSendWorker.MESSAGE_ID_KEY to messageId.toString()),
+            uniqueWorkName = MessageSendWorker.WORKER_NAME,
+            existingWorkPolicy = ExistingWorkPolicy.APPEND_OR_REPLACE
         )
     }
 
@@ -52,31 +38,15 @@ class WorkScheduler @Inject constructor(
         attachmentId: Int,
         messageId: Int
     ) {
-        val workRequest = OneTimeWorkRequestBuilder<AttachmentDownloadWorker>()
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-            )
-            .setInputData(
-                Data.Builder()
-                    .putInt(AttachmentDownloadWorker.ATTACHMENT_ID, attachmentId)
-                    .putInt(AttachmentDownloadWorker.MESSAGE_ID, messageId)
-                    .build()
-            )
-            .build()
-
-        workManager.enqueueUniqueWork(
-            "${AttachmentDownloadWorker.WORKER_NAME}-$attachmentId-$messageId",
-            ExistingWorkPolicy.REPLACE,
-            workRequest
+        workManagerHelper.scheduleOneTimeWork(
+            workerClass = AttachmentDownloadWorker::class,
+            dataParams = mapOf(
+                AttachmentDownloadWorker.ATTACHMENT_ID to attachmentId,
+                AttachmentDownloadWorker.MESSAGE_ID to messageId,
+            ),
+            uniqueWorkName = AttachmentDownloadWorker.generateWorkerName(attachmentId, messageId),
+            existingWorkPolicy = ExistingWorkPolicy.REPLACE,
+            constraints = workManagerHelper.buildConstraints(requiresBatteryNotLow = true)
         )
-    }
-
-    fun cancelAttachmentDownloadWork(
-        attachmentId: Int,
-        messageId: Int
-    ) {
-        workManager.cancelUniqueWork("${AttachmentDownloadWorker.WORKER_NAME}-$attachmentId-$messageId")
     }
 }

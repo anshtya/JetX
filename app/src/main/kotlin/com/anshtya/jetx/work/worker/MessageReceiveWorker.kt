@@ -16,10 +16,8 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.anshtya.jetx.MainActivity
 import com.anshtya.jetx.R
-import com.anshtya.jetx.attachments.AttachmentFormat
-import com.anshtya.jetx.attachments.NetworkAttachment
 import com.anshtya.jetx.chats.data.ChatsRepository
-import com.anshtya.jetx.chats.data.MessageReceiveRepository
+import com.anshtya.jetx.chats.data.MessagesRepository
 import com.anshtya.jetx.database.dao.ChatDao
 import com.anshtya.jetx.notifications.MarkAsReadReceiver
 import com.anshtya.jetx.notifications.NotificationChannels
@@ -29,41 +27,28 @@ import com.anshtya.jetx.util.Constants
 import com.anshtya.jetx.work.model.NetworkIncomingMessage
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.postgrest.from
 import kotlinx.serialization.json.Json
 
 @HiltWorker
 class MessageReceiveWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    client: SupabaseClient,
     private val chatsRepository: ChatsRepository,
     private val profileRepository: ProfileRepository,
-    private val messageReceiveRepository: MessageReceiveRepository,
+    private val messagesRepository: MessagesRepository,
     private val chatDao: ChatDao
 ) : CoroutineWorker(appContext, workerParams) {
-    private val attachmentTable = client.from(Constants.ATTACHMENT_TABLE)
-
     override suspend fun doWork(): Result {
         return try {
             val message =
                 Json.decodeFromString<NetworkIncomingMessage>(inputData.getString(MESSAGE_KEY)!!)
 
-            val networkAttachment = if (message.attachmentId.isNotBlank()) {
-                attachmentTable.select {
-                    filter { eq("id", message.attachmentId.toInt()) }
-                }.decodeSingle<NetworkAttachment>()
-            } else null
-
-            val chatId = messageReceiveRepository.insertChatMessage(
+            val chatId = messagesRepository.receiveChatMessage(
                 id = message.id,
                 senderId = message.senderId,
                 recipientId = message.recipientId,
                 text = message.text.takeIf { it.isNotBlank() },
-                attachment = if (networkAttachment != null) {
-                    AttachmentFormat.UrlAttachment(networkAttachment)
-                } else AttachmentFormat.None
+                attachmentId = message.attachmentId
             )
 
             if (chatsRepository.currentChatId != chatId) {

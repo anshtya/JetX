@@ -31,6 +31,8 @@ class LocalMessagesDataSource @Inject constructor(
     fun getChatMessages(chatId: Int): Flow<List<MessageWithAttachment>> =
         messageAttachmentsDao.getMessageWithAttachments(chatId)
 
+    suspend fun getMessage(messageId: UUID): MessageEntity = messageDao.getMessage(messageId)
+
     suspend fun insertMessage(
         id: UUID,
         senderId: UUID,

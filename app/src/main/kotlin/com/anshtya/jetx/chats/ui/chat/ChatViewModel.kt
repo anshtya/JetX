@@ -12,7 +12,9 @@ import com.anshtya.jetx.chats.data.MessagesRepository
 import com.anshtya.jetx.chats.ui.navigation.ChatsDestinations
 import com.anshtya.jetx.database.model.MessageWithAttachment
 import com.anshtya.jetx.profile.ProfileRepository
+import com.anshtya.jetx.work.WorkManagerHelper
 import com.anshtya.jetx.work.WorkScheduler
+import com.anshtya.jetx.work.worker.AttachmentDownloadWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,7 +37,8 @@ class ChatViewModel @Inject constructor(
     private val messagesRepository: MessagesRepository,
     private val profileRepository: ProfileRepository,
     private val attachmentManager: AttachmentManager,
-    private val workScheduler: WorkScheduler
+    private val workScheduler: WorkScheduler,
+    private val workManagerHelper: WorkManagerHelper
 ) : ViewModel() {
     private val chatArgs = savedStateHandle.toRoute<ChatsDestinations.Chat>()
 
@@ -142,7 +145,9 @@ class ChatViewModel @Inject constructor(
     }
 
     fun cancelAttachmentDownload(attachmentId: Int, messageId: Int) {
-        workScheduler.cancelAttachmentDownloadWork(attachmentId, messageId)
+        workManagerHelper.cancelWorkByUniqueName(
+            AttachmentDownloadWorker.generateWorkerName(attachmentId, messageId)
+        )
     }
 
     fun markChatMessagesAsSeen() {

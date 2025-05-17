@@ -1,6 +1,5 @@
 package com.anshtya.jetx.chats.di
 
-import com.anshtya.jetx.chats.data.MessageReceiveRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
 import com.anshtya.jetx.chats.data.MessagesRepositoryImpl
 import dagger.Binds
@@ -17,10 +16,4 @@ abstract class MessagesRepositoryModule {
     abstract fun bindMessagesRepository(
         impl: MessagesRepositoryImpl
     ): MessagesRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindMessageReceiveRepository(
-        impl: MessagesRepositoryImpl
-    ): MessageReceiveRepository
 }

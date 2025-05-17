@@ -5,14 +5,15 @@ import android.util.Log
 import com.anshtya.jetx.attachments.AttachmentFormat
 import com.anshtya.jetx.attachments.AttachmentManager
 import com.anshtya.jetx.attachments.AttachmentType
-import com.anshtya.jetx.chats.data.model.toNetworkMessage
-import com.anshtya.jetx.common.model.MessageStatus
+import com.anshtya.jetx.attachments.NetworkAttachment
 import com.anshtya.jetx.database.dao.ChatDao
 import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
 import com.anshtya.jetx.database.entity.MessageEntity
 import com.anshtya.jetx.database.model.MessageWithAttachment
 import com.anshtya.jetx.profile.ProfileRepository
+import com.anshtya.jetx.util.Constants
 import com.anshtya.jetx.util.Constants.MESSAGE_TABLE
+import com.anshtya.jetx.work.WorkScheduler
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
@@ -27,27 +28,37 @@ class MessagesRepositoryImpl @Inject constructor(
     private val chatDao: ChatDao,
     private val localMessagesDataSource: LocalMessagesDataSource,
     private val profileRepository: ProfileRepository,
-    private val attachmentManager: AttachmentManager
-) : MessagesRepository, MessageReceiveRepository {
+    private val attachmentManager: AttachmentManager,
+    private val workScheduler: WorkScheduler
+) : MessagesRepository {
     private val supabaseAuth = client.auth
     private val networkMessagesTable = client.from(MESSAGE_TABLE)
+    private val attachmentTable = client.from(Constants.ATTACHMENT_TABLE)
 
     override fun getChatMessages(chatId: Int): Flow<List<MessageWithAttachment>> =
         localMessagesDataSource.getChatMessages(chatId)
 
-    override suspend fun insertChatMessage(
+    override suspend fun receiveChatMessage(
         id: UUID,
         senderId: UUID,
         recipientId: UUID,
         text: String?,
-        attachment: AttachmentFormat
+        attachmentId: String
     ): Int {
+        val networkAttachment = if (attachmentId.isNotBlank()) {
+            attachmentTable.select {
+                filter { eq("id", attachmentId.toInt()) }
+            }.decodeSingle<NetworkAttachment>()
+        } else null
+
         val message = saveChatMessage(
             id = id,
             senderId = senderId,
             recipientId = recipientId,
             text = text,
-            attachmentFormat = attachment,
+            attachmentFormat = if (networkAttachment != null) {
+                AttachmentFormat.UrlAttachment(networkAttachment)
+            } else AttachmentFormat.None,
             currentUser = false
         )
         networkMessagesTable.update(
@@ -84,12 +95,7 @@ class MessagesRepositoryImpl @Inject constructor(
             } else AttachmentFormat.None,
             currentUser = true
         )
-
-        val attachmentId = if (attachmentUri != null) {
-            attachmentManager.uploadMediaAttachment(attachmentUri)
-        } else null
-        networkMessagesTable.insert(message.toNetworkMessage(attachmentId))
-        localMessagesDataSource.updateMessageStatus(message.uid, message.chatId, MessageStatus.SENT)
+        workScheduler.createMessageSendWork(message.uid)
     }
 
     override suspend fun markChatMessagesAsSeen(chatId: Int) {

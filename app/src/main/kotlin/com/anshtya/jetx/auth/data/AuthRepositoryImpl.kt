@@ -6,6 +6,7 @@ import com.anshtya.jetx.database.dao.UserProfileDao
 import com.anshtya.jetx.fcm.FcmTokenManager
 import com.anshtya.jetx.preferences.PreferencesStore
 import com.anshtya.jetx.profile.ProfileRepository
+import com.anshtya.jetx.work.WorkManagerHelper
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
@@ -20,7 +21,8 @@ class AuthRepositoryImpl @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val preferencesStore: PreferencesStore,
     private val userProfileDao: UserProfileDao,
-    private val messageUpdatesListener: MessageUpdatesListener
+    private val messageUpdatesListener: MessageUpdatesListener,
+    private val workManagerHelper: WorkManagerHelper
 ) : AuthRepository {
     private val supabaseAuth = client.auth
 
@@ -66,6 +68,7 @@ class AuthRepositoryImpl @Inject constructor(
         return runCatching {
             messageUpdatesListener.unsubscribe()
             fcmTokenManager.removeToken()
+            workManagerHelper.cancelAllWork()
             userProfileDao.deleteAllProfiles()
             preferencesStore.clearPreferences()
             supabaseAuth.signOut()

@@ -10,7 +10,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.util.UUID
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -36,10 +35,7 @@ class JetXMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         val messageData = remoteMessage.data
-        workScheduler.createMessageReceiveWork(
-            messageId = UUID.fromString(messageData["id"]),
-            encodedMessage = Json.encodeToString(messageData)
-        )
+        workScheduler.createMessageReceiveWork(Json.encodeToString(messageData))
     }
 
     override fun onDestroy() {

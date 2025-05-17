@@ -9,6 +9,9 @@ import com.anshtya.jetx.database.entity.AttachmentEntity
 
 @Dao
 interface AttachmentDao {
+    @Query("SELECT storage_location FROM attachment WHERE message_id = :messageId")
+    suspend fun getStorageLocationForAttachment(messageId: Int): String?
+
     @Query(
         """
         SELECT remote_location FROM attachment
