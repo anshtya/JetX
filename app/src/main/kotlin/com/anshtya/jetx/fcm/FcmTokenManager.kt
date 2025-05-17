@@ -31,8 +31,8 @@ class FcmTokenManager @Inject constructor(
     }
 
     suspend fun addTokenToServer(token: String) {
-        val userId = client.auth.currentUserOrNull()?.id!!
-        addTokenToServer(token = token, userId = userId)
+        val userId = client.auth.currentUserOrNull()?.id
+        userId?.let { addTokenToServer(token = token, userId = userId) }
     }
 
     private suspend fun addTokenToServer(
