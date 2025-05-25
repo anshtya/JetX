@@ -7,7 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,7 +23,6 @@ import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.request.crossfade
 import com.anshtya.jetx.common.model.ThemeOption
-import com.anshtya.jetx.ui.navigation.JetXNavigation
 import com.anshtya.jetx.ui.theme.JetXTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -33,7 +31,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainActivityViewModel by viewModels()
-    private var themeOption by mutableStateOf<ThemeOption?>(null)
+    private var uiState by mutableStateOf<MainActivityUiState>(MainActivityUiState.Loading)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -42,18 +40,14 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect {
-                    themeOption = it.themeOption
-                }
+                viewModel.uiState.collect { uiState = it }
             }
         }
 
-        splashScreen.setKeepOnScreenCondition {
-            themeOption == null
-        }
+        splashScreen.setKeepOnScreenCondition { uiState is MainActivityUiState.Loading }
 
         setContent {
-            val useDarkTheme = shouldUseDarkTheme(themeOption)
+            val useDarkTheme = shouldUseDarkTheme(uiState)
             JetXTheme(
                 darkTheme = useDarkTheme
             ) {
@@ -62,7 +56,7 @@ class MainActivity : ComponentActivity() {
                         .crossfade(true)
                         .memoryCache {
                             MemoryCache.Builder()
-                                .maxSizePercent(context,0.25)
+                                .maxSizePercent(context, 0.25)
                                 .build()
                         }
                         .diskCache {
@@ -74,9 +68,7 @@ class MainActivity : ComponentActivity() {
                         .build()
                 }
 
-                Surface(Modifier.fillMaxSize()) {
-                    JetXNavigation()
-                }
+                App(Modifier.fillMaxSize())
             }
         }
     }
@@ -84,13 +76,14 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun shouldUseDarkTheme(
-    themeOption: ThemeOption?
+    uiState: MainActivityUiState
 ): Boolean {
-    if (themeOption == null) return isSystemInDarkTheme()
-
-    return when (themeOption) {
-        ThemeOption.SYSTEM_DEFAULT -> isSystemInDarkTheme()
-        ThemeOption.LIGHT -> false
-        ThemeOption.DARK -> true
+    return when (uiState) {
+        is MainActivityUiState.Loading -> isSystemInDarkTheme()
+        is MainActivityUiState.Success -> when (uiState.uiProperties.theme) {
+            ThemeOption.SYSTEM_DEFAULT -> isSystemInDarkTheme()
+            ThemeOption.LIGHT -> false
+            ThemeOption.DARK -> true
+        }
     }
 }

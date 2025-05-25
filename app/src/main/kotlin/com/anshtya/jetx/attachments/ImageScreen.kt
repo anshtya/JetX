@@ -10,31 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
 import coil3.compose.AsyncImage
 import com.anshtya.jetx.common.ui.BackButton
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class ImageScreen(val data: String)
-
-fun NavGraphBuilder.imageScreen(
-    onBackClick: () -> Unit
-) {
-    composable<ImageScreen> { backStackEntry ->
-        ImageScreen(
-            data = backStackEntry.toRoute<ImageScreen>().data,
-            onBackClick = onBackClick
-        )
-    }
-}
-
-fun NavController.navigateToImageScreen(data: String) {
-    navigate(ImageScreen(data = data))
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

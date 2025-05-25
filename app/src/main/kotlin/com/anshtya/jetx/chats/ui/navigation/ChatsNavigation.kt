@@ -4,9 +4,12 @@ import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navDeepLink
+import androidx.navigation.toRoute
+import com.anshtya.jetx.attachments.ImageScreen
 import com.anshtya.jetx.chats.ui.archivedchatlist.ArchivedChatListRoute
 import com.anshtya.jetx.chats.ui.chat.ChatRoute
 import com.anshtya.jetx.chats.ui.chat.toChatDestination
@@ -21,7 +24,6 @@ data object Chats
 
 fun NavGraphBuilder.chats(
     navController: NavController,
-    onNavigateToImageScreen: (String) -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
     navigation<Chats>(
@@ -67,7 +69,9 @@ fun NavGraphBuilder.chats(
             )
         ) {
             ChatRoute(
-                onNavigateToImageScreen = onNavigateToImageScreen,
+                onNavigateToImageScreen = { data ->
+                    navController.navigate(ChatsDestinations.Image(data))
+                },
                 onBackClick = navController::navigateUp
             )
         }
@@ -80,5 +84,21 @@ fun NavGraphBuilder.chats(
                 onBackClick = navController::navigateUp
             )
         }
+
+        composable<ChatsDestinations.Image> { backStackEntry ->
+            ImageScreen(
+                data = backStackEntry.toRoute<ChatsDestinations.Image>().data,
+                onBackClick = navController::navigateUp
+            )
+        }
     }
+}
+
+fun NavController.navigateToChats(
+    navOptionsBuilder: NavOptionsBuilder.() -> Unit
+) {
+    navigate(
+        route = Chats,
+        builder = navOptionsBuilder
+    )
 }

@@ -11,13 +11,17 @@ import kotlinx.serialization.Serializable
 private data object Settings
 
 fun NavGraphBuilder.settings(
-    onBackClick: () -> Unit
+    navController: NavController,
+    onNavigateToAuth: () -> Unit
 ) {
     navigation<Settings>(
         startDestination = SettingsDestinations.SettingList
     ) {
         composable<SettingsDestinations.SettingList> {
-            SettingsRoute(onBackClick = onBackClick)
+            SettingsRoute(
+                onNavigateToAuth = onNavigateToAuth,
+                onBackClick = navController::navigateUp
+            )
         }
 
         // Other screens...

@@ -61,12 +61,13 @@ fun NavGraphBuilder.authGraph(
     }
 }
 
-fun NavController.navigateToAuth() {
-    navigate(AuthGraph) {
-        popUpTo(graph.startDestinationId) {
-            inclusive = true
-        }
-    }
+fun NavController.navigateToAuth(
+    navOptionsBuilder: NavOptionsBuilder.() -> Unit
+) {
+    navigate(
+        route = AuthGraph,
+        builder = navOptionsBuilder
+    )
 }
 
 fun NavController.navigateToCreateProfile(
@@ -88,7 +89,7 @@ private fun NavController.navigateToSignUp() {
 
 private fun navigateToHomeNavOptions(): NavOptionsBuilder.() -> Unit {
     return {
-        popUpTo(AuthGraph) {
+        popUpTo<AuthGraph> {
             inclusive = true
         }
     }

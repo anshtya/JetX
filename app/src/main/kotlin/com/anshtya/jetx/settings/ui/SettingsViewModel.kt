@@ -1,5 +1,8 @@
 package com.anshtya.jetx.settings.ui
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.auth.data.AuthRepository
@@ -18,12 +21,13 @@ class SettingsViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val preferencesStore: PreferencesStore
 ) : ViewModel() {
+    var signedOut by mutableStateOf(false)
+        private set
+
     val userSettings: StateFlow<UserSettings?> = preferencesStore
-        .themeFlow
+        .appUiProperties
         .map {
-            UserSettings(
-                theme = enumValueOf<ThemeOption>(it ?: ThemeOption.SYSTEM_DEFAULT.name)
-            )
+            UserSettings(theme = it.theme)
         }
         .stateIn(
             scope = viewModelScope,
@@ -40,6 +44,7 @@ class SettingsViewModel @Inject constructor(
     fun onSignOutClick() {
         viewModelScope.launch {
             authRepository.signOut()
+            signedOut = true
         }
     }
 }

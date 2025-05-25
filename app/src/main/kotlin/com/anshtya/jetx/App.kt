@@ -1,4 +1,4 @@
-package com.anshtya.jetx.home
+package com.anshtya.jetx
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -11,61 +11,33 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.compose.NavHost
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.anshtya.jetx.attachments.imageScreen
-import com.anshtya.jetx.attachments.navigateToImageScreen
-import com.anshtya.jetx.calls.ui.navigation.calls
-import com.anshtya.jetx.chats.ui.navigation.Chats
-import com.anshtya.jetx.chats.ui.navigation.chats
-import com.anshtya.jetx.home.navigation.TopLevelHomeDestination
-import com.anshtya.jetx.home.navigation.isDestinationInHierarchy
-import com.anshtya.jetx.home.navigation.navigateToTopLevelHomeDestination
-import com.anshtya.jetx.settings.ui.navigation.navigateToSettings
-import com.anshtya.jetx.settings.ui.navigation.settings
+import com.anshtya.jetx.chats.ui.navigation.ChatsDestinations
+import com.anshtya.jetx.ui.navigation.JetXNavigation
+import com.anshtya.jetx.ui.navigation.home.TopLevelHomeDestination
+import kotlin.reflect.KClass
 
 @Composable
-fun Home(
-    onNavigateToAuth: () -> Unit,
-    onNavigateToCreateProfile: () -> Unit,
-    viewModel: HomeViewModel = hiltViewModel()
+fun App(
+    modifier: Modifier = Modifier
 ) {
-    val userState by viewModel.userState.collectAsStateWithLifecycle()
-
-    userState?.let {
-        if (it.authenticated && it.profileCreated) {
-            Home()
-        } else {
-            LaunchedEffect(Unit) {
-                if (!it.authenticated) {
-                    onNavigateToAuth()
-                } else {
-                    onNavigateToCreateProfile()
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun Home() {
     val navController = rememberNavController()
-    val topLevelDestinations = remember { TopLevelHomeDestination.entries }
+
+    val topLevelHomeDestinations = remember { TopLevelHomeDestination.entries }
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = currentBackStackEntry?.destination
 
     val showBottomBar = remember(currentDestination) {
-        topLevelDestinations.any {
+        topLevelHomeDestinations.any {
             currentDestination?.hasRoute(it.route::class) == true
         }
     }
@@ -74,34 +46,22 @@ private fun Home() {
         bottomBar = {
             if (showBottomBar) {
                 BottomNavigationBar(
-                    destinations = topLevelDestinations,
+                    destinations = topLevelHomeDestinations,
                     currentDestination = currentDestination,
                     onNavigateToDestination = navController::navigateToTopLevelHomeDestination
                 )
             }
-        }
-    ) { innerPadding ->
+        },
+        modifier = modifier
+    ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .consumeWindowInsets(innerPadding)
+                .padding(paddingValues)
+                .consumeWindowInsets(paddingValues)
                 .imePadding()
         ) {
-            NavHost(
-                navController = navController,
-                startDestination = Chats
-            ) {
-                chats(
-                    navController = navController,
-                    onNavigateToSettings = navController::navigateToSettings,
-                    onNavigateToImageScreen = navController::navigateToImageScreen
-                )
-                calls()
-                settings(onBackClick = navController::navigateUp)
-
-                imageScreen(onBackClick = navController::popBackStack)
-            }
+            JetXNavigation(navController = navController)
         }
     }
 }
@@ -110,9 +70,10 @@ private fun Home() {
 private fun BottomNavigationBar(
     destinations: List<TopLevelHomeDestination>,
     currentDestination: NavDestination?,
-    onNavigateToDestination: (Any) -> Unit
+    onNavigateToDestination: (Any) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    NavigationBar {
+    NavigationBar(modifier) {
         destinations.forEach { destination ->
             val selected = currentDestination.isDestinationInHierarchy(destination.route::class)
             NavigationBarItem(
@@ -136,3 +97,18 @@ private fun BottomNavigationBar(
     }
 }
 
+fun NavDestination?.isDestinationInHierarchy(
+    route: KClass<*>
+): Boolean {
+    return this?.hierarchy?.any { it.hasRoute(route) } == true
+}
+
+fun <T: Any> NavController.navigateToTopLevelHomeDestination(route: T) {
+    navigate(route) {
+        popUpTo(ChatsDestinations.ChatList) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
+}

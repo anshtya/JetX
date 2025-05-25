@@ -19,4 +19,7 @@ sealed interface ChatsDestinations {
 
     @Serializable
     data object Search : ChatsDestinations
+
+    @Serializable
+    data class Image(val data: String)
 }

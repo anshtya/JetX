@@ -1,4 +1,4 @@
-package com.anshtya.jetx.home.navigation
+package com.anshtya.jetx.ui.navigation.home
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
@@ -9,8 +9,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.anshtya.jetx.R
 import com.anshtya.jetx.calls.ui.navigation.CallsDestinations
 import com.anshtya.jetx.chats.ui.navigation.ChatsDestinations
-
-const val camera = "camera"
 
 enum class TopLevelHomeDestination(
     val text: Int,
