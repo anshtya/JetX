@@ -51,13 +51,14 @@ fun ChatList(
             ) {
                 ChatItem(
                     chat = it,
+                    chatsSelected = selectedChats.isNotEmpty(),
                     selected = selectedChats.contains(it.id),
                     onClick = onChatClick,
                     onProfileViewClick = { profilePicture ->
                         selectedProfile = profilePicture
                         showProfileViewPopup = true
                     },
-                    onLongClick = onSelectChat,
+                    onSelectChat = onSelectChat,
                     onUnselectChat = onUnselectChat
                 )
             }

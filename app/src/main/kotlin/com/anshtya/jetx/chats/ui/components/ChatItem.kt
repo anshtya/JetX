@@ -49,10 +49,11 @@ import com.anshtya.jetx.util.Constants.defaultPadding
 @Composable
 fun ChatItem(
     chat: Chat,
+    chatsSelected: Boolean,
     selected: Boolean,
     onClick: (ChatUserArgs) -> Unit,
     onProfileViewClick: (String?) -> Unit,
-    onLongClick: (Int) -> Unit,
+    onSelectChat: (Int) -> Unit,
     onUnselectChat: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -69,12 +70,16 @@ fun ChatItem(
             )
             .combinedClickable(
                 onClick = {
-                    if (selected)
-                        onUnselectChat(chat.id)
-                    else
-                        onClick(chat.toChatUserArgs())
+                    when {
+                        selected -> onUnselectChat(chat.id)
+                        chatsSelected -> onSelectChat(chat.id)
+                        else -> onClick(chat.toChatUserArgs())
+                    }
                 },
-                onLongClick = { onLongClick(chat.id) }
+                onLongClick = {
+                    if (selected) onUnselectChat(chat.id)
+                    else onSelectChat(chat.id)
+                }
             )
             .padding(
                 horizontal = defaultPadding,
@@ -183,10 +188,11 @@ private fun ChatItemPreview() {
     ComponentPreview {
         ChatItem(
             chat = sampleChats.first(),
+            chatsSelected = false,
             selected = false,
             onClick = {},
             onProfileViewClick = {},
-            onLongClick = {},
+            onSelectChat = {},
             onUnselectChat = {}
         )
     }
