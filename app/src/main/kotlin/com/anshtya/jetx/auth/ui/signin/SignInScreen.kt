@@ -35,19 +35,23 @@ import kotlinx.coroutines.launch
 @Composable
 fun SignInRoute(
     onNavigateToHome: () -> Unit,
+    onNavigateToCreateProfile: () -> Unit,
     onBackClick: () -> Unit,
     viewModel: SignInViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val profileCreated by viewModel.profileCreated.collectAsStateWithLifecycle()
 
     SignInScreen(
         uiState = uiState,
+        profileCreated = profileCreated,
         onUsernameChange = viewModel::changeUsername,
         onPasswordChange = viewModel::changePassword,
         onPasswordVisibilityChange = viewModel::changePasswordVisibility,
         onErrorShown = viewModel::errorShown,
         onSignInClick = viewModel::signIn,
         onSignInSuccessful = onNavigateToHome,
+        onNavigateToCreateProfile = onNavigateToCreateProfile,
         onBackClick = onBackClick
     )
 }
@@ -56,17 +60,20 @@ fun SignInRoute(
 @Composable
 private fun SignInScreen(
     uiState: AuthUiState,
+    profileCreated: Boolean?,
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onPasswordVisibilityChange: () -> Unit,
     onErrorShown: () -> Unit,
     onSignInClick: () -> Unit,
     onSignInSuccessful: () -> Unit,
+    onNavigateToCreateProfile: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    LaunchedEffect(uiState.authSuccessful) {
-        if (uiState.authSuccessful) {
-            onSignInSuccessful()
+    LaunchedEffect(profileCreated) {
+        profileCreated?.let {
+            if (it) onSignInSuccessful()
+            else onNavigateToCreateProfile()
         }
     }
 
@@ -126,12 +133,14 @@ private fun SignInScreen(
 private fun SignInScreenPreview() {
     SignInScreen(
         uiState = AuthUiState(),
+        profileCreated = null,
         onUsernameChange = {},
         onPasswordChange = {},
         onPasswordVisibilityChange = {},
         onErrorShown = {},
         onSignInClick = {},
         onSignInSuccessful = {},
+        onNavigateToCreateProfile = {},
         onBackClick = {}
     )
 }

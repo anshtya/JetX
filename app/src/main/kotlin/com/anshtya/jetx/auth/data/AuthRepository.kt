@@ -9,7 +9,7 @@ interface AuthRepository {
     suspend fun signIn(
         email: String,
         password: String
-    ): Result<Unit>
+    ): Result<Boolean>
 
     suspend fun signUp(
         email: String,

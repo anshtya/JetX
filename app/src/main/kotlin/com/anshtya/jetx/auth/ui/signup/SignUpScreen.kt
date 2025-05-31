@@ -39,9 +39,11 @@ fun SignUpRoute(
     viewModel: SignUpViewModel = hiltViewModel()
 ) {
     val signUpState by viewModel.uiState.collectAsStateWithLifecycle()
+    val authSuccessful by viewModel.authSuccessful.collectAsStateWithLifecycle()
 
     SignUpScreen(
         uiState = signUpState,
+        authSuccessful = authSuccessful,
         onUsernameChange = viewModel::changeUsername,
         onPasswordChange = viewModel::changePassword,
         onPasswordVisibilityChange = viewModel::changePasswordVisibility,
@@ -56,6 +58,7 @@ fun SignUpRoute(
 @Composable
 private fun SignUpScreen(
     uiState: AuthUiState,
+    authSuccessful: Boolean?,
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onPasswordVisibilityChange: () -> Unit,
@@ -64,10 +67,8 @@ private fun SignUpScreen(
     onContinueClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    LaunchedEffect(uiState.authSuccessful) {
-        if (uiState.authSuccessful) {
-            onContinueClick()
-        }
+    LaunchedEffect(authSuccessful) {
+        authSuccessful?.let { if (it) onContinueClick() }
     }
 
     val scope = rememberCoroutineScope()
@@ -126,12 +127,13 @@ private fun SignUpScreen(
 private fun SignUpScreenPreview() {
     SignUpScreen(
         uiState = AuthUiState(),
+        authSuccessful = null,
         onUsernameChange = {},
         onPasswordChange = {},
         onPasswordVisibilityChange = {},
         onErrorShown = {},
-        onContinueClick = {},
         onSignUpClick = {},
+        onContinueClick = {},
         onBackClick = {}
     )
 }

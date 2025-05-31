@@ -7,6 +7,5 @@ data class AuthUiState(
     val authButtonEnabled: Boolean = true,
     val emailError: String? = null,
     val passwordError: String? = null,
-    val errorMessage: String? = null,
-    val authSuccessful: Boolean = false
+    val errorMessage: String? = null
 )

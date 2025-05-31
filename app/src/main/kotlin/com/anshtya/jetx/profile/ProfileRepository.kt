@@ -11,7 +11,7 @@ interface ProfileRepository {
         profilePicture: Bitmap?
     ): Result<Unit>
 
-    suspend fun saveProfile(userId: String)
+    suspend fun saveProfile(userId: String): Boolean
 
     suspend fun getProfile(userId: UUID): UserProfile?
 

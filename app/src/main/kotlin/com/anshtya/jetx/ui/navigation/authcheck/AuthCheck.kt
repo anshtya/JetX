@@ -21,7 +21,7 @@ fun AuthCheck(
 
     LaunchedEffect(userState) {
         if (userState is AuthCheckUiState.Success) {
-            val state = (userState as AuthCheckUiState.Success).state
+            val state = userState as AuthCheckUiState.Success
             if (state.authenticated && state.profileCreated) {
                 onNavigateToChatList()
             } else if (!state.authenticated) {

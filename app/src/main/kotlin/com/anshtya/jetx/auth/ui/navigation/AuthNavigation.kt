@@ -33,6 +33,13 @@ fun NavGraphBuilder.authGraph(
                 onNavigateToHome = {
                     onNavigateToHome(navigateToHomeNavOptions())
                 },
+                onNavigateToCreateProfile = {
+                    navController.navigateToCreateProfile {
+                        popUpTo(AuthDestinations.SignIn) {
+                            inclusive = true
+                        }
+                    }
+                },
                 onBackClick = navController::navigateUp
             )
         }

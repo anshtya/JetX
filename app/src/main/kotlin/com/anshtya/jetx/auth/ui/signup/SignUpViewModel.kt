@@ -19,6 +19,9 @@ class SignUpViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState = _uiState.asStateFlow()
 
+    private val _authSuccessful = MutableStateFlow<Boolean?>(null)
+    val authSuccessful = _authSuccessful.asStateFlow()
+
     fun changeUsername(username: String) {
         _uiState.update {
             it.copy(email = username)
@@ -79,9 +82,7 @@ class SignUpViewModel @Inject constructor(
             )
 
             if (authResult.isSuccess) {
-                _uiState.update {
-                    it.copy(authSuccessful = true)
-                }
+                _authSuccessful.update { true }
 
             } else {
                 _uiState.update {

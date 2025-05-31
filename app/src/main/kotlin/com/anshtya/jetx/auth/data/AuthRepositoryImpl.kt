@@ -1,7 +1,7 @@
 package com.anshtya.jetx.auth.data
 
-import com.anshtya.jetx.auth.data.model.AuthStatus
 import com.anshtya.jetx.chats.data.MessageUpdatesListener
+import com.anshtya.jetx.auth.data.model.AuthStatus
 import com.anshtya.jetx.database.dao.UserProfileDao
 import com.anshtya.jetx.fcm.FcmTokenManager
 import com.anshtya.jetx.preferences.PreferencesStore
@@ -31,16 +31,18 @@ class AuthRepositoryImpl @Inject constructor(
     override val authStatus: Flow<AuthStatus> = supabaseAuth.sessionStatus
         .map { status ->
             when (status) {
-                is SessionStatus.Initializing -> AuthStatus.INITIALIZING
-                is SessionStatus.Authenticated -> AuthStatus.AUTHORIZED
-                else -> AuthStatus.UNAUTHORIZED
+                is SessionStatus.Initializing -> AuthStatus.Loading
+                else -> AuthStatus.Success(
+                    authenticated = status is SessionStatus.Authenticated,
+                    profileCreated = preferencesStore.getProfileCreated()
+                )
             }
         }
 
     override suspend fun signIn(
         email: String,
         password: String
-    ): Result<Unit> {
+    ): Result<Boolean> {
         return runCatching {
             supabaseAuth.signInWith(Email) {
                 this.email = email
@@ -48,9 +50,13 @@ class AuthRepositoryImpl @Inject constructor(
             }
             val userId = supabaseAuth.currentUserOrNull()?.id
                 ?: throw IllegalStateException("User is not authenticated. Can't create profile")
-            profileRepository.saveProfile(userId)
-            fcmTokenManager.addToken()
-            preferencesStore.setProfile(true, userId)
+            val profileSaved = profileRepository.saveProfile(userId)
+            if (profileSaved) {
+                fcmTokenManager.addToken()
+                preferencesStore.setProfileCreated(true)
+            }
+
+            profileSaved
         }
     }
 

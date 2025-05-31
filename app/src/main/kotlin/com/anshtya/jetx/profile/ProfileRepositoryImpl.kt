@@ -18,7 +18,6 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.storage.storage
-import kotlinx.coroutines.flow.first
 import java.util.UUID
 import javax.inject.Inject
 
@@ -70,13 +69,16 @@ class ProfileRepositoryImpl @Inject constructor(
                 )
             )
             fcmTokenManager.addToken()
-            preferencesStore.setProfile(true, userId)
+            preferencesStore.setProfileCreated(true)
         }
     }
 
-    override suspend fun saveProfile(userId: String) {
+    override suspend fun saveProfile(userId: String): Boolean {
         val networkProfile = fetchProfile(userId)
-        networkProfile?.let { saveProfile(it.toEntity()) }
+        return networkProfile?.let {
+            saveProfile(it.toEntity())
+            true
+        } ?: false
     }
 
     override suspend fun getProfile(userId: UUID): UserProfile? {
@@ -105,7 +107,7 @@ class ProfileRepositoryImpl @Inject constructor(
                     and {
                         neq(
                             column = "user_id",
-                            value = preferencesStore.profileFlow.first().userId!!
+                            value = supabaseAuth.currentUserOrNull()?.id!!
                         )
                     }
                 }
