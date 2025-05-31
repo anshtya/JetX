@@ -1,7 +1,11 @@
 package com.anshtya.jetx.chats.ui.components
 
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,16 +19,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.anshtya.jetx.R
 import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
 import com.anshtya.jetx.chats.ui.chat.message.MessageStatusIcon
 import com.anshtya.jetx.chats.ui.chat.toChatUserArgs
@@ -41,6 +51,7 @@ fun ChatItem(
     chat: Chat,
     selected: Boolean,
     onClick: (ChatUserArgs) -> Unit,
+    onProfileViewClick: (String?) -> Unit,
     onLongClick: (Int) -> Unit,
     onUnselectChat: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -70,16 +81,34 @@ fun ChatItem(
                 vertical = 4.dp
             )
     ) {
-        ProfilePicture(
-            model = chat.profilePicture,
-            onClick = {
-                // TODO: add profile view
-            },
-            parentSelected = selected,
+        Box(
             modifier = Modifier
-                .size(50.dp)
                 .align(Alignment.CenterVertically)
-        )
+                .clickable { onProfileViewClick(chat.profilePicture) }
+        ) {
+            ProfilePicture(
+                model = chat.profilePicture,
+                modifier = Modifier.size(50.dp)
+            )
+
+            androidx.compose.animation.AnimatedVisibility(
+                visible = selected,
+                enter = scaleIn(animationSpec = spring(stiffness = 1000f)),
+                exit = scaleOut(animationSpec = spring(stiffness = 1000f)),
+                modifier = Modifier.align(Alignment.BottomEnd)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    tint = Color.White,
+                    contentDescription = stringResource(id = R.string.chat_selected),
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .padding(2.dp)
+                        .size(20.dp)
+                )
+            }
+        }
 
         Column(
             modifier = Modifier
@@ -156,6 +185,7 @@ private fun ChatItemPreview() {
             chat = sampleChats.first(),
             selected = false,
             onClick = {},
+            onProfileViewClick = {},
             onLongClick = {},
             onUnselectChat = {}
         )

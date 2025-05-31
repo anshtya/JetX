@@ -237,7 +237,6 @@ private fun SearchItem(
     ) {
         ProfilePicture(
             model = userProfile.pictureUrl,
-            onClick = {},
             modifier = Modifier
                 .size(50.dp)
                 .align(Alignment.CenterVertically)

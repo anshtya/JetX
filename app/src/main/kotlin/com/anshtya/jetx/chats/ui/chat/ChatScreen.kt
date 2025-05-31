@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -67,6 +68,7 @@ import com.anshtya.jetx.R
 import com.anshtya.jetx.camera.CameraActivity
 import com.anshtya.jetx.chats.ui.chat.message.MessageItemContent
 import com.anshtya.jetx.chats.ui.components.DeleteMessageDialog
+import com.anshtya.jetx.chats.ui.components.ProfilePicturePopup
 import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
@@ -165,6 +167,14 @@ private fun ChatScreen(
         )
     }
 
+    var showProfileViewPopup by remember { mutableStateOf(false) }
+    if (showProfileViewPopup) {
+        ProfilePicturePopup(
+            picture = recipientUser?.pictureUrl,
+            onDismiss = { showProfileViewPopup = false }
+        )
+    }
+
     if (errorMessage != null) {
         Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
         onErrorShown()
@@ -175,6 +185,7 @@ private fun ChatScreen(
             ChatTopAppBar(
                 selectedMessagesCount = selectedMessagesCount,
                 recipientUser = recipientUser,
+                onProfilePictureClick = { showProfileViewPopup = true },
                 onBackClick = onBackClick,
                 onClearSelectedMessages = onClearSelectedMessages,
                 onDeleteClick = { showDeleteMessageDialog = true },
@@ -256,6 +267,7 @@ private fun ChatScreen(
 private fun ChatTopAppBar(
     selectedMessagesCount: Int,
     recipientUser: RecipientUser?,
+    onProfilePictureClick: () -> Unit,
     onBackClick: () -> Unit,
     onClearSelectedMessages: () -> Unit,
     onDeleteClick: () -> Unit,
@@ -273,8 +285,9 @@ private fun ChatTopAppBar(
             ) {
                 ProfilePicture(
                     model = recipientUser?.pictureUrl,
-                    onClick = {},
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clickable { onProfilePictureClick() }
                 )
                 recipientUser?.username?.let {
                     Text(

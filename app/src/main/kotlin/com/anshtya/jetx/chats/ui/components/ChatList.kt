@@ -9,6 +9,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -28,6 +32,9 @@ fun ChatList(
     modifier: Modifier = Modifier,
     listHeader: LazyListScope.() -> Unit = {}
 ) {
+    var showProfileViewPopup by remember { mutableStateOf(false) }
+    var selectedProfile by remember { mutableStateOf<String?>(null) }
+
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         modifier = modifier
@@ -46,11 +53,25 @@ fun ChatList(
                     chat = it,
                     selected = selectedChats.contains(it.id),
                     onClick = onChatClick,
+                    onProfileViewClick = { profilePicture ->
+                        selectedProfile = profilePicture
+                        showProfileViewPopup = true
+                    },
                     onLongClick = onSelectChat,
                     onUnselectChat = onUnselectChat
                 )
             }
         }
+    }
+
+    if (showProfileViewPopup) {
+        ProfilePicturePopup(
+            picture = selectedProfile,
+            onDismiss = {
+                showProfileViewPopup = false
+                selectedProfile = null
+            }
+        )
     }
 }
 
