@@ -6,8 +6,7 @@ enum class AttachmentType {
     DOCUMENT;
 
     companion object {
-        fun fromMimeType(mimeType: String?): AttachmentType? {
-            if (mimeType == null) return null
+        fun fromMimeType(mimeType: String): AttachmentType {
             return when {
                 mimeType.startsWith("image/") -> IMAGE
                 mimeType.startsWith("video/") -> VIDEO

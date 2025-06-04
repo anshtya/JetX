@@ -38,7 +38,7 @@ class AttachmentDownloadWorker @AssistedInject constructor(
             val request = Request.Builder().url(fileUrl).build()
             val response = client.newCall(request).execute()
 
-            val fileUri = attachmentManager.saveImage(response.body!!.bytes())
+            val fileUri = attachmentManager.saveImage(response.body!!.bytes()).getOrThrow()
             attachmentDao.updateAttachmentDownloadAsFinished(
                 attachmentId, messageId, File(fileUri.path!!).absolutePath
             )
@@ -47,7 +47,7 @@ class AttachmentDownloadWorker @AssistedInject constructor(
             attachmentDao.updateAttachmentTransferState(
                 attachmentId, messageId, AttachmentTransferState.FAILED
             )
-            Log.e("AttachmentDownloadWorker", "$e")
+            Log.w("AttachmentDownloadWorker", "${e.message}")
             Result.failure()
         }
     }

@@ -90,7 +90,7 @@ class MessagesRepositoryImpl @Inject constructor(
                     uri = attachmentUri,
                     type = AttachmentType.fromMimeType(
                         attachmentManager.getMimeTypeFromUri(attachmentUri)
-                    )!!
+                    )
                 )
             } else AttachmentFormat.None,
             currentUser = true

@@ -129,8 +129,8 @@ class ChatViewModel @Inject constructor(
             if (uri.scheme == ContentResolver.SCHEME_CONTENT) {
                 try {
                     attachmentManager.saveImage(uri)
-                } catch (_: Exception) {
-                    _errorMessage.update { "An error occurred" }
+                } catch (e: Exception) {
+                    _errorMessage.update { e.message }
                     return@launch
                 }
                 sendMessage(message = null, attachmentUri = uri)

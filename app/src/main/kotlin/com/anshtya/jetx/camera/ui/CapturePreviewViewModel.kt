@@ -29,9 +29,9 @@ class CapturePreviewViewModel @Inject constructor(
         viewModelScope.launch {
             loading = true
             try {
-                savedImageUri = attachmentManager.saveImage(bitmap)
-            } catch (_: Exception) {
-                errorMessage = "An error occurred"
+                savedImageUri = attachmentManager.saveImage(bitmap).getOrThrow()
+            } catch (e: Exception) {
+                errorMessage = e.message
             }
             loading = false
         }

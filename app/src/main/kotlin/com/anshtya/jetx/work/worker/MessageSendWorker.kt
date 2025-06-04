@@ -37,7 +37,7 @@ class MessageSendWorker @AssistedInject constructor(
             val attachmentLocation = attachmentDao.getStorageLocationForAttachment(message.id)
 
             val attachmentId = if (attachmentLocation != null) {
-                attachmentManager.uploadMediaAttachment(attachmentLocation.toUri())
+                attachmentManager.uploadMediaAttachment(attachmentLocation.toUri()).getOrThrow()
             } else null
 
             messagesTable.insert(message.toNetworkMessage(attachmentId))
@@ -47,7 +47,7 @@ class MessageSendWorker @AssistedInject constructor(
 
             Result.success()
         } catch (e: Exception) {
-            Log.e("MessageSendWorker", "$e")
+            Log.w("MessageSendWorker", "${e.message}")
             Result.retry()
         }
     }
