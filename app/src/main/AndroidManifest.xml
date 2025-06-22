@@ -22,12 +22,38 @@
         android:theme="@style/Theme.JetX"
         tools:targetApi="31">
         <activity
-            android:name=".camera.CameraActivity"
+            android:name=".send.SendActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:theme="@style/Theme.JetX">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
+                <data android:mimeType="application/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
+                <data android:mimeType="application/*" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".attachments.ui.preview.MediaPreviewActivity"
             android:exported="false"
-            android:label="@string/title_activity_camera" />
+            android:theme="@style/Theme.JetX" />
+        <activity
+            android:name=".camera.CameraActivity"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.JetX.Splash"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -61,7 +87,7 @@
             android:exported="false"
             tools:node="merge">
 
-            <!-- If you are using androidx.startup to initialize other components -->
+            <!-- If you are using androidx.startup to initialize other components (Used by Supabase KMP)-->
             <meta-data
                 android:name="androidx.work.WorkManagerInitializer"
                 android:value="androidx.startup"

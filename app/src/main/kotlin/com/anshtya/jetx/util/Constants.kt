@@ -17,5 +17,7 @@ object Constants {
     const val CHAT_ID_ARG = "chatId"
     const val CHAT_TITLE = "chatTitle"
 
+    // Intent
     const val PHOTO_INTENT_KEY = "photo"
+    const val RECIPIENTS_INTENT_KEY = "recipients"
 }

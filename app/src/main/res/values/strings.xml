@@ -74,4 +74,9 @@
     <string name="camera_permission_not_now">Not now</string>
     <string name="camera_permission_title">Camera permission needed</string>
     <string name="camera_permission_text">Allow JetX to access your camera.</string>
+
+    <!--Send-->
+    <string name="send_to">Send to</string>
+    <string name="recent_chats">Recent chats</string>
+    <string name="no_recent_chats">No recent chats</string>
 </resources>

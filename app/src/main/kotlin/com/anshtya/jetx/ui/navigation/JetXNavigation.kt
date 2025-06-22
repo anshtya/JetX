@@ -16,7 +16,8 @@ import com.anshtya.jetx.ui.navigation.home.navigateToHome
 
 @Composable
 fun JetXNavigation(
-    navController: NavHostController
+    navController: NavHostController,
+    onSetGraph: () -> Unit,
 ) {
     NavHost(
         navController = navController,
@@ -50,6 +51,7 @@ fun JetXNavigation(
             }
         )
     }
+    onSetGraph()
 }
 
 private fun navigateFromAuthCheckNavOptions(): NavOptionsBuilder.() -> Unit {

@@ -16,12 +16,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import coil3.ImageLoader
-import coil3.compose.setSingletonImageLoaderFactory
-import coil3.disk.DiskCache
-import coil3.disk.directory
-import coil3.memory.MemoryCache
-import coil3.request.crossfade
 import com.anshtya.jetx.common.model.ThemeOption
 import com.anshtya.jetx.ui.theme.JetXTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -51,23 +45,6 @@ class MainActivity : ComponentActivity() {
             JetXTheme(
                 darkTheme = useDarkTheme
             ) {
-                setSingletonImageLoaderFactory { context ->
-                    ImageLoader.Builder(context)
-                        .crossfade(true)
-                        .memoryCache {
-                            MemoryCache.Builder()
-                                .maxSizePercent(context, 0.25)
-                                .build()
-                        }
-                        .diskCache {
-                            DiskCache.Builder()
-                                .directory(context.cacheDir.resolve("image_cache"))
-                                .maxSizePercent(0.02)
-                                .build()
-                        }
-                        .build()
-                }
-
                 App(Modifier.fillMaxSize())
             }
         }
