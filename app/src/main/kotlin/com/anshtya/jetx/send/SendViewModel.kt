@@ -17,8 +17,8 @@ import javax.inject.Inject
 class SendViewModel @Inject constructor(
     chatsRepository: ChatsRepository
 ) : ViewModel() {
-    private val _selectedRecipients = MutableStateFlow<Set<Int>>(emptySet())
-    val selectedRecipients = _selectedRecipients.asStateFlow()
+    private val _selectedChatIds = MutableStateFlow<Set<Int>>(emptySet())
+    val selectedChatIds = _selectedChatIds.asStateFlow()
 
     val members: StateFlow<List<ChatMember>> = chatsRepository.getChats(
         showFavoriteChats = false,
@@ -37,8 +37,8 @@ class SendViewModel @Inject constructor(
         initialValue = emptyList()
     )
 
-    fun addOrRemoveRecipient(id: Int) {
-        _selectedRecipients.update {
+    fun addOrRemoveChatId(id: Int) {
+        _selectedChatIds.update {
             it.toMutableSet().apply {
                 if (contains(id)) remove(id) else add(id)
             }

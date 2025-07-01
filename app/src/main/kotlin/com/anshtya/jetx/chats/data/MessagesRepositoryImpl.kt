@@ -2,10 +2,9 @@ package com.anshtya.jetx.chats.data
 
 import android.net.Uri
 import android.util.Log
-import com.anshtya.jetx.attachments.AttachmentFormat
-import com.anshtya.jetx.attachments.AttachmentManager
-import com.anshtya.jetx.attachments.AttachmentType
-import com.anshtya.jetx.attachments.NetworkAttachment
+import com.anshtya.jetx.attachments.data.AttachmentFormat
+import com.anshtya.jetx.attachments.data.AttachmentRepository
+import com.anshtya.jetx.attachments.data.NetworkAttachment
 import com.anshtya.jetx.database.dao.ChatDao
 import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
 import com.anshtya.jetx.database.entity.MessageEntity
@@ -28,7 +27,7 @@ class MessagesRepositoryImpl @Inject constructor(
     private val chatDao: ChatDao,
     private val localMessagesDataSource: LocalMessagesDataSource,
     private val profileRepository: ProfileRepository,
-    private val attachmentManager: AttachmentManager,
+    private val attachmentRepository: AttachmentRepository,
     private val workScheduler: WorkScheduler
 ) : MessagesRepository {
     private val supabaseAuth = client.auth
@@ -70,9 +69,13 @@ class MessagesRepositoryImpl @Inject constructor(
         return message.chatId
     }
 
-    override suspend fun sendChatMessage(chatId: Int, text: String) {
+    override suspend fun sendChatMessage(
+        chatId: Int,
+        text: String?,
+        attachmentUri: Uri?
+    ) {
         val recipientId = chatDao.getChatRecipientId(chatId)
-        sendChatMessage(recipientId, text, attachmentUri = null)
+        sendChatMessage(recipientId, text, attachmentUri)
     }
 
     override suspend fun sendChatMessage(
@@ -80,16 +83,19 @@ class MessagesRepositoryImpl @Inject constructor(
         text: String?,
         attachmentUri: Uri?
     ) {
+        val attachmentStorageUri = attachmentUri?.let {
+            attachmentRepository.migrateToStorage(it).getOrNull()
+        }
         val message = saveChatMessage(
             id = UUID.randomUUID(),
             senderId = UUID.fromString(supabaseAuth.currentUserOrNull()?.id),
             recipientId = recipientId,
             text = text,
-            attachmentFormat = if (attachmentUri != null) {
+            attachmentFormat = if (attachmentStorageUri != null) {
                 AttachmentFormat.UriAttachment(
-                    uri = attachmentUri,
-                    type = AttachmentType.fromMimeType(
-                        attachmentManager.getMimeTypeFromUri(attachmentUri)
+                    uri = attachmentStorageUri,
+                    attachmentMetadata = attachmentRepository.getAttachmentMetadata(
+                        uri = attachmentStorageUri
                     )
                 )
             } else AttachmentFormat.None,

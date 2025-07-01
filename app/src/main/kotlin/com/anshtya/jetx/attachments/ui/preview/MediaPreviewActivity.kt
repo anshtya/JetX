@@ -11,7 +11,10 @@ import androidx.activity.viewModels
 import androidx.core.content.IntentCompat
 import com.anshtya.jetx.ui.theme.JetXTheme
 import com.anshtya.jetx.util.Constants
+import dagger.hilt.android.AndroidEntryPoint
+import java.util.UUID
 
+@AndroidEntryPoint
 class MediaPreviewActivity : ComponentActivity() {
     private val viewModel: MediaPreviewViewModel by viewModels()
 
@@ -22,7 +25,7 @@ class MediaPreviewActivity : ComponentActivity() {
         setContent {
             JetXTheme(darkTheme = true) {
                 MediaPreviewRoute(
-                    navigateToChat = ::finish,
+                    onBackClick = ::finish,
                     viewModel = viewModel
                 )
             }
@@ -40,8 +43,17 @@ class MediaPreviewActivity : ComponentActivity() {
             Intent.EXTRA_STREAM,
             Parcelable::class.java
         )?.map { parcelable -> parcelable as Uri }
-        uris?.let { viewModel.addUris(uris) }
-        val recipients = intent.getIntegerArrayListExtra(Constants.RECIPIENTS_INTENT_KEY)
-        recipients?.let { viewModel.addRecipients(recipients.toList()) }
+        val chatIds = intent.getIntegerArrayListExtra(Constants.CHAT_IDS_INTENT_KEY)
+        val recipientId = IntentCompat.getSerializableExtra(
+            intent,
+            Constants.RECIPIENT_INTENT_KEY,
+            UUID::class.java
+        )
+
+        if (uris != null && (chatIds != null || recipientId != null)) {
+            viewModel.processIncomingData(chatIds, recipientId,  uris)
+        } else {
+            finish()
+        }
     }
 }

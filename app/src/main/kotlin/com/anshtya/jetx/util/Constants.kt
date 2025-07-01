@@ -19,5 +19,6 @@ object Constants {
 
     // Intent
     const val PHOTO_INTENT_KEY = "photo"
-    const val RECIPIENTS_INTENT_KEY = "recipients"
+    const val RECIPIENT_INTENT_KEY = "recipient"
+    const val CHAT_IDS_INTENT_KEY = "chats"
 }

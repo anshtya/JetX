@@ -1,11 +1,13 @@
 package com.anshtya.jetx.work.worker
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.anshtya.jetx.attachments.AttachmentManager
+import com.anshtya.jetx.attachments.data.AttachmentRepository
+import com.anshtya.jetx.attachments.data.AttachmentType
 import com.anshtya.jetx.database.dao.AttachmentDao
 import com.anshtya.jetx.database.model.AttachmentTransferState
 import dagger.assisted.Assisted
@@ -18,7 +20,7 @@ import java.io.File
 class AttachmentDownloadWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    private val attachmentManager: AttachmentManager,
+    private val attachmentRepository: AttachmentRepository,
     private val attachmentDao: AttachmentDao
 ) : CoroutineWorker(appContext, workerParams) {
 
@@ -29,6 +31,7 @@ class AttachmentDownloadWorker @AssistedInject constructor(
             ?: return Result.failure()
 
         val fileUrl = attachmentDao.getRemoteUrlForAttachment(attachmentId, messageId)
+        val attachmentType = attachmentDao.getAttachmentType(attachmentId, messageId)
         attachmentDao.updateAttachmentTransferState(
             attachmentId, messageId, AttachmentTransferState.STARTED
         )
@@ -38,7 +41,12 @@ class AttachmentDownloadWorker @AssistedInject constructor(
             val request = Request.Builder().url(fileUrl).build()
             val response = client.newCall(request).execute()
 
-            val fileUri = attachmentManager.saveImage(response.body!!.bytes()).getOrThrow()
+            val fileUri = when (attachmentType) {
+                AttachmentType.IMAGE -> attachmentRepository.saveImage(response.body!!.bytes()).getOrThrow()
+
+                AttachmentType.VIDEO -> attachmentRepository.saveVideo(response.body!!.bytes()).getOrThrow()
+                else -> Uri.EMPTY
+            }
             attachmentDao.updateAttachmentDownloadAsFinished(
                 attachmentId, messageId, File(fileUri.path!!).absolutePath
             )

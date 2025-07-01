@@ -16,7 +16,8 @@ interface MessagesRepository {
 
     suspend fun sendChatMessage(
         chatId: Int,
-        text: String
+        text: String?,
+        attachmentUri: Uri?
     )
 
     suspend fun receiveChatMessage(

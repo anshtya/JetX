@@ -2,11 +2,10 @@ package com.anshtya.jetx.work.worker
 
 import android.content.Context
 import android.util.Log
-import androidx.core.net.toUri
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.anshtya.jetx.attachments.AttachmentManager
+import com.anshtya.jetx.attachments.data.AttachmentRepository
 import com.anshtya.jetx.chats.data.model.toNetworkMessage
 import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.database.dao.AttachmentDao
@@ -23,7 +22,7 @@ class MessageSendWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val client: SupabaseClient,
-    private val attachmentManager: AttachmentManager,
+    private val attachmentRepository: AttachmentRepository,
     private val attachmentDao: AttachmentDao,
     private val localMessagesDataSource: LocalMessagesDataSource
 ) : CoroutineWorker(appContext, workerParams) {
@@ -37,7 +36,7 @@ class MessageSendWorker @AssistedInject constructor(
             val attachmentLocation = attachmentDao.getStorageLocationForAttachment(message.id)
 
             val attachmentId = if (attachmentLocation != null) {
-                attachmentManager.uploadMediaAttachment(attachmentLocation.toUri()).getOrThrow()
+                attachmentRepository.uploadMediaAttachment(attachmentLocation).getOrThrow()
             } else null
 
             messagesTable.insert(message.toNetworkMessage(attachmentId))

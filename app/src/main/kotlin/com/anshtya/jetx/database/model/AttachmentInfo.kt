@@ -1,7 +1,7 @@
 package com.anshtya.jetx.database.model
 
 import androidx.room.ColumnInfo
-import com.anshtya.jetx.attachments.AttachmentType
+import com.anshtya.jetx.attachments.data.AttachmentType
 
 data class AttachmentInfo(
     val id: Int,

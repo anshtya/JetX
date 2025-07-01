@@ -3,66 +3,117 @@ package com.anshtya.jetx.attachments.ui.preview
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anshtya.jetx.attachments.data.AttachmentRepository
+import com.anshtya.jetx.chats.data.MessagesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class MediaPreviewViewModel @Inject constructor(
-
+    private val attachmentRepository: AttachmentRepository,
+    private val messagesRepository: MessagesRepository
 ) : ViewModel() {
-    private val _recipients = mutableListOf<Int>()
+    private val _chatIds = mutableListOf<Int>()
+    private var _recipientId: UUID? = null
 
-    private val _uris = MutableStateFlow(mapOf<Uri, String>())
-    val uris = _uris.asStateFlow()
+    private val _sendItems = MutableStateFlow(emptyList<SendItem>())
 
-    private val _currentUri = MutableStateFlow<Uri>(Uri.EMPTY)
-    val currentUri = _currentUri.asStateFlow()
+    private val _currentItemIndex = MutableStateFlow(0)
+    val currentItemIndex = _currentItemIndex.asStateFlow()
 
-    private val _navigateToChat = MutableStateFlow<Boolean>(false)
+    private val _navigateToChat = MutableStateFlow(false)
     val navigateToChat = _navigateToChat.asStateFlow()
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage = _errorMessage.asStateFlow()
 
-    fun addUri(uri: Uri) {
-        _uris.update {
-            val newMap = it.toMutableMap()
-            newMap.apply { put(uri, "") }
-        }
-        if (_currentUri.value == Uri.EMPTY) {
-            _currentUri.update { uri }
-        }
-    }
+    val mediaPreviewUiState: StateFlow<MediaPreviewUiState> = _sendItems
+        .mapLatest(MediaPreviewUiState::DataLoaded)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = MediaPreviewUiState.Loading
+        )
 
-    fun addUris(uris: List<Uri>) {
-        _uris.update {
-            val newMap = it.toMutableMap()
-            newMap.apply {
-                putAll(uris.map { uri -> Pair(uri, "") })
+    fun processIncomingData(
+        chatIds: List<Int>?,
+        recipientId: UUID?,
+        uris: List<Uri>
+    ) {
+        chatIds?.let { _chatIds.addAll(it) }
+        recipientId?.let { _recipientId = it }
+
+        viewModelScope.launch {
+            val preUploadUris = mutableListOf<Uri>()
+            uris.map { uri ->
+                async {
+                    val preUploadResult = attachmentRepository.saveAttachmentBeforeUpload(uri)
+                    if (preUploadResult.isSuccess) {
+                        preUploadUris.add(preUploadResult.getOrNull()!!)
+                    } else return@async
+                }
+            }.awaitAll()
+            _sendItems.update {
+                val newList = it.toMutableList()
+                newList.apply { addAll(preUploadUris.map { uri -> SendItem(uri) }) }
             }
         }
-        if (_currentUri.value == Uri.EMPTY) {
-            _currentUri.update { uris.first() }
+    }
+
+    fun onCaptionChange(index: Int, newCaption: String) {
+        _sendItems.update {
+            val newList = it.toMutableList()
+            newList.apply {
+                this[index] = this[index].copy(caption = newCaption)
+            }
         }
     }
 
-    fun addRecipients(recipients: List<Int>) {
-        _recipients.addAll(recipients)
-    }
-
-    fun onSelectUri(uri: Uri) {
-        _currentUri.update { uri }
+    fun onSelectItem(index: Int) {
+        _currentItemIndex.update { index }
     }
 
     fun onSend() {
         viewModelScope.launch {
-
+            if (_chatIds.isNotEmpty()) {
+                _chatIds.map { chatId ->
+                    async {
+                        _sendItems.value.map { item ->
+                            async {
+                                messagesRepository.sendChatMessage(
+                                    chatId = chatId,
+                                    text = item.caption.ifBlank { null },
+                                    attachmentUri = item.uri
+                                )
+                            }
+                        }.awaitAll()
+                    }
+                }.awaitAll()
+            } else if (_recipientId != null) {
+                _sendItems.value.map { item ->
+                    async {
+                        messagesRepository.sendChatMessage(
+                            recipientId = _recipientId!!,
+                            text = item.caption.ifBlank { null },
+                            attachmentUri = item.uri
+                        )
+                    }
+                }.awaitAll()
+            }
+            _navigateToChat.update { true }
         }
     }
 
@@ -70,3 +121,13 @@ class MediaPreviewViewModel @Inject constructor(
         _errorMessage.update { null }
     }
 }
+
+sealed interface MediaPreviewUiState {
+    data object Loading : MediaPreviewUiState
+    data class DataLoaded(val data: List<SendItem>) : MediaPreviewUiState
+}
+
+data class SendItem(
+    val uri: Uri,
+    val caption: String = ""
+)

@@ -44,7 +44,7 @@ fun SendScreen(
     onSend: (Set<Int>) -> Unit,
 ) {
     val members by sendViewModel.members.collectAsStateWithLifecycle()
-    val selectedRecipients by sendViewModel.selectedRecipients.collectAsStateWithLifecycle()
+    val selectedChatIds by sendViewModel.selectedChatIds.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -57,23 +57,23 @@ fun SendScreen(
         },
         bottomBar = {
             AnimatedVisibility(
-                visible = selectedRecipients.isNotEmpty(),
+                visible = selectedChatIds.isNotEmpty(),
                 enter = expandVertically(),
                 exit = shrinkVertically()
             ) {
                 BottomAppBar {
                     Row(Modifier.weight(1f)) {
-                        selectedRecipients.forEachIndexed { index, recipientId ->
-                            val name = members.find { member -> member.id == recipientId }?.username
+                        selectedChatIds.forEachIndexed { index, chatId ->
+                            val name = members.find { member -> member.id == chatId }?.username
                             Text(
                                 buildAnnotatedString {
                                     append(name)
-                                    if (index+1 < selectedRecipients.size) append(", ")
+                                    if (index+1 < selectedChatIds.size) append(", ")
                                 }
                             )
                         }
                     }
-                    SendButton(onClick = { onSend(selectedRecipients)})
+                    SendButton(onClick = { onSend(selectedChatIds)})
                 }
             }
         }
@@ -106,7 +106,7 @@ fun SendScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { sendViewModel.addOrRemoveRecipient(member.id) }
+                                .clickable { sendViewModel.addOrRemoveChatId(member.id) }
                         ) {
                             UserListItem(
                                 profilePictureUrl = member.profilePicture,
@@ -117,7 +117,7 @@ fun SendScreen(
                                     .noRippleClickable {}
                             )
                             Checkbox(
-                                checked = selectedRecipients.contains(member.id),
+                                checked = selectedChatIds.contains(member.id),
                                 onCheckedChange = null
                             )
                         }

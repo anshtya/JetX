@@ -1,4 +1,4 @@
-package com.anshtya.jetx.attachments
+package com.anshtya.jetx.attachments.data
 
 enum class AttachmentType {
     IMAGE,

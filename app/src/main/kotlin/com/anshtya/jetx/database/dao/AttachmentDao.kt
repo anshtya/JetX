@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.anshtya.jetx.attachments.data.AttachmentType
 import com.anshtya.jetx.database.model.AttachmentTransferState
 import com.anshtya.jetx.database.entity.AttachmentEntity
 
@@ -19,6 +20,14 @@ interface AttachmentDao {
     """
     )
     suspend fun getRemoteUrlForAttachment(attachmentId: Int, messageId: Int): String
+
+    @Query(
+        """
+        SELECT type FROM attachment
+        WHERE id = :attachmentId AND message_id = :messageId
+    """
+    )
+    suspend fun getAttachmentType(attachmentId: Int, messageId: Int): AttachmentType
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAttachment(attachment: AttachmentEntity)

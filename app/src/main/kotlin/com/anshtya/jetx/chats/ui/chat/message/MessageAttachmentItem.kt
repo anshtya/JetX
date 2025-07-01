@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,10 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import coil3.ImageLoader
 import coil3.compose.AsyncImage
+import coil3.video.VideoFrameDecoder
 import com.anshtya.jetx.database.model.AttachmentTransferState
-import com.anshtya.jetx.attachments.AttachmentType
+import com.anshtya.jetx.attachments.data.AttachmentType
 import com.anshtya.jetx.database.model.AttachmentInfo
 import java.io.File
 
@@ -53,7 +57,17 @@ fun MessageAttachmentItem(
         }
 
         AttachmentType.VIDEO -> {
-            TODO("implement video attachment")
+            // replace with video player view
+            AsyncImage(
+                model = Uri.fromFile(File(attachmentInfo.storageLocation!!)),
+                imageLoader = ImageLoader.Builder(LocalContext.current)
+                    .components {
+                        add(VideoFrameDecoder.Factory())
+                    }.build(),
+                contentScale = ContentScale.Crop,
+                contentDescription = null,
+                modifier = modifier.size(60.dp)
+            )
         }
 
         AttachmentType.DOCUMENT -> {
@@ -79,7 +93,7 @@ private fun ImageView(
             AsyncImage(
                 model = model,
                 contentDescription = null,
-                contentScale = ContentScale.FillBounds,
+                contentScale = ContentScale.FillWidth,
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable { onClick(model.toString()) }

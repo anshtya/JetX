@@ -1,4 +1,4 @@
-package com.anshtya.jetx.attachments
+package com.anshtya.jetx.attachments.data
 
 import kotlinx.serialization.Serializable
 

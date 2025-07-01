@@ -145,20 +145,20 @@ private fun handleIntent(
     navController: NavController,
     context: Context
 ) {
-    val recipients = intent.getIntegerArrayListExtra(Constants.RECIPIENTS_INTENT_KEY)
+    val chatIds = intent.getIntegerArrayListExtra(Constants.CHAT_IDS_INTENT_KEY)
     val uris = IntentCompat.getParcelableArrayListExtra(
         intent,
         Intent.EXTRA_STREAM,
         Parcelable::class.java
     )
-    if (recipients != null && uris != null) {
-        if (recipients.size == 1) {
-            navController.navigate(ChatUserArgs(chatId = recipients.first()).toChatDestination())
+    if (chatIds != null && uris != null) {
+        if (chatIds.size == 1) {
+            navController.navigate(ChatUserArgs(chatId = chatIds.first()).toChatDestination())
         }
         context.startActivity(
             Intent(context, MediaPreviewActivity::class.java).apply {
                 putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
-                putIntegerArrayListExtra(Constants.RECIPIENTS_INTENT_KEY, recipients)
+                putIntegerArrayListExtra(Constants.CHAT_IDS_INTENT_KEY, chatIds)
             }
         )
     }

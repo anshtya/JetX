@@ -1,6 +1,7 @@
 package com.anshtya.jetx.attachments.ui.preview
 
 import android.net.Uri
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,7 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -21,8 +22,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -34,32 +37,37 @@ import androidx.media3.exoplayer.ExoPlayer
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.video.VideoFrameDecoder
-import com.anshtya.jetx.attachments.AttachmentType
+import com.anshtya.jetx.attachments.data.AttachmentType
 import com.anshtya.jetx.common.ui.BackButton
+import com.anshtya.jetx.common.ui.MessageInputField
 import com.anshtya.jetx.common.ui.SendButton
 import com.anshtya.jetx.common.ui.VideoPlayerSurface
 import com.anshtya.jetx.util.UriUtil.getMimeType
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
 fun MediaPreviewRoute(
-    navigateToChat: () -> Unit,
+    onBackClick: () -> Unit,
     viewModel: MediaPreviewViewModel
 ) {
-    val uris by viewModel.uris.collectAsStateWithLifecycle()
-    val currentUri by viewModel.currentUri.collectAsStateWithLifecycle()
+    val uiState by viewModel.mediaPreviewUiState.collectAsStateWithLifecycle()
+    val currentItemIndex by viewModel.currentItemIndex.collectAsStateWithLifecycle()
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
     val navigateToChat by viewModel.navigateToChat.collectAsStateWithLifecycle()
 
     LaunchedEffect(navigateToChat) {
-        if (navigateToChat) navigateToChat()
+        if (navigateToChat) onBackClick()
     }
 
     MediaPreviewScreen(
-        uris = uris,
-        currentUri = currentUri,
+        uiState = uiState,
+        currentItemIndex = currentItemIndex,
         errorMessage = errorMessage,
+        onCurrentItemChange = viewModel::onSelectItem,
+        onCurrentItemCaptionChange = viewModel::onCaptionChange,
         onSend = viewModel::onSend,
+        onBackClick = onBackClick,
         onErrorShown = viewModel::onErrorShown
     )
 }
@@ -67,9 +75,12 @@ fun MediaPreviewRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MediaPreviewScreen(
-    uris: Map<Uri, String>,
-    currentUri: Uri,
+    uiState: MediaPreviewUiState,
+    currentItemIndex: Int,
     errorMessage: String?,
+    onCurrentItemChange: (Int) -> Unit,
+    onCurrentItemCaptionChange: (Int, String) -> Unit,
+    onBackClick: () -> Unit,
     onSend: () -> Unit,
     onErrorShown: () -> Unit,
 ) {
@@ -86,14 +97,35 @@ private fun MediaPreviewScreen(
         topBar = {
             TopAppBar(
                 title = {},
-                navigationIcon = { BackButton { } }
+                navigationIcon = { BackButton { onBackClick() } }
             )
         },
         bottomBar = {
-            BottomAppBar(
-                actions = {},
-                floatingActionButton = { SendButton(onClick = onSend) }
-            )
+            if (uiState is MediaPreviewUiState.DataLoaded && uiState.data.isNotEmpty()) {
+                val currentItem = uiState.data[currentItemIndex]
+                var currentItemCaption by remember(currentItem) {
+                    mutableStateOf(currentItem.caption)
+                }
+
+                LaunchedEffect(currentItemCaption) {
+                    delay(200L)
+                    onCurrentItemCaptionChange(currentItemIndex, currentItemCaption)
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    MessageInputField(
+                        inputText = currentItemCaption,
+                        onInputTextChange = { currentItemCaption = it },
+                        onMessageSent = {},
+                        modifier = Modifier.weight(1f)
+                    )
+                    SendButton(onClick = onSend)
+                }
+            }
         }
     ) { paddingValues ->
         Box(
@@ -101,17 +133,28 @@ private fun MediaPreviewScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier
-                    .padding(8.dp)
-                    .fillMaxSize()
-            ) {
-                UriPreview(
-                    uri = currentUri,
-                    modifier = Modifier.weight(1f)
-                )
-                MediaRow(uris = uris.keys.toList())
+            when (uiState) {
+                is MediaPreviewUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                is MediaPreviewUiState.DataLoaded -> {
+                    val sendItems = uiState.data
+                    if (sendItems.isNotEmpty()) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .fillMaxSize()
+                        ) {
+                            UriPreview(
+                                uri = sendItems[currentItemIndex].uri,
+                                modifier = Modifier.weight(1f)
+                            )
+                            MediaRow(
+                                sendItems = sendItems,
+                                onItemClick = onCurrentItemChange
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -119,7 +162,8 @@ private fun MediaPreviewScreen(
 
 @Composable
 private fun MediaRow(
-    uris: List<Uri>,
+    sendItems: List<SendItem>,
+    onItemClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -127,8 +171,11 @@ private fun MediaRow(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = modifier
     ) {
-        uris.forEach { uri ->
-            UriItem(uri)
+        sendItems.forEachIndexed { index, sendItem ->
+            UriItem(
+                uri = sendItem.uri,
+                modifier = Modifier.clickable { onItemClick(index) }
+            )
         }
 //        UriItem(
 //            uri = null,
@@ -144,13 +191,13 @@ private fun UriPreview(
 ) {
     val context = LocalContext.current
     Box(modifier.fillMaxSize()) {
-        val attachmentType = AttachmentType.Companion.fromMimeType(uri.getMimeType(context)!!)
+        val attachmentType = uri.getMimeType(context)?.let { AttachmentType.fromMimeType(it) }
+            ?: AttachmentType.DOCUMENT
         when (attachmentType) {
             AttachmentType.IMAGE -> {
                 AsyncImage(
                     model = uri,
                     contentDescription = null,
-                    contentScale = ContentScale.FillBounds,
                     modifier = Modifier
                         .align(Alignment.Center)
                         .fillMaxWidth()
@@ -172,7 +219,7 @@ private fun UriPreview(
                 )
             }
 
-            else -> {}
+            AttachmentType.DOCUMENT -> {}
         }
     }
 }
@@ -183,9 +230,9 @@ private fun UriItem(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-
     uri?.let { uri ->
-        val attachmentType = AttachmentType.Companion.fromMimeType(uri.getMimeType(context)!!)
+        val attachmentType = uri.getMimeType(context)?.let { AttachmentType.fromMimeType(it) }
+            ?: AttachmentType.DOCUMENT
         when (attachmentType) {
             AttachmentType.IMAGE -> {
                 AsyncImage(
@@ -209,7 +256,7 @@ private fun UriItem(
                 )
             }
 
-            else -> {}
+            AttachmentType.DOCUMENT -> {}
         }
     } ?: Box(modifier.size(60.dp)) {
         Icon(

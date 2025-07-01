@@ -47,7 +47,7 @@ class ReplyReceiver: BroadcastReceiver() {
         val finisher = goAsync()
         coroutineScope.launch {
             messagesRepository.markChatMessagesAsSeen(chatId)
-            messagesRepository.sendChatMessage(chatId, replyText)
+            messagesRepository.sendChatMessage(chatId, replyText, attachmentUri = null)
             finisher.finish()
         }
     }

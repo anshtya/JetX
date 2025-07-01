@@ -6,7 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.anshtya.jetx.database.model.AttachmentTransferState
-import com.anshtya.jetx.attachments.AttachmentType
+import com.anshtya.jetx.attachments.data.AttachmentType
 
 @Entity(
     tableName = "attachment",

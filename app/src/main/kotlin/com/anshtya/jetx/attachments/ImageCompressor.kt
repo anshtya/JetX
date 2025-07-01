@@ -5,23 +5,29 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
+import com.anshtya.jetx.common.coroutine.DefaultDispatcher
+import com.anshtya.jetx.common.coroutine.IoDispatcher
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
-import kotlinx.io.files.FileNotFoundException
+import kotlinx.io.IOException
 import java.io.ByteArrayOutputStream
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class ImageCompressor(
-    private val context: Context,
-    private val ioDispatcher: CoroutineDispatcher,
-    private val defaultDispatcher: CoroutineDispatcher
+@Singleton
+class ImageCompressor @Inject constructor(
+    @ApplicationContext private val context: Context,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) {
     private val tag = this::class.simpleName
 
     suspend fun compressImage(
         uri: Uri,
         mimeType: String?
-    ): Result<ByteArray> = try {
+    ): Result<ByteArray> = runCatching {
         val inputBytes = withContext(ioDispatcher) {
             ensureActive()
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
@@ -30,15 +36,14 @@ class ImageCompressor(
         }
         if (inputBytes == null){
             Log.w(tag, "Input stream is null for URI: $uri")
-            throw AttachmentException()
+            throw IOException("File doesn't exist")
         }
 
-        withContext(defaultDispatcher) {
+        return withContext(defaultDispatcher) {
             ensureActive()
             val bitmap = BitmapFactory.decodeByteArray(inputBytes, 0, inputBytes.size)
             if (bitmap == null) {
                 Log.w(tag, "Image could not be decoded")
-                throw AttachmentException()
             }
 
             val compressFormat = when (mimeType) {
@@ -48,11 +53,6 @@ class ImageCompressor(
 
             compressBitmap(bitmap, compressFormat)
         }
-    } catch (e: FileNotFoundException) {
-        Log.w(tag, "${e.message}")
-        Result.failure(AttachmentException())
-    } catch (e: Exception) {
-        Result.failure(e)
     }
 
     suspend fun compressImage(bitmap: Bitmap): Result<ByteArray> = compressBitmap(bitmap)
@@ -67,7 +67,7 @@ class ImageCompressor(
                 val compressionSuccess = bitmap.compress(compressFormat, 70, outputStream)
                 if (!compressionSuccess) {
                     Log.w(tag, "Bitmap compression failed")
-                    throw AttachmentException()
+                    throw IOException()
                 }
                 outputStream.toByteArray()
             }

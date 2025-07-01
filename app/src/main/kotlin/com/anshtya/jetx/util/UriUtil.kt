@@ -6,22 +6,20 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.webkit.MimeTypeMap
+import androidx.core.net.toFile
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.request.allowHardware
 import coil3.toBitmap
-import com.anshtya.jetx.util.model.ImageDimensions
 import java.io.File
+import java.util.Locale
 
 object UriUtil {
-    fun Uri.getDimensions(): ImageDimensions {
+    fun Uri.getImageDimensions(): Pair<Int, Int> {
         val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(File(this.path!!).absolutePath, options)
-        return ImageDimensions(
-            width = options.outWidth,
-            height = options.outHeight
-        )
+        BitmapFactory.decodeFile(this.toFile().absolutePath, options)
+        return Pair(options.outHeight, options.outWidth)
     }
 
     fun Uri.getMimeType(context: Context): String? {
@@ -34,8 +32,16 @@ object UriUtil {
     }
 
     fun Uri.getReadableFileSize(): String {
-        val file = File(this.path!!)
-        return getReadableFileSize(file.length())
+        var size = File(this.path!!).length()
+        var readableFileSize = ""
+        listOf("B", "KB", "MB").forEach { unit ->
+            if (size < 1024) {
+                readableFileSize = String.format(Locale.getDefault(), "%d %s", size, unit)
+                return readableFileSize
+            }
+            size /= 1024
+        }
+        return readableFileSize
     }
 
     suspend fun Uri.toBitmap(context: Context): Bitmap {

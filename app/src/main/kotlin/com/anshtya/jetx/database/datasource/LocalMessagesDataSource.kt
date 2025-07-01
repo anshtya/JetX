@@ -1,8 +1,9 @@
 package com.anshtya.jetx.database.datasource
 
+import androidx.core.net.toFile
 import androidx.room.withTransaction
-import com.anshtya.jetx.attachments.AttachmentFormat
-import com.anshtya.jetx.attachments.AttachmentType
+import com.anshtya.jetx.attachments.data.AttachmentFormat
+import com.anshtya.jetx.attachments.data.AttachmentType
 import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.database.JetXDatabase
 import com.anshtya.jetx.database.dao.AttachmentDao
@@ -13,9 +14,7 @@ import com.anshtya.jetx.database.entity.AttachmentEntity
 import com.anshtya.jetx.database.entity.ChatEntity
 import com.anshtya.jetx.database.entity.MessageEntity
 import com.anshtya.jetx.database.model.MessageWithAttachment
-import com.anshtya.jetx.util.UriUtil.getDimensions
 import kotlinx.coroutines.flow.Flow
-import java.io.File
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -62,20 +61,16 @@ class LocalMessagesDataSource @Inject constructor(
             val messageId = messageDao.insertMessage(messageEntity)
             val attachmentEntity = when (attachmentFormat) {
                 is AttachmentFormat.UriAttachment -> {
-                    val file = File(attachmentFormat.uri.path!!)
-                    val attachmentDimensions = when (attachmentFormat.type) {
-                        AttachmentType.IMAGE -> attachmentFormat.uri.getDimensions()
-                        else -> null
-                    }
+                    val file = attachmentFormat.uri.toFile()
                     val entity = AttachmentEntity(
                         messageId = messageId.toInt(),
                         fileName = file.name,
                         storageLocation = file.absolutePath,
                         remoteLocation = null,
                         thumbnailLocation = null,
-                        type = attachmentFormat.type,
-                        width = attachmentDimensions?.width,
-                        height = attachmentDimensions?.height
+                        type = attachmentFormat.attachmentMetadata.type,
+                        width = attachmentFormat.attachmentMetadata.width,
+                        height = attachmentFormat.attachmentMetadata.height
                     )
                     attachmentDao.insertAttachment(entity)
 

@@ -53,8 +53,8 @@ class SendActivity : ComponentActivity() {
                 if (isAuthenticated == true) {
                     SendScreen(
                         onNavigateUp = this::finish,
-                        onSend = { recipients ->
-                            createSendIntent(intent, recipients)
+                        onSend = { chatIds ->
+                            createSendIntent(intent, chatIds)
                         }
                     )
                 }
@@ -64,7 +64,7 @@ class SendActivity : ComponentActivity() {
 
     private fun createSendIntent(
         intent: Intent,
-        recipients: Set<Int>
+        chatIds: Set<Int>
     ) {
         val newIntent = Intent()
         when (intent.action) {
@@ -92,8 +92,8 @@ class SendActivity : ComponentActivity() {
             }
         }
         newIntent.putIntegerArrayListExtra(
-            Constants.RECIPIENTS_INTENT_KEY,
-            ArrayList<Int>(recipients)
+            Constants.CHAT_IDS_INTENT_KEY,
+            ArrayList<Int>(chatIds)
         )
         newIntent.setClass(this, MainActivity::class.java)
         startActivity(newIntent)

@@ -1,12 +1,10 @@
 package com.anshtya.jetx.chats.ui.chat
 
-import android.content.ContentResolver
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.anshtya.jetx.attachments.AttachmentManager
 import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
 import com.anshtya.jetx.chats.ui.navigation.ChatsDestinations
@@ -36,7 +34,6 @@ class ChatViewModel @Inject constructor(
     private val chatsRepository: ChatsRepository,
     private val messagesRepository: MessagesRepository,
     private val profileRepository: ProfileRepository,
-    private val attachmentManager: AttachmentManager,
     private val workScheduler: WorkScheduler,
     private val workManagerHelper: WorkManagerHelper
 ) : ViewModel() {
@@ -119,23 +116,6 @@ class ChatViewModel @Inject constructor(
             if (chatId.value == null) {
                 chatId.update { chatsRepository.getChatId(recipientUser.id) }
                 chatsRepository.setCurrentChatId(chatId.value)
-            }
-        }
-    }
-
-    fun sendAttachment(uri: Uri) {
-        viewModelScope.launch {
-            // Content URI must be converted to File URI
-            if (uri.scheme == ContentResolver.SCHEME_CONTENT) {
-                try {
-                    attachmentManager.saveImage(uri)
-                } catch (e: Exception) {
-                    _errorMessage.update { e.message }
-                    return@launch
-                }
-                sendMessage(message = null, attachmentUri = uri)
-            } else {
-                sendMessage(message = null, attachmentUri = uri)
             }
         }
     }
