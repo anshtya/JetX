@@ -1,6 +1,8 @@
 package com.anshtya.jetx.attachments.data
 
+import android.content.ContentResolver
 import android.content.Context
+import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.util.Log
@@ -196,6 +198,19 @@ class AttachmentRepository @Inject constructor(
         }
     }
 
+    suspend fun saveBitmapImageBeforeUpload(
+        bitmap: Bitmap
+    ): Result<Uri> = runCatching {
+        val byteArray = imageCompressor.compressImage(bitmap).getOrThrow()
+        return withContext(ioDispatcher) {
+            val fileDirectory = FileUtil.getAttachmentCacheDirectory(context)
+            val outputPath = FileUtil.createFile(fileDirectory, ext = "jpg")
+            ensureActive()
+            FileOutputStream(outputPath).use { outputStream -> outputStream.write(byteArray) }
+            Result.success(outputPath.toUri())
+        }
+    }
+
     @OptIn(UnstableApi::class)
     private suspend fun saveVideoBeforeUpload(
         uri: Uri
@@ -206,6 +221,22 @@ class AttachmentRepository @Inject constructor(
                 FileUtil.createFile(fileDirectory, ext = "mp4")
             }
 
+            val metadata = getAttachmentMetadata(uri)
+            if (metadata.height!! <= 480 || metadata.width!! <= 480) {
+                val file = File(uri.path!!)
+                with(file) {
+                    copyTo(outputPath, overwrite = true)
+
+                    /**
+                     * If the video URI is not from a content provider, it likely refers to a
+                     * file saved directly by the app (e.g., via CameraX to cache directory).
+                     * In that case, it's safe to delete the file directly.
+                     */
+                    if (uri.scheme != ContentResolver.SCHEME_CONTENT) delete()
+                }
+                return Result.success(outputPath.toUri())
+            }
+
             val mediaItem = MediaItem.fromUri(uri)
             val videoProcessor = Presentation.createForHeight(480)
             val editedMediaItem = EditedMediaItem.Builder(mediaItem)
@@ -214,7 +245,7 @@ class AttachmentRepository @Inject constructor(
 
             val transformer = Transformer.Builder(context).build()
 
-            val r = suspendCancellableCoroutine { continuation ->
+            val uri = suspendCancellableCoroutine { continuation ->
                 val transformerListener = object : Transformer.Listener {
                     override fun onCompleted(
                         composition: Composition,
@@ -238,7 +269,7 @@ class AttachmentRepository @Inject constructor(
                 transformer.start(editedMediaItem, outputPath.path)
             }
 
-            Result.success(r)
+            Result.success(uri)
         } catch (e: Exception) {
             Log.w(tag, "error in transformer - ${e.message}")
             Result.failure(e)

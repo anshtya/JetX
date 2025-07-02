@@ -1,15 +1,12 @@
 package com.anshtya.jetx.chats.ui.chat
 
-import android.app.Activity
 import android.content.Intent
-import android.net.Uri
-import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
-import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,16 +17,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PhotoLibrary
@@ -41,8 +34,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -56,15 +47,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
+import com.anshtya.jetx.attachments.ui.preview.MediaPreviewActivity
 import com.anshtya.jetx.camera.CameraActivity
 import com.anshtya.jetx.chats.ui.chat.message.MessageItemContent
 import com.anshtya.jetx.chats.ui.components.DeleteMessageDialog
@@ -72,7 +61,9 @@ import com.anshtya.jetx.chats.ui.components.ProfilePicturePopup
 import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
+import com.anshtya.jetx.common.ui.MessageInputField
 import com.anshtya.jetx.common.ui.ProfilePicture
+import com.anshtya.jetx.common.ui.SendButton
 import com.anshtya.jetx.database.model.AttachmentInfo
 import com.anshtya.jetx.database.model.MessageWithAttachment
 import com.anshtya.jetx.sampledata.sampleUsers
@@ -80,6 +71,7 @@ import com.anshtya.jetx.util.Constants
 import com.anshtya.jetx.util.getDateOrTime
 import com.anshtya.jetx.util.isNotSameDay
 import java.time.ZonedDateTime
+import java.util.UUID
 
 @Composable
 fun ChatRoute(
@@ -98,7 +90,6 @@ fun ChatRoute(
         selectedMessages = selectedMessages,
         errorMessage = errorMessage,
         onMessageSent = viewModel::sendMessage,
-        onPhotoSelect = viewModel::sendAttachment,
         onMessageSelect = viewModel::selectMessage,
         onMessageUnselect = viewModel::unselectMessage,
         onClearSelectedMessages = viewModel::clearSelectedMessages,
@@ -119,7 +110,6 @@ private fun ChatScreen(
     selectedMessages: Set<Int>,
     errorMessage: String?,
     onMessageSent: (String) -> Unit,
-    onPhotoSelect: (Uri) -> Unit,
     onMessageSelect: (Int) -> Unit,
     onMessageUnselect: (Int) -> Unit,
     onClearSelectedMessages: () -> Unit,
@@ -193,9 +183,10 @@ private fun ChatScreen(
             )
         },
         bottomBar = {
-            ChatInput(
+            ChatTextInput(
+                recipientUserId = recipientUser?.id,
                 onMessageSent = onMessageSent,
-                onPhotoSelect = onPhotoSelect
+                modifier = Modifier.padding(8.dp)
             )
         }
     ) { paddingValues ->
@@ -224,7 +215,7 @@ private fun ChatScreen(
                 }
 
                 val authorChanged = previousMessageInfo != null &&
-                    previousMessageInfo.senderId != messageInfo.senderId
+                        previousMessageInfo.senderId != messageInfo.senderId
                 val isAuthor = messageInfo.senderId != recipientUser?.id
 
                 item(key = messageInfo.id) {
@@ -245,7 +236,8 @@ private fun ChatScreen(
                         modifier = Modifier
                             .padding(
                                 top = 2.dp,
-                                bottom = if (authorChanged) 8.dp else 2.dp)
+                                bottom = if (authorChanged) 8.dp else 2.dp
+                            )
                     )
                 }
 
@@ -326,121 +318,80 @@ private fun ChatTopAppBar(
 }
 
 @Composable
-private fun ChatInput(
+private fun ChatTextInput(
+    recipientUserId: UUID?,
     onMessageSent: (String) -> Unit,
-    onPhotoSelect: (Uri) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var inputText by rememberSaveable { mutableStateOf("") }
 
+    val context = LocalContext.current
+
+    val pickMediaLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(5)
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            val intent = Intent(context, MediaPreviewActivity::class.java).apply {
+                putExtra(Constants.RECIPIENT_INTENT_KEY, recipientUserId)
+                putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+            }
+            context.startActivity(intent)
+        }
+    }
+
     Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(56.dp)
+        modifier = modifier.fillMaxWidth()
     ) {
-        ChatInputField(
+        MessageInputField(
             inputText = inputText,
             onInputTextChange = { inputText = it },
             onMessageSent = onMessageSent,
-            onPhotoSelect = onPhotoSelect,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            trailingIcon = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    IconButton(
+                        onClick = {
+                            pickMediaLauncher.launch(
+                                input = PickVisualMediaRequest(PickVisualMedia.ImageAndVideo)
+                            )
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PhotoLibrary,
+                            contentDescription = null
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            val intent = Intent(context, CameraActivity::class.java).apply {
+                                putExtra(Constants.RECIPIENT_INTENT_KEY, recipientUserId)
+                            }
+                            context.startActivity(intent)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CameraAlt,
+                            contentDescription = null
+                        )
+                    }
+                }
+            }
         )
 
-        IconButton(
+        SendButton(
             onClick = {
                 if (inputText.isNotBlank()) {
                     onMessageSent(inputText)
                     inputText = ""
                 }
             }
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Send,
-                contentDescription = stringResource(id = R.string.send_message)
-            )
-        }
+        )
     }
-}
-
-@Composable
-private fun ChatInputField(
-    inputText: String,
-    onInputTextChange: (String) -> Unit,
-    onMessageSent: (String) -> Unit,
-    onPhotoSelect: (Uri) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val context = LocalContext.current
-
-    val pickMediaLauncher = rememberLauncherForActivityResult(PickVisualMedia()) { uri ->
-        uri?.let { onPhotoSelect(it) }
-    }
-    val mediaCaptureLauncher = rememberLauncherForActivityResult(StartActivityForResult()) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            val intent = it.data
-            val imageUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                intent?.getParcelableExtra(Constants.PHOTO_INTENT_KEY, Uri::class.java)
-            } else {
-                @Suppress("DEPRECATION")
-                intent?.getParcelableExtra<Uri>(Constants.PHOTO_INTENT_KEY)
-            }
-            imageUri?.let { onPhotoSelect(it) }
-        }
-    }
-
-    TextField(
-        value = inputText,
-        onValueChange = onInputTextChange,
-        placeholder = {
-            Text(text = stringResource(id = R.string.chatinputfield_placeholder))
-        },
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
-        ),
-        trailingIcon = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                IconButton(
-                    onClick = {
-                        pickMediaLauncher.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly))
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PhotoLibrary,
-                        contentDescription = null
-                    )
-                }
-                IconButton(
-                    onClick = {
-                        mediaCaptureLauncher.launch(Intent(context, CameraActivity::class.java))
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.CameraAlt,
-                        contentDescription = null
-                    )
-                }
-            }
-        },
-        keyboardOptions = KeyboardOptions(
-            capitalization = KeyboardCapitalization.Sentences,
-            keyboardType = KeyboardType.Text,
-            imeAction = ImeAction.Send
-        ),
-        keyboardActions = KeyboardActions {
-            if (inputText.isNotBlank()) {
-                onMessageSent(inputText)
-                onInputTextChange("")
-            }
-        },
-        modifier = modifier
-    )
 }
 
 @Composable
@@ -551,7 +502,6 @@ private fun ChatScreenPreview() {
             selectedMessages = emptySet(),
             errorMessage = null,
             onMessageSent = {},
-            onPhotoSelect = {},
             onMessageSelect = {},
             onMessageUnselect = {},
             onClearSelectedMessages = {},

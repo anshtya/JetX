@@ -64,7 +64,7 @@ class ImageCompressor @Inject constructor(
         withContext(defaultDispatcher) {
             ensureActive()
             return@withContext ByteArrayOutputStream().use { outputStream ->
-                val compressionSuccess = bitmap.compress(compressFormat, 70, outputStream)
+                val compressionSuccess = bitmap.compress(compressFormat, 80, outputStream)
                 if (!compressionSuccess) {
                     Log.w(tag, "Bitmap compression failed")
                     throw IOException()

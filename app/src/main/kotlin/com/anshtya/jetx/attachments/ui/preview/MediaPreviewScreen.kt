@@ -49,6 +49,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MediaPreviewRoute(
     onBackClick: () -> Unit,
+    navigateToChat: () -> Unit,
     viewModel: MediaPreviewViewModel
 ) {
     val uiState by viewModel.mediaPreviewUiState.collectAsStateWithLifecycle()
@@ -57,7 +58,7 @@ fun MediaPreviewRoute(
     val navigateToChat by viewModel.navigateToChat.collectAsStateWithLifecycle()
 
     LaunchedEffect(navigateToChat) {
-        if (navigateToChat) onBackClick()
+        if (navigateToChat) navigateToChat()
     }
 
     MediaPreviewScreen(

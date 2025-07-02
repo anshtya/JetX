@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.core.content.IntentCompat
+import com.anshtya.jetx.MainActivity
 import com.anshtya.jetx.ui.theme.JetXTheme
 import com.anshtya.jetx.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,6 +27,12 @@ class MediaPreviewActivity : ComponentActivity() {
             JetXTheme(darkTheme = true) {
                 MediaPreviewRoute(
                     onBackClick = ::finish,
+                    navigateToChat = {
+                        val intent = Intent(this, MainActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        }
+                        startActivity(intent)
+                    },
                     viewModel = viewModel
                 )
             }

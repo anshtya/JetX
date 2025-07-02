@@ -58,11 +58,9 @@
     <string name="mark_as_read">Mark as read</string>
     <string name="reply">Reply</string>
     <string name="star_message">Star message</string>
-    <string name="title_activity_camera">CameraActivity</string>
-    <string name="flip_camera">Flip Camera</string>
 
-    <string name="capture_preview_retake">Retake</string>
-    <string name="capture_preview_send">Send</string>
+    <!--Camera-->
+    <string name="flip_camera">Flip Camera</string>
 
     <!--Permissions-->
     <string name="notification_permission_confirm">Continue</string>
@@ -72,8 +70,13 @@
 
     <string name="camera_permission_continue">Continue</string>
     <string name="camera_permission_not_now">Not now</string>
-    <string name="camera_permission_title">Camera permission needed</string>
-    <string name="camera_permission_text">Allow JetX to access your camera.</string>
+    <string name="camera_permission_title">Capture photos and videos</string>
+    <string name="camera_permission_text">Allow JetX to access your camera and microphone</string>
+    <string name="camera_permissions_not_allowed">It looks like some of the permissions are turned off</string>
+
+    <string name="go_to_app_info">Go to App info</string>
+    <string name="permission_enable">%s permission can be enabled in App info</string>
+    <string name="multiple_permission_enable">%s permissions can be enabled in App info</string>
 
     <!--Send-->
     <string name="send_to">Send to</string>

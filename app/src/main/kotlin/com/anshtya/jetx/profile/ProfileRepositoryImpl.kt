@@ -1,6 +1,7 @@
 package com.anshtya.jetx.profile
 
 import android.graphics.Bitmap
+import com.anshtya.jetx.attachments.ImageCompressor
 import com.anshtya.jetx.common.model.UserProfile
 import com.anshtya.jetx.database.dao.UserProfileDao
 import com.anshtya.jetx.database.entity.UserProfileEntity
@@ -11,7 +12,6 @@ import com.anshtya.jetx.profile.model.CreateProfileRequest
 import com.anshtya.jetx.profile.model.NetworkProfile
 import com.anshtya.jetx.profile.model.toEntity
 import com.anshtya.jetx.profile.model.toExternalModel
-import com.anshtya.jetx.util.BitmapUtil.getByteArray
 import com.anshtya.jetx.util.Constants.MEDIA_STORAGE
 import com.anshtya.jetx.util.Constants.PROFILE_TABLE
 import io.github.jan.supabase.SupabaseClient
@@ -25,7 +25,8 @@ class ProfileRepositoryImpl @Inject constructor(
     client: SupabaseClient,
     private val fcmTokenManager: FcmTokenManager,
     private val preferencesStore: PreferencesStore,
-    private val userProfileDao: UserProfileDao
+    private val userProfileDao: UserProfileDao,
+    private val imageCompressor: ImageCompressor
 ) : ProfileRepository {
     private val supabaseStorage = client.storage
     private val supabaseAuth = client.auth
@@ -44,7 +45,7 @@ class ProfileRepositoryImpl @Inject constructor(
             var profilePicturePath: String? = null
 
             if (profilePicture != null) {
-                val imageByteArray = profilePicture.getByteArray()
+                val imageByteArray = imageCompressor.compressImage(profilePicture).getOrThrow()
                 val path = "profile-${userId}.png"
                 mediaBucket.upload(
                     path = path,
