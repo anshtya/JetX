@@ -3,7 +3,6 @@ package com.anshtya.jetx.send
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -106,15 +105,12 @@ fun SendScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { sendViewModel.addOrRemoveChatId(member.id) }
+                                .noRippleClickable { sendViewModel.addOrRemoveChatId(member.id) }
                         ) {
                             UserListItem(
                                 profilePictureUrl = member.profilePicture,
                                 username = member.username,
-                                onClick = {},
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .noRippleClickable {}
+                                modifier = Modifier.weight(1f)
                             )
                             Checkbox(
                                 checked = selectedChatIds.contains(member.id),

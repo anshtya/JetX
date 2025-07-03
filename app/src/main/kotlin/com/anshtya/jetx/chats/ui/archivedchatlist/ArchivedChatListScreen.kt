@@ -1,13 +1,17 @@
 package com.anshtya.jetx.chats.ui.archivedchatlist
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Unarchive
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,7 +27,6 @@ import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
 import com.anshtya.jetx.chats.ui.chatlist.ChatListState
 import com.anshtya.jetx.chats.ui.chatlist.ChatListViewModel
 import com.anshtya.jetx.chats.ui.components.ChatList
-import com.anshtya.jetx.chats.ui.components.ChatListScaffold
 import com.anshtya.jetx.chats.ui.components.DeleteChatDialog
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
@@ -50,6 +53,7 @@ fun ArchivedChatListRoute(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ArchivedChatListScreen(
     state: ChatListState,
@@ -74,34 +78,41 @@ private fun ArchivedChatListScreen(
     }
 
     if (state is ChatListState.Success) {
-        ChatListScaffold(
-            selectedChatCount = selectedChatCount,
-            onClearSelectedChats = onClearSelectedChats,
-            topBarTitle = {
-                Text(text = stringResource(id = R.string.archived))
-            },
-            topBarActions = { chatsSelected ->
-                if (chatsSelected) {
-                    IconButton(
-                        onClick = onUnarchiveClick,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Unarchive,
-                            contentDescription = stringResource(id = R.string.unarchive_chat)
-                        )
+        val chatsSelected by remember(selectedChatCount > 0) {
+            mutableStateOf(selectedChatCount > 0)
+        }
+        BackHandler(chatsSelected) {
+            onClearSelectedChats()
+        }
+
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(text = stringResource(id = R.string.archived)) },
+                    navigationIcon = { BackButton(onClick = onBackClick) },
+                    actions = {
+                        if (chatsSelected) {
+                            IconButton(
+                                onClick = onUnarchiveClick,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Unarchive,
+                                    contentDescription = stringResource(id = R.string.unarchive_chat)
+                                )
+                            }
+                            IconButton(
+                                onClick = { showDeleteChatDialog = true },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Delete,
+                                    contentDescription = stringResource(id = R.string.delete_chat)
+                                )
+                            }
+                        }
                     }
-                    IconButton(
-                        onClick = { showDeleteChatDialog = true },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Delete,
-                            contentDescription = stringResource(id = R.string.delete_chat)
-                        )
-                    }
-                }
+                )
             },
-            topBarNavigationIcon = { BackButton(onClick = onBackClick) }
-        ) { innerPadding, _ ->
+        ) { innerPadding ->
             ChatList(
                 chatList = state.list,
                 selectedChats = selectedChats,

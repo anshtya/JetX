@@ -1,6 +1,5 @@
 package com.anshtya.jetx.common.ui
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,7 +22,6 @@ import androidx.compose.ui.unit.sp
 fun UserListItem(
     profilePictureUrl: String?,
     username: String,
-    onClick: () -> Unit,
     modifier: Modifier = Modifier,
     supportingText: String? = null,
 ) {
@@ -33,7 +31,6 @@ fun UserListItem(
         modifier = modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .clickable { onClick() }
     ) {
         ProfilePicture(
             model = profilePictureUrl,

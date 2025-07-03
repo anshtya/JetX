@@ -15,7 +15,6 @@ import com.anshtya.jetx.chats.ui.chat.ChatRoute
 import com.anshtya.jetx.chats.ui.chat.toChatDestination
 import com.anshtya.jetx.chats.ui.chatlist.ChatListRoute
 import com.anshtya.jetx.chats.ui.chatlist.ChatListViewModel
-import com.anshtya.jetx.chats.ui.search.SearchRoute
 import com.anshtya.jetx.util.Constants
 import kotlinx.serialization.Serializable
 
@@ -39,9 +38,6 @@ fun NavGraphBuilder.chats(
                 },
                 onNavigateToArchivedChats = {
                     navController.navigate(ChatsDestinations.ArchivedChatList)
-                },
-                onNavigateToSearch = {
-                    navController.navigate(ChatsDestinations.Search)
                 },
                 onNavigateToSettings = onNavigateToSettings,
                 viewModel = hiltViewModel<ChatListViewModel>(parentEntry)
@@ -71,15 +67,6 @@ fun NavGraphBuilder.chats(
             ChatRoute(
                 onNavigateToImageScreen = { data ->
                     navController.navigate(ChatsDestinations.Image(data))
-                },
-                onBackClick = navController::navigateUp
-            )
-        }
-
-        composable<ChatsDestinations.Search> {
-            SearchRoute(
-                onNavigateToChat = { args ->
-                    navController.navigate(args.toChatDestination())
                 },
                 onBackClick = navController::navigateUp
             )
