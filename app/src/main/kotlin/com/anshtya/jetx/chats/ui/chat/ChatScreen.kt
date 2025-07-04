@@ -481,7 +481,7 @@ private fun MessageItem(
                 onAttachmentClick = onAttachmentClick,
                 onAttachmentDownloadClick = { onAttachmentDownloadClick(it, id) },
                 onCancelDownloadClick = { onCancelDownloadClick(it, id) },
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
+                modifier = Modifier.padding(8.dp)
             )
         }
     }

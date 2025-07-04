@@ -29,9 +29,9 @@ import androidx.compose.ui.unit.dp
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.video.VideoFrameDecoder
-import com.anshtya.jetx.database.model.AttachmentTransferState
 import com.anshtya.jetx.attachments.data.AttachmentType
 import com.anshtya.jetx.database.model.AttachmentInfo
+import com.anshtya.jetx.database.model.AttachmentTransferState
 import java.io.File
 
 @Composable
@@ -93,7 +93,7 @@ private fun ImageView(
             AsyncImage(
                 model = model,
                 contentDescription = null,
-                contentScale = ContentScale.FillWidth,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable { onClick(model.toString()) }
