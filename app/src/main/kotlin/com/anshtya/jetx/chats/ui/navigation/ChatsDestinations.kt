@@ -18,5 +18,5 @@ sealed interface ChatsDestinations {
     data object ArchivedChatList : ChatsDestinations
 
     @Serializable
-    data class Image(val data: String)
+    data class Media(val data: String)
 }

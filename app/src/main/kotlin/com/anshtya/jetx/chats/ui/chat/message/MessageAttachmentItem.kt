@@ -1,7 +1,7 @@
 package com.anshtya.jetx.chats.ui.chat.message
 
 import android.net.Uri
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -13,8 +13,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,10 +28,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.video.VideoFrameDecoder
 import com.anshtya.jetx.attachments.data.AttachmentType
+import com.anshtya.jetx.common.ui.noRippleClickable
 import com.anshtya.jetx.database.model.AttachmentInfo
 import com.anshtya.jetx.database.model.AttachmentTransferState
 import java.io.File
@@ -42,68 +46,55 @@ fun MessageAttachmentItem(
     onCancelDownloadClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    when (attachmentInfo.type) {
-        AttachmentType.IMAGE -> {
-            ImageView(
-                id = attachmentInfo.id,
-                downloadSize = attachmentInfo.size,
-                transferState = attachmentInfo.transferState,
-                storageLocation = attachmentInfo.storageLocation,
-                onClick = onClick,
-                onDownloadClick = onDownloadClick,
-                onCancelDownloadClick = onCancelDownloadClick,
-                modifier = modifier
-            )
-        }
-
-        AttachmentType.VIDEO -> {
-            // replace with video player view
-            AsyncImage(
-                model = Uri.fromFile(File(attachmentInfo.storageLocation!!)),
-                imageLoader = ImageLoader.Builder(LocalContext.current)
-                    .components {
-                        add(VideoFrameDecoder.Factory())
-                    }.build(),
-                contentScale = ContentScale.Crop,
-                contentDescription = null,
-                modifier = modifier.size(60.dp)
-            )
-        }
-
-        AttachmentType.DOCUMENT -> {
-            TODO("implement document attachment")
-        }
-    }
-}
-
-@Composable
-private fun ImageView(
-    id: Int,
-    downloadSize: String?,
-    transferState: AttachmentTransferState?,
-    storageLocation: String?,
-    onClick: (String) -> Unit,
-    onDownloadClick: (Int) -> Unit,
-    onCancelDownloadClick: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
     Box(modifier.fillMaxSize()) {
-        if (storageLocation != null) {
-            val model = Uri.fromFile(File(storageLocation))
-            AsyncImage(
-                model = model,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable { onClick(model.toString()) }
-            )
+        if (attachmentInfo.storageLocation != null) {
+            val model = attachmentInfo.storageLocation.toUri()
+            when (attachmentInfo.type) {
+                AttachmentType.IMAGE -> {
+                    AsyncImage(
+                        model = model,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .noRippleClickable { onClick(attachmentInfo.storageLocation) }
+                    )
+                }
+                AttachmentType.VIDEO -> {
+                    AsyncImage(
+                        model = Uri.fromFile(File(attachmentInfo.storageLocation)),
+                        imageLoader = ImageLoader.Builder(LocalContext.current)
+                            .components {
+                                add(VideoFrameDecoder.Factory())
+                            }.build(),
+                        contentScale = ContentScale.Crop,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .noRippleClickable { onClick(attachmentInfo.storageLocation) }
+                    )
+                    IconButton(
+                        onClick = { onClick(attachmentInfo.storageLocation) },
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .clip(CircleShape)
+                            .background(Color.DarkGray.copy(alpha = 0.7f))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(140.dp)
+                        )
+                    }
+                }
+            }
         } else {
-            when (transferState) {
+            when (attachmentInfo.transferState) {
                 AttachmentTransferState.STARTED -> {
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
                     Surface(
-                        onClick = { onCancelDownloadClick(id) },
+                        onClick = { onCancelDownloadClick(attachmentInfo.id) },
                         color = Color.Transparent,
                         modifier = Modifier
                             .clip(CircleShape)
@@ -119,7 +110,7 @@ private fun ImageView(
 
                 else -> {
                     Surface(
-                        onClick = { onDownloadClick(id) },
+                        onClick = { onDownloadClick(attachmentInfo.id) },
                         shape = RoundedCornerShape(20.dp),
                         modifier = Modifier
                             .align(Alignment.Center)
@@ -133,7 +124,7 @@ private fun ImageView(
                                 imageVector = Icons.Default.Download,
                                 contentDescription = null
                             )
-                            Text(downloadSize!!)
+                            Text(attachmentInfo.size!!)
                         }
                     }
                 }

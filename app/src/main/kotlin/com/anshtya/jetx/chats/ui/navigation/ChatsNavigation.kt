@@ -9,7 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
-import com.anshtya.jetx.attachments.ImageScreen
+import com.anshtya.jetx.attachments.ui.MediaScreen
 import com.anshtya.jetx.chats.ui.archivedchatlist.ArchivedChatListRoute
 import com.anshtya.jetx.chats.ui.chat.ChatRoute
 import com.anshtya.jetx.chats.ui.chat.toChatDestination
@@ -65,16 +65,16 @@ fun NavGraphBuilder.chats(
             )
         ) {
             ChatRoute(
-                onNavigateToImageScreen = { data ->
-                    navController.navigate(ChatsDestinations.Image(data))
+                onNavigateToMediaScreen = { data ->
+                    navController.navigate(ChatsDestinations.Media(data))
                 },
                 onBackClick = navController::navigateUp
             )
         }
 
-        composable<ChatsDestinations.Image> { backStackEntry ->
-            ImageScreen(
-                data = backStackEntry.toRoute<ChatsDestinations.Image>().data,
+        composable<ChatsDestinations.Media> { backStackEntry ->
+            MediaScreen(
+                data = backStackEntry.toRoute<ChatsDestinations.Media>().data,
                 onBackClick = navController::navigateUp
             )
         }

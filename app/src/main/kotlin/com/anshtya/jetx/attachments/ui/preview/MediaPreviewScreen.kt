@@ -192,8 +192,7 @@ private fun UriPreview(
 ) {
     val context = LocalContext.current
     Box(modifier.fillMaxSize()) {
-        val attachmentType = uri.getMimeType(context)?.let { AttachmentType.fromMimeType(it) }
-            ?: AttachmentType.DOCUMENT
+        val attachmentType = uri.getMimeType(context)?.let { AttachmentType.fromMimeType(it) }!!
         when (attachmentType) {
             AttachmentType.IMAGE -> {
                 AsyncImage(
@@ -219,8 +218,6 @@ private fun UriPreview(
                         .fillMaxWidth()
                 )
             }
-
-            AttachmentType.DOCUMENT -> {}
         }
     }
 }
@@ -232,8 +229,7 @@ private fun UriItem(
 ) {
     val context = LocalContext.current
     uri?.let { uri ->
-        val attachmentType = uri.getMimeType(context)?.let { AttachmentType.fromMimeType(it) }
-            ?: AttachmentType.DOCUMENT
+        val attachmentType = uri.getMimeType(context)?.let { AttachmentType.fromMimeType(it) }!!
         when (attachmentType) {
             AttachmentType.IMAGE -> {
                 AsyncImage(
@@ -256,8 +252,6 @@ private fun UriItem(
                     modifier = modifier.size(60.dp)
                 )
             }
-
-            AttachmentType.DOCUMENT -> {}
         }
     } ?: Box(modifier.size(60.dp)) {
         Icon(

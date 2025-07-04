@@ -60,8 +60,12 @@ class AttachmentRepository @Inject constructor(
             throw IllegalArgumentException("Unsupported attachment type")
         }
         val attachmentType = AttachmentType.fromMimeType(mimeType)
-        var attachmentHeight: Int? = null
-        var attachmentWidth: Int? = null
+        if (attachmentType == null) {
+            throw IllegalArgumentException("Unsupported attachment type")
+        }
+
+        var attachmentHeight: Int?
+        var attachmentWidth: Int?
 
         when (attachmentType) {
             AttachmentType.IMAGE -> {
@@ -81,8 +85,6 @@ class AttachmentRepository @Inject constructor(
                     metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
                         ?.toIntOrNull()
             }
-
-            else -> {}
         }
         return AttachmentMetadata(
             type = attachmentType,

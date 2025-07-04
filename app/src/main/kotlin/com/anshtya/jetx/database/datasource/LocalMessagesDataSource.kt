@@ -101,7 +101,6 @@ class LocalMessagesDataSource @Inject constructor(
             val messageText = messageEntity.text ?: when (attachmentEntity!!.type) {
                 AttachmentType.IMAGE -> "Photo"
                 AttachmentType.VIDEO -> "Video"
-                AttachmentType.DOCUMENT -> "Document"
             }
             chatDao.updateRecentMessage(
                 chatId = chatId,
