@@ -1,11 +1,14 @@
 package com.anshtya.jetx.attachments.ui.preview
 
 import android.net.Uri
+import androidx.core.net.toFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.attachments.data.AttachmentRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
+import com.anshtya.jetx.common.coroutine.IoDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -17,6 +20,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.UUID
 import javax.inject.Inject
 
@@ -24,7 +28,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MediaPreviewViewModel @Inject constructor(
     private val attachmentRepository: AttachmentRepository,
-    private val messagesRepository: MessagesRepository
+    private val messagesRepository: MessagesRepository,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
     private val _chatIds = mutableListOf<Int>()
     private var _recipientId: UUID? = null
@@ -61,9 +66,12 @@ class MediaPreviewViewModel @Inject constructor(
             uris.map { uri ->
                 async {
                     val preUploadResult = attachmentRepository.saveAttachmentBeforeUpload(uri)
-                    if (preUploadResult.isSuccess) {
-                        preUploadUris.add(preUploadResult.getOrNull()!!)
-                    } else return@async
+                    preUploadResult.onSuccess {
+                        preUploadUris.add(it)
+                    }.onFailure {
+                        _errorMessage.update { "Error processing attachment" }
+                        return@async
+                    }
                 }
             }.awaitAll()
             _sendItems.update {
@@ -97,7 +105,10 @@ class MediaPreviewViewModel @Inject constructor(
                                     chatId = chatId,
                                     text = item.caption.ifBlank { null },
                                     attachmentUri = item.uri
-                                )
+                                ).onFailure {
+                                    _errorMessage.update { "Error sending message" }
+                                    return@async
+                                }
                             }
                         }.awaitAll()
                     }
@@ -112,6 +123,16 @@ class MediaPreviewViewModel @Inject constructor(
                         )
                     }
                 }.awaitAll()
+            }
+            _navigateToChat.update { true }
+        }
+    }
+
+    fun discardMedia() {
+        viewModelScope.launch {
+            val uris = _sendItems.value.map { it.uri }
+            withContext(ioDispatcher) {
+                uris.map { uri -> async { uri.toFile().delete() } }.awaitAll()
             }
             _navigateToChat.update { true }
         }

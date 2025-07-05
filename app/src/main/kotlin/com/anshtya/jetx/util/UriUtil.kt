@@ -6,19 +6,26 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.webkit.MimeTypeMap
-import androidx.core.net.toFile
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.request.allowHardware
 import coil3.toBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Locale
 
 object UriUtil {
-    fun Uri.getImageDimensions(): Pair<Int, Int> {
+    suspend fun Uri.getImageDimensions(context: Context): Pair<Int, Int> {
         val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(this.toFile().absolutePath, options)
+        withContext(Dispatchers.IO) {
+            ensureActive()
+            context.contentResolver.openInputStream(this@getImageDimensions)?.use { inputStream ->
+                BitmapFactory.decodeStream(inputStream, null, options)
+            }
+        }
         return Pair(options.outHeight, options.outWidth)
     }
 

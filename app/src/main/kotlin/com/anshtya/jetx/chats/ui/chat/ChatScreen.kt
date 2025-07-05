@@ -76,7 +76,7 @@ import java.util.UUID
 @Composable
 fun ChatRoute(
     onBackClick: () -> Unit,
-    onNavigateToImageScreen: (String) -> Unit,
+    onNavigateToMediaScreen: (String) -> Unit,
     viewModel: ChatViewModel = hiltViewModel()
 ) {
     val chatUser by viewModel.recipientUser.collectAsStateWithLifecycle()
@@ -95,7 +95,7 @@ fun ChatRoute(
         onClearSelectedMessages = viewModel::clearSelectedMessages,
         onDeleteMessageClick = viewModel::deleteMessages,
         onChatSeen = viewModel::markChatMessagesAsSeen,
-        onAttachmentClick = onNavigateToImageScreen,
+        onAttachmentClick = onNavigateToMediaScreen,
         onAttachmentDownloadClick = viewModel::downloadAttachment,
         onCancelDownloadClick = viewModel::cancelAttachmentDownload,
         onErrorShown = viewModel::errorShown,
@@ -201,7 +201,7 @@ private fun ChatScreen(
             chatMessages.forEachIndexed { index, message ->
                 val messageInfo = message.messageInfo
 
-                val previousIndex = (index - 1).takeIf { it > 0 }
+                val previousIndex = (index - 1).takeIf { it >= 0 }
                 val previousMessageInfo = previousIndex?.let { chatMessages[it].messageInfo }
                 if (previousMessageInfo != null &&
                     isNotSameDay(messageInfo.createdAt, previousMessageInfo.createdAt)

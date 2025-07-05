@@ -30,6 +30,7 @@ class MessagesRepositoryImpl @Inject constructor(
     private val attachmentRepository: AttachmentRepository,
     private val workScheduler: WorkScheduler
 ) : MessagesRepository {
+    private val tag = this::class.simpleName
     private val supabaseAuth = client.auth
     private val networkMessagesTable = client.from(MESSAGE_TABLE)
     private val attachmentTable = client.from(Constants.ATTACHMENT_TABLE)
@@ -43,7 +44,7 @@ class MessagesRepositoryImpl @Inject constructor(
         recipientId: UUID,
         text: String?,
         attachmentId: String
-    ): Int {
+    ): Result<Int> = try {
         val networkAttachment = if (attachmentId.isNotBlank()) {
             attachmentTable.select {
                 filter { eq("id", attachmentId.toInt()) }
@@ -59,30 +60,34 @@ class MessagesRepositoryImpl @Inject constructor(
                 AttachmentFormat.UrlAttachment(networkAttachment)
             } else AttachmentFormat.None,
             currentUser = false
-        )
+        ).getOrThrow()
         networkMessagesTable.update(
             update = { set("has_received", true) },
             request = {
                 filter { eq("id", message.uid) }
             }
         )
-        return message.chatId
+        Result.success(message.chatId)
+    } catch (e: Exception) {
+        Log.e(tag, "Error receiving chat message - ${e.message}")
+        Result.failure(e)
     }
 
     override suspend fun sendChatMessage(
         chatId: Int,
         text: String?,
         attachmentUri: Uri?
-    ) {
+    ): Result<Unit> = runCatching {
         val recipientId = chatDao.getChatRecipientId(chatId)
         sendChatMessage(recipientId, text, attachmentUri)
+        Result.success(Unit)
     }
 
     override suspend fun sendChatMessage(
         recipientId: UUID,
         text: String?,
         attachmentUri: Uri?
-    ) {
+    ): Result<Unit> = try {
         val attachmentStorageUri = attachmentUri?.let {
             attachmentRepository.migrateToStorage(it).getOrNull()
         }
@@ -96,12 +101,16 @@ class MessagesRepositoryImpl @Inject constructor(
                     uri = attachmentStorageUri,
                     attachmentMetadata = attachmentRepository.getAttachmentMetadata(
                         uri = attachmentStorageUri
-                    )
+                    ).getOrThrow()
                 )
             } else AttachmentFormat.None,
             currentUser = true
-        )
+        ).getOrThrow()
         workScheduler.createMessageSendWork(message.uid)
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Log.e(tag, "Error sending chat message - ${e.message}")
+        Result.failure(e)
     }
 
     override suspend fun markChatMessagesAsSeen(chatId: Int) {
@@ -124,20 +133,25 @@ class MessagesRepositoryImpl @Inject constructor(
         text: String?,
         attachmentFormat: AttachmentFormat,
         currentUser: Boolean
-    ): MessageEntity {
+    ): Result<MessageEntity> = try {
         val profileId = if (currentUser) recipientId else senderId
         val profileExists = profileRepository.getProfile(profileId)
         if (profileExists == null) {
             profileRepository.saveProfile(profileId.toString())
         }
-        return localMessagesDataSource.insertMessage(
-            id = id,
-            senderId = senderId,
-            recipientId = recipientId,
-            text = text,
-            attachmentFormat = attachmentFormat,
-            currentUser = currentUser
+        Result.success(
+            localMessagesDataSource.insertMessage(
+                id = id,
+                senderId = senderId,
+                recipientId = recipientId,
+                text = text,
+                attachmentFormat = attachmentFormat,
+                currentUser = currentUser
+            )
         )
+    } catch (e: Exception) {
+        Log.e(tag, "Error saving chat message - ${e.message}")
+        Result.failure(e)
     }
 
     override suspend fun deleteMessages(ids: List<Int>) {

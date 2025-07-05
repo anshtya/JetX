@@ -82,4 +82,6 @@
     <string name="send_to">Send to</string>
     <string name="recent_chats">Recent chats</string>
     <string name="no_recent_chats">No recent chats</string>
+
+    <string name="discard_media">Discard media?</string>
 </resources>

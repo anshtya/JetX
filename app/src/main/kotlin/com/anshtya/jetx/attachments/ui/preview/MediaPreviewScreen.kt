@@ -1,6 +1,7 @@
 package com.anshtya.jetx.attachments.ui.preview
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,14 +11,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
@@ -37,6 +39,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.video.VideoFrameDecoder
+import com.anshtya.jetx.R
 import com.anshtya.jetx.attachments.data.AttachmentType
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.MessageInputField
@@ -69,6 +72,7 @@ fun MediaPreviewRoute(
         onCurrentItemCaptionChange = viewModel::onCaptionChange,
         onSend = viewModel::onSend,
         onBackClick = onBackClick,
+        onDiscardMedia = viewModel::discardMedia,
         onErrorShown = viewModel::onErrorShown
     )
 }
@@ -83,6 +87,7 @@ private fun MediaPreviewScreen(
     onCurrentItemCaptionChange: (Int, String) -> Unit,
     onBackClick: () -> Unit,
     onSend: () -> Unit,
+    onDiscardMedia: () -> Unit,
     onErrorShown: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -134,11 +139,42 @@ private fun MediaPreviewScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            val context = LocalContext.current
             when (uiState) {
                 is MediaPreviewUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 is MediaPreviewUiState.DataLoaded -> {
                     val sendItems = uiState.data
                     if (sendItems.isNotEmpty()) {
+                        val currentUri = sendItems[currentItemIndex].uri
+                        val attachmentType = currentUri.getMimeType(context)?.let {
+                            AttachmentType.fromMimeType(it)
+                        }!!
+
+                        val player = remember(currentUri) {
+                            if (attachmentType == AttachmentType.VIDEO) {
+                                ExoPlayer.Builder(context).build().apply {
+                                    setMediaItem(MediaItem.fromUri(currentUri))
+                                    prepare()
+                                }
+                            } else null
+                        }
+
+                        var showDiscardMediaDialog by remember { mutableStateOf(false) }
+                        if (showDiscardMediaDialog) {
+                            DiscardMediaDialog(
+                                onDismiss = { showDiscardMediaDialog = false },
+                                onConfirmClick = {
+                                    player?.release()
+                                    onDiscardMedia()
+                                }
+                            )
+                        }
+
+                        BackHandler {
+                            player?.pause()
+                            showDiscardMediaDialog = true
+                        }
+
                         Column(
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                             modifier = Modifier
@@ -146,12 +182,17 @@ private fun MediaPreviewScreen(
                                 .fillMaxSize()
                         ) {
                             UriPreview(
-                                uri = sendItems[currentItemIndex].uri,
+                                uri = currentUri,
+                                attachmentType = attachmentType,
+                                player = player,
                                 modifier = Modifier.weight(1f)
                             )
                             MediaRow(
                                 sendItems = sendItems,
-                                onItemClick = onCurrentItemChange
+                                onItemClick = {
+                                    player?.release()
+                                    onCurrentItemChange(it)
+                                }
                             )
                         }
                     }
@@ -173,8 +214,13 @@ private fun MediaRow(
         modifier = modifier
     ) {
         sendItems.forEachIndexed { index, sendItem ->
+            val context = LocalContext.current
+            val attachmentType = sendItem.uri.getMimeType(context)?.let {
+                AttachmentType.fromMimeType(it)
+            }!!
             UriItem(
                 uri = sendItem.uri,
+                attachmentType = attachmentType,
                 modifier = Modifier.clickable { onItemClick(index) }
             )
         }
@@ -188,11 +234,11 @@ private fun MediaRow(
 @Composable
 private fun UriPreview(
     uri: Uri,
-    modifier: Modifier = Modifier
+    attachmentType: AttachmentType,
+    modifier: Modifier = Modifier,
+    player: ExoPlayer? = null
 ) {
-    val context = LocalContext.current
     Box(modifier.fillMaxSize()) {
-        val attachmentType = uri.getMimeType(context)?.let { AttachmentType.fromMimeType(it) }!!
         when (attachmentType) {
             AttachmentType.IMAGE -> {
                 AsyncImage(
@@ -205,18 +251,14 @@ private fun UriPreview(
             }
 
             AttachmentType.VIDEO -> {
-                val player = remember {
-                    ExoPlayer.Builder(context).build().apply {
-                        setMediaItem(MediaItem.fromUri(uri))
-                        prepare()
-                    }
+                player?.let {
+                    VideoPlayerSurface(
+                        player = player,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .fillMaxWidth()
+                    )
                 }
-                VideoPlayerSurface(
-                    player = player,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .fillMaxWidth()
-                )
             }
         }
     }
@@ -224,42 +266,59 @@ private fun UriPreview(
 
 @Composable
 private fun UriItem(
-    uri: Uri?,
+    uri: Uri,
+    attachmentType: AttachmentType,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-    uri?.let { uri ->
-        val attachmentType = uri.getMimeType(context)?.let { AttachmentType.fromMimeType(it) }!!
-        when (attachmentType) {
-            AttachmentType.IMAGE -> {
-                AsyncImage(
-                    model = uri,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = modifier.size(60.dp)
-                )
-            }
+    when (attachmentType) {
+        AttachmentType.IMAGE -> {
+            AsyncImage(
+                model = uri,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = modifier.size(60.dp)
+            )
+        }
 
-            AttachmentType.VIDEO -> {
-                AsyncImage(
-                    model = uri,
-                    imageLoader = ImageLoader.Builder(context)
-                        .components {
-                            add(VideoFrameDecoder.Factory())
-                        }.build(),
-                    contentScale = ContentScale.Crop,
-                    contentDescription = null,
-                    modifier = modifier.size(60.dp)
-                )
+        AttachmentType.VIDEO -> {
+            val context = LocalContext.current
+            AsyncImage(
+                model = uri,
+                imageLoader = ImageLoader.Builder(context)
+                    .components {
+                        add(VideoFrameDecoder.Factory())
+                    }.build(),
+                contentScale = ContentScale.Crop,
+                contentDescription = null,
+                modifier = modifier.size(60.dp)
+            )
+        }
+    }
+//    Box(modifier.size(60.dp)) {
+//        Icon(
+//            imageVector = Icons.Default.Add,
+//            contentDescription = null,
+//            modifier = Modifier
+//                .size(40.dp)
+//                .align(Alignment.Center)
+//        )
+//    }
+}
+
+@Composable
+private fun DiscardMediaDialog(
+    onDismiss: () -> Unit,
+    onConfirmClick: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        text = {
+            Text(text = stringResource(id = R.string.discard_media))
+        },
+        confirmButton = {
+            TextButton(onConfirmClick) {
+                Text(text = stringResource(id = R.string.ok))
             }
         }
-    } ?: Box(modifier.size(60.dp)) {
-        Icon(
-            imageVector = Icons.Default.Add,
-            contentDescription = null,
-            modifier = Modifier
-                .size(40.dp)
-                .align(Alignment.Center)
-        )
-    }
+    )
 }

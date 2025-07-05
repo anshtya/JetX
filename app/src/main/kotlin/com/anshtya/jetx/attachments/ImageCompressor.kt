@@ -35,7 +35,7 @@ class ImageCompressor @Inject constructor(
             }
         }
         if (inputBytes == null){
-            Log.w(tag, "Input stream is null for URI: $uri")
+            Log.i(tag, "Input stream is null for URI: $uri")
             throw IOException("File doesn't exist")
         }
 
@@ -43,7 +43,7 @@ class ImageCompressor @Inject constructor(
             ensureActive()
             val bitmap = BitmapFactory.decodeByteArray(inputBytes, 0, inputBytes.size)
             if (bitmap == null) {
-                Log.w(tag, "Image could not be decoded")
+                throw IOException("Image could not be decoded")
             }
 
             val compressFormat = when (mimeType) {
@@ -66,8 +66,7 @@ class ImageCompressor @Inject constructor(
             return@withContext ByteArrayOutputStream().use { outputStream ->
                 val compressionSuccess = bitmap.compress(compressFormat, 80, outputStream)
                 if (!compressionSuccess) {
-                    Log.w(tag, "Bitmap compression failed")
-                    throw IOException()
+                    throw IOException("Bitmap compression failed")
                 }
                 outputStream.toByteArray()
             }

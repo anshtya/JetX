@@ -12,13 +12,13 @@ interface MessagesRepository {
         recipientId: UUID,
         text: String?,
         attachmentUri: Uri?
-    )
+    ): Result<Unit>
 
     suspend fun sendChatMessage(
         chatId: Int,
         text: String?,
         attachmentUri: Uri?
-    )
+    ): Result<Unit>
 
     suspend fun receiveChatMessage(
         id: UUID,
@@ -26,7 +26,7 @@ interface MessagesRepository {
         recipientId: UUID,
         text: String?,
         attachmentId: String
-    ): Int
+    ): Result<Int>
 
     suspend fun markChatMessagesAsSeen(chatId: Int)
 

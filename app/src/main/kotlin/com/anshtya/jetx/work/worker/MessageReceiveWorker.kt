@@ -49,7 +49,7 @@ class MessageReceiveWorker @AssistedInject constructor(
                 recipientId = message.recipientId,
                 text = message.text.takeIf { it.isNotBlank() },
                 attachmentId = message.attachmentId
-            )
+            ).getOrThrow()
 
             if (chatsRepository.currentChatId != chatId) {
                 val senderProfile = profileRepository.getProfile(message.senderId)!!

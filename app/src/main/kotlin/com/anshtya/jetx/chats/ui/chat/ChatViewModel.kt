@@ -112,7 +112,10 @@ class ChatViewModel @Inject constructor(
                 recipientId = recipientUser.id,
                 text = message,
                 attachmentUri = attachmentUri
-            )
+            ).onFailure {
+                _errorMessage.update { "Error sending message" }
+                return@launch
+            }
             if (chatId.value == null) {
                 chatId.update { chatsRepository.getChatId(recipientUser.id) }
                 chatsRepository.setCurrentChatId(chatId.value)

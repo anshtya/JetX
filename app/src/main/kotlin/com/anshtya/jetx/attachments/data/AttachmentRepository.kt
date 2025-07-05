@@ -52,9 +52,9 @@ class AttachmentRepository @Inject constructor(
     private val mediaBucket = client.storage.from(Constants.MEDIA_STORAGE)
     private val attachmentTable = client.from(Constants.ATTACHMENT_TABLE)
 
-    fun getAttachmentMetadata(
+    suspend fun getAttachmentMetadata(
         uri: Uri
-    ): AttachmentMetadata {
+    ): Result<AttachmentMetadata> = try {
         val mimeType = uri.getMimeType(context)
         if (mimeType == null) {
             throw IllegalArgumentException("Unsupported attachment type")
@@ -69,7 +69,7 @@ class AttachmentRepository @Inject constructor(
 
         when (attachmentType) {
             AttachmentType.IMAGE -> {
-                val dimensions = uri.getImageDimensions()
+                val dimensions = uri.getImageDimensions(context)
                 attachmentHeight = dimensions.first
                 attachmentWidth = dimensions.second
             }
@@ -86,34 +86,42 @@ class AttachmentRepository @Inject constructor(
                         ?.toIntOrNull()
             }
         }
-        return AttachmentMetadata(
-            type = attachmentType,
-            height = attachmentHeight,
-            width = attachmentWidth
+        Result.success(
+            AttachmentMetadata(
+                type = attachmentType,
+                height = attachmentHeight,
+                width = attachmentWidth
+            )
         )
+    } catch (e: Exception) {
+        Log.e(tag, "Error Attachment metadata - ${e.message}")
+        Result.failure(e)
     }
 
     suspend fun saveAttachmentBeforeUpload(
         uri: Uri
-    ): Result<Uri> = runCatching {
+    ): Result<Uri> = try {
         val mimeType = uri.getMimeType(context)
         if (mimeType == null) {
             throw IllegalArgumentException("Unsupported attachment type")
         }
 
         val attachmentType = AttachmentType.fromMimeType(mimeType)
-        val result = when (attachmentType) {
-            AttachmentType.IMAGE -> saveImageBeforeUpload(uri, mimeType)
-            AttachmentType.VIDEO -> saveVideoBeforeUpload(uri)
+        val uri = when (attachmentType) {
+            AttachmentType.IMAGE -> saveImageBeforeUpload(uri, mimeType).getOrThrow()
+            AttachmentType.VIDEO -> saveVideoBeforeUpload(uri).getOrThrow()
 
-            else -> Result.success(Uri.EMPTY)
+            else -> Uri.EMPTY
         }
-        return result
+        Result.success(uri)
+    } catch (e: Exception) {
+        Log.e(tag, "Error saving attachment before upload - ${e.message}")
+        Result.failure(e)
     }
 
     suspend fun uploadMediaAttachment(
         attachmentPath: String
-    ): Result<Int> = runCatching {
+    ): Result<Int> = try {
         val attachmentFile = File(attachmentPath)
 
         val attachmentUri = attachmentFile.toUri()
@@ -122,7 +130,7 @@ class AttachmentRepository @Inject constructor(
             throw IllegalArgumentException("Unsupported attachment type")
         }
 
-        val attachmentMetadata = getAttachmentMetadata(attachmentUri)
+        val attachmentMetadata = getAttachmentMetadata(attachmentUri).getOrThrow()
 
         val inputByteArray = withContext(ioDispatcher) {
             ensureActive()
@@ -141,12 +149,15 @@ class AttachmentRepository @Inject constructor(
             )
         ) { select(Columns.list("id")) }.decodeSingle<AttachmentUploadResponse>()
 
-        attachmentUploadResponse.id
+        Result.success(attachmentUploadResponse.id)
+    } catch (e: Exception) {
+        Log.e(tag, "Error uploading attachment - ${e.message}")
+        Result.failure(e)
     }
 
     fun migrateToStorage(
         uri: Uri
-    ): Result<Uri> = runCatching {
+    ): Result<Uri> = try {
         val storageDirectory = FileUtil.getAttachmentStorageDirectory(context)
         val attachmentFile = uri.toFile()
         val newFile = File(storageDirectory, attachmentFile.name)
@@ -154,12 +165,15 @@ class AttachmentRepository @Inject constructor(
             copyTo(newFile, overwrite = true)
             delete()
         }
-        return Result.success(newFile.toUri())
+        Result.success(newFile.toUri())
+    } catch (e: Exception) {
+        Log.e(tag, "Error saving attachment to storage - ${e.message}")
+        Result.failure(e)
     }
 
     suspend fun saveImage(
         byteArray: ByteArray
-    ): Result<Uri> = runCatching {
+    ): Result<Uri> = try {
         val storageDirectory = FileUtil.getAttachmentStorageDirectory(context)
         val file = FileUtil.createFile(storageDirectory, ext = "jpg")
         withContext(ioDispatcher) {
@@ -168,12 +182,15 @@ class AttachmentRepository @Inject constructor(
                 outputStream.write(byteArray)
             }
         }
-        return Result.success(file.toUri())
+        Result.success(file.toUri())
+    } catch (e: Exception) {
+        Log.e(tag, "Error saving image to storage - ${e.message}")
+        Result.failure(e)
     }
 
     suspend fun saveVideo(
         byteArray: ByteArray
-    ): Result<Uri> = runCatching {
+    ): Result<Uri> = try {
         val storageDirectory = FileUtil.getAttachmentStorageDirectory(context)
         val file = FileUtil.createFile(storageDirectory, ext = "mp4")
         withContext(ioDispatcher) {
@@ -182,35 +199,44 @@ class AttachmentRepository @Inject constructor(
                 outputStream.write(byteArray)
             }
         }
-        return Result.success(file.toUri())
+        Result.success(file.toUri())
+    } catch (e: Exception) {
+        Log.e(tag, "Error saving video to storage - ${e.message}")
+        Result.failure(e)
     }
 
     private suspend fun saveImageBeforeUpload(
         uri: Uri,
         mimeType: String
-    ): Result<Uri> = runCatching {
+    ): Result<Uri> = try {
         val fileExtension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType) ?: "jpg"
         val byteArray = imageCompressor.compressImage(uri, mimeType).getOrThrow()
-        return withContext(ioDispatcher) {
+        withContext(ioDispatcher) {
             val fileDirectory = FileUtil.getAttachmentCacheDirectory(context)
             val outputPath = FileUtil.createFile(fileDirectory, ext = fileExtension)
             ensureActive()
             FileOutputStream(outputPath).use { outputStream -> outputStream.write(byteArray) }
             Result.success(outputPath.toUri())
         }
+    } catch (e: Exception) {
+        Log.e(tag, "Error saving image before upload - ${e.message}")
+        Result.failure(e)
     }
 
     suspend fun saveBitmapImageBeforeUpload(
         bitmap: Bitmap
-    ): Result<Uri> = runCatching {
+    ): Result<Uri> = try {
         val byteArray = imageCompressor.compressImage(bitmap).getOrThrow()
-        return withContext(ioDispatcher) {
+        withContext(ioDispatcher) {
             val fileDirectory = FileUtil.getAttachmentCacheDirectory(context)
             val outputPath = FileUtil.createFile(fileDirectory, ext = "jpg")
             ensureActive()
             FileOutputStream(outputPath).use { outputStream -> outputStream.write(byteArray) }
             Result.success(outputPath.toUri())
         }
+    } catch (e: Exception) {
+        Log.e(tag, "Error saving bitmap before upload - ${e.message}")
+        Result.failure(e)
     }
 
     @OptIn(UnstableApi::class)
@@ -223,7 +249,7 @@ class AttachmentRepository @Inject constructor(
                 FileUtil.createFile(fileDirectory, ext = "mp4")
             }
 
-            val metadata = getAttachmentMetadata(uri)
+            val metadata = getAttachmentMetadata(uri).getOrThrow()
             if (metadata.height!! <= 480 || metadata.width!! <= 480) {
                 val file = File(uri.path!!)
                 with(file) {
@@ -262,7 +288,7 @@ class AttachmentRepository @Inject constructor(
                         result: ExportResult,
                         exception: ExportException
                     ) {
-                        Log.w(tag, "Transformer exception - ${exception.message}")
+                        Log.e(tag, "Transformer exception - ${exception.message}")
                         continuation.resumeWithException(exception)
                     }
                 }
@@ -273,7 +299,7 @@ class AttachmentRepository @Inject constructor(
 
             Result.success(uri)
         } catch (e: Exception) {
-            Log.w(tag, "error in transformer - ${e.message}")
+            Log.e(tag, "error in transformer - ${e.message}")
             Result.failure(e)
         }
     }
