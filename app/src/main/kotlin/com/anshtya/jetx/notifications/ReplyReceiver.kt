@@ -1,11 +1,14 @@
 package com.anshtya.jetx.notifications
 
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.RemoteInput
+import androidx.core.net.toUri
+import com.anshtya.jetx.MainActivity
 import com.anshtya.jetx.R
 import com.anshtya.jetx.chats.data.MessagesRepository
 import com.anshtya.jetx.common.coroutine.DefaultScope
@@ -16,9 +19,12 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class ReplyReceiver: BroadcastReceiver() {
+class ReplyReceiver : BroadcastReceiver() {
     @Inject
     lateinit var messagesRepository: MessagesRepository
+
+    @Inject
+    lateinit var notificationManager: NotificationManager
 
     @Inject
     @DefaultScope
@@ -32,6 +38,17 @@ class ReplyReceiver: BroadcastReceiver() {
         val replyText = RemoteInput.getResultsFromIntent(intent)?.getCharSequence("text_reply")
             .toString()
 
+        val resultIntent = Intent(context, MainActivity::class.java).apply {
+            data =
+                "${Constants.BASE_APP_URL}/${Constants.CHAT_ARG}?${Constants.CHAT_ID_ARG}=$chatId"
+                    .toUri()
+        }
+        val resultPendingIntent = PendingIntent.getActivity(
+            context,
+            chatId,
+            resultIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
         val repliedNotification = NotificationCompat.Builder(
             context!!, NotificationChannels.MESSAGE_CHANNEL
         )
@@ -39,15 +56,15 @@ class ReplyReceiver: BroadcastReceiver() {
             .setContentTitle(senderName)
             .setContentText("You: $replyText")
             .setSilent(true)
+            .setContentIntent(resultPendingIntent)
             .build()
 
-        (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
-            .notify(chatId, repliedNotification)
+        notificationManager.notify(chatId, repliedNotification)
 
         val finisher = goAsync()
         coroutineScope.launch {
             messagesRepository.markChatMessagesAsSeen(chatId)
-            messagesRepository.sendChatMessage(chatId, replyText, attachmentUri = null)
+            messagesRepository.sendChatMessage(chatId, replyText, attachmentUri = null).getOrThrow()
             finisher.finish()
         }
     }

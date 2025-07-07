@@ -7,9 +7,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.RemoteInput
-import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat.getString
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.net.toUri
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
@@ -36,7 +34,8 @@ class MessageReceiveWorker @AssistedInject constructor(
     private val chatsRepository: ChatsRepository,
     private val profileRepository: ProfileRepository,
     private val messagesRepository: MessagesRepository,
-    private val chatDao: ChatDao
+    private val chatDao: ChatDao,
+    private val notificationManager: NotificationManager
 ) : CoroutineWorker(appContext, workerParams) {
     override suspend fun doWork(): Result {
         return try {
@@ -78,10 +77,12 @@ class MessageReceiveWorker @AssistedInject constructor(
                 "${Constants.BASE_APP_URL}/${Constants.CHAT_ARG}?${Constants.CHAT_ID_ARG}=$chatId"
                     .toUri()
         }
-        val resultPendingIntent = TaskStackBuilder.create(applicationContext).run {
-            addNextIntentWithParentStack(resultIntent)
-            getPendingIntent(chatId, PendingIntent.FLAG_IMMUTABLE)
-        }
+        val resultPendingIntent = PendingIntent.getActivity(
+            applicationContext,
+            chatId,
+            resultIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
         val markAsReadPendingIntent = PendingIntent.getBroadcast(
             applicationContext,
@@ -127,10 +128,11 @@ class MessageReceiveWorker @AssistedInject constructor(
             )
             .addAction(replyAction)
 
-        val notificationManager =
-            getSystemService(applicationContext, NotificationManager::class.java)
-        notificationManager?.cancel(0)
-        notificationManager?.notify(chatId, builder.build())
+
+        with(notificationManager) {
+            cancel(0)
+            notify(chatId, builder.build())
+        }
     }
 
     private fun postMayHaveNewMessages() {
@@ -142,9 +144,7 @@ class MessageReceiveWorker @AssistedInject constructor(
             .setContentTitle(getString(applicationContext, R.string.app_name))
             .setContentText(getString(applicationContext, R.string.may_have_new_messages))
 
-        val notificationManager =
-            getSystemService(applicationContext, NotificationManager::class.java)
-        notificationManager?.notify(0, builder.build())
+        notificationManager.notify(0, builder.build())
     }
 
     companion object {

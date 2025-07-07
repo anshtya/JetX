@@ -18,6 +18,9 @@ class MarkAsReadReceiver: BroadcastReceiver() {
     lateinit var messagesRepository: MessagesRepository
 
     @Inject
+    lateinit var notificationManager: NotificationManager
+
+    @Inject
     @DefaultScope
     lateinit var coroutineScope: CoroutineScope
             
@@ -25,7 +28,7 @@ class MarkAsReadReceiver: BroadcastReceiver() {
         val chatId = intent?.getIntExtra(Constants.CHAT_ID_ARG, 0) ?: return
         if (chatId == 0) return
 
-        (context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(chatId)
+        notificationManager.cancel(chatId)
 
         val finisher = goAsync()
         coroutineScope.launch {

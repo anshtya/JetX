@@ -1,5 +1,6 @@
 package com.anshtya.jetx.chats.ui.chatlist
 
+import android.app.NotificationManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.chats.data.ChatsRepository
@@ -26,7 +27,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
     private val chatsRepository: ChatsRepository,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val notificationManager: NotificationManager
 ) : ViewModel() {
     private val _selectedFilter = MutableStateFlow(FilterOption.ALL)
     val selectedFilter = _selectedFilter.asStateFlow()
@@ -126,6 +128,10 @@ class ChatListViewModel @Inject constructor(
 
     fun changeSearchQuery(searchQuery: String) {
         _searchQuery.update { searchQuery }
+    }
+
+    fun clearNotification(chatId: Int) {
+        notificationManager.cancel(chatId)
     }
 }
 

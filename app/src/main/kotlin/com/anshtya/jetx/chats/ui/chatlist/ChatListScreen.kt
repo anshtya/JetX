@@ -82,7 +82,10 @@ fun ChatListRoute(
         selectedFilter = selectedFilter,
         searchQuery = searchQuery,
         searchSuggestions = searchSuggestions,
-        onChatClick = onNavigateToChat,
+        onChatClick = {
+            viewModel.clearNotification(it.chatId!!)
+            onNavigateToChat(it)
+        },
         onSelectChat = viewModel::selectChat,
         onUnselectChat = viewModel::unSelectChat,
         onClearSelectedChats = viewModel::clearSelectedChats,
