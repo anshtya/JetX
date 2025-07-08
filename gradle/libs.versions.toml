@@ -1,6 +1,6 @@
 [versions]
 activityCompose = "1.9.3"
-agp = "8.7.3"
+agp = "8.11.0"
 androidxCamera = "1.4.1"
 androidxCoreSplashScreen = "1.0.1"
 androidxDatastore = "1.1.1"
