@@ -2,14 +2,14 @@ package com.anshtya.jetx.chats.data
 
 import android.net.Uri
 import android.util.Log
-import com.anshtya.jetx.attachments.data.AttachmentFormat
 import com.anshtya.jetx.attachments.data.AttachmentRepository
-import com.anshtya.jetx.attachments.data.NetworkAttachment
-import com.anshtya.jetx.database.dao.ChatDao
-import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
-import com.anshtya.jetx.database.entity.MessageEntity
-import com.anshtya.jetx.database.model.MessageWithAttachment
-import com.anshtya.jetx.profile.ProfileRepository
+import com.anshtya.jetx.shared.attachments.Attachment
+import com.anshtya.jetx.shared.attachments.NetworkAttachment
+import com.anshtya.jetx.shared.database.dao.ChatDao
+import com.anshtya.jetx.shared.database.datasource.LocalMessagesDataSource
+import com.anshtya.jetx.shared.database.entity.MessageEntity
+import com.anshtya.jetx.shared.database.model.MessageWithAttachment
+import com.anshtya.jetx.shared.profile.ProfileRepository
 import com.anshtya.jetx.util.Constants
 import com.anshtya.jetx.util.Constants.MESSAGE_TABLE
 import com.anshtya.jetx.work.WorkScheduler
@@ -17,12 +17,11 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.Flow
+import org.koin.core.annotation.Single
 import java.util.UUID
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class MessagesRepositoryImpl @Inject constructor(
+@Single(binds = [MessagesRepository::class])
+class MessagesRepositoryImpl(
     client: SupabaseClient,
     private val chatDao: ChatDao,
     private val localMessagesDataSource: LocalMessagesDataSource,
@@ -56,9 +55,9 @@ class MessagesRepositoryImpl @Inject constructor(
             senderId = senderId,
             recipientId = recipientId,
             text = text,
-            attachmentFormat = if (networkAttachment != null) {
-                AttachmentFormat.UrlAttachment(networkAttachment)
-            } else AttachmentFormat.None,
+            attachment = if (networkAttachment != null) {
+                Attachment.UrlAttachment(networkAttachment)
+            } else Attachment.None,
             currentUser = false
         ).getOrThrow()
         networkMessagesTable.update(
@@ -96,14 +95,14 @@ class MessagesRepositoryImpl @Inject constructor(
             senderId = UUID.fromString(supabaseAuth.currentUserOrNull()?.id),
             recipientId = recipientId,
             text = text,
-            attachmentFormat = if (attachmentStorageUri != null) {
-                AttachmentFormat.UriAttachment(
-                    uri = attachmentStorageUri,
+            attachment = if (attachmentStorageUri != null) {
+                Attachment.UriAttachment(
+                    absolutePath = attachmentStorageUri.path!!,
                     attachmentMetadata = attachmentRepository.getAttachmentMetadata(
                         uri = attachmentStorageUri
                     ).getOrThrow()
                 )
-            } else AttachmentFormat.None,
+            } else Attachment.None,
             currentUser = true
         ).getOrThrow()
         workScheduler.createMessageSendWork(message.uid)
@@ -131,7 +130,7 @@ class MessagesRepositoryImpl @Inject constructor(
         senderId: UUID,
         recipientId: UUID,
         text: String?,
-        attachmentFormat: AttachmentFormat,
+        attachment: Attachment,
         currentUser: Boolean
     ): Result<MessageEntity> = try {
         val profileId = if (currentUser) recipientId else senderId
@@ -145,7 +144,7 @@ class MessagesRepositoryImpl @Inject constructor(
                 senderId = senderId,
                 recipientId = recipientId,
                 text = text,
-                attachmentFormat = attachmentFormat,
+                attachment = attachment,
                 currentUser = currentUser
             )
         )

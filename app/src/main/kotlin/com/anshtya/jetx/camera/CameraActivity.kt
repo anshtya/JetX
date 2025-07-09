@@ -12,14 +12,12 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.content.IntentCompat
-import com.anshtya.jetx.attachments.ui.preview.MediaPreviewActivity
+import com.anshtya.jetx.attachments.MediaPreviewActivity
 import com.anshtya.jetx.camera.ui.CameraScreen
 import com.anshtya.jetx.ui.theme.JetXTheme
 import com.anshtya.jetx.util.Constants
-import dagger.hilt.android.AndroidEntryPoint
 import java.util.UUID
 
-@AndroidEntryPoint
 class CameraActivity : ComponentActivity() {
     lateinit var recipientId: UUID
 

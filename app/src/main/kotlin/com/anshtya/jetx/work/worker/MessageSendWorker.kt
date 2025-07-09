@@ -2,25 +2,23 @@ package com.anshtya.jetx.work.worker
 
 import android.content.Context
 import android.util.Log
-import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.anshtya.jetx.attachments.data.AttachmentRepository
-import com.anshtya.jetx.chats.data.model.toNetworkMessage
-import com.anshtya.jetx.common.model.MessageStatus
-import com.anshtya.jetx.database.dao.AttachmentDao
-import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
+import com.anshtya.jetx.shared.chats.toNetworkMessage
+import com.anshtya.jetx.shared.database.dao.AttachmentDao
+import com.anshtya.jetx.shared.database.datasource.LocalMessagesDataSource
+import com.anshtya.jetx.shared.model.MessageStatus
 import com.anshtya.jetx.util.Constants
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import org.koin.android.annotation.KoinWorker
 import java.util.UUID
 
-@HiltWorker
-class MessageSendWorker @AssistedInject constructor(
-    @Assisted appContext: Context,
-    @Assisted workerParams: WorkerParameters,
+@KoinWorker
+class MessageSendWorker(
+    appContext: Context,
+    workerParams: WorkerParameters,
     private val client: SupabaseClient,
     private val attachmentRepository: AttachmentRepository,
     private val attachmentDao: AttachmentDao,

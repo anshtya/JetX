@@ -2,17 +2,16 @@ package com.anshtya.jetx.ui.navigation.authcheck
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.auth.data.AuthRepository
-import com.anshtya.jetx.auth.data.model.AuthStatus
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.anshtya.jetx.shared.auth.AuthRepository
+import com.anshtya.jetx.shared.auth.AuthStatus
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
+import org.koin.android.annotation.KoinViewModel
 
-@HiltViewModel
-class AuthCheckViewModel @Inject constructor(
+@KoinViewModel
+class AuthCheckViewModel(
     authRepository: AuthRepository
 ) : ViewModel() {
     val userState: StateFlow<AuthCheckUiState> = authRepository.authStatus

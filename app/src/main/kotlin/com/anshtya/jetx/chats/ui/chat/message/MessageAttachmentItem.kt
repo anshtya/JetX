@@ -1,6 +1,5 @@
 package com.anshtya.jetx.chats.ui.chat.message
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,11 +31,10 @@ import androidx.core.net.toUri
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.video.VideoFrameDecoder
-import com.anshtya.jetx.attachments.data.AttachmentType
 import com.anshtya.jetx.common.ui.noRippleClickable
-import com.anshtya.jetx.database.model.AttachmentInfo
-import com.anshtya.jetx.database.model.AttachmentTransferState
-import java.io.File
+import com.anshtya.jetx.shared.attachments.AttachmentInfo
+import com.anshtya.jetx.shared.attachments.AttachmentTransferState
+import com.anshtya.jetx.shared.attachments.AttachmentType
 
 @Composable
 fun MessageAttachmentItem(
@@ -48,7 +46,8 @@ fun MessageAttachmentItem(
 ) {
     Box(modifier.fillMaxSize()) {
         if (attachmentInfo.storageLocation != null) {
-            val model = attachmentInfo.storageLocation.toUri()
+            val storageLocation = attachmentInfo.storageLocation!!
+            val model = storageLocation.toUri()
             when (attachmentInfo.type) {
                 AttachmentType.IMAGE -> {
                     AsyncImage(
@@ -57,12 +56,12 @@ fun MessageAttachmentItem(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxSize()
-                            .noRippleClickable { onClick(attachmentInfo.storageLocation) }
+                            .noRippleClickable { onClick(storageLocation) }
                     )
                 }
                 AttachmentType.VIDEO -> {
                     AsyncImage(
-                        model = Uri.fromFile(File(attachmentInfo.storageLocation)),
+                        model = storageLocation.toUri(),
                         imageLoader = ImageLoader.Builder(LocalContext.current)
                             .components {
                                 add(VideoFrameDecoder.Factory())
@@ -71,10 +70,10 @@ fun MessageAttachmentItem(
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize()
-                            .noRippleClickable { onClick(attachmentInfo.storageLocation) }
+                            .noRippleClickable { onClick(storageLocation) }
                     )
                     IconButton(
-                        onClick = { onClick(attachmentInfo.storageLocation) },
+                        onClick = { onClick(storageLocation) },
                         modifier = Modifier
                             .align(Alignment.Center)
                             .clip(CircleShape)

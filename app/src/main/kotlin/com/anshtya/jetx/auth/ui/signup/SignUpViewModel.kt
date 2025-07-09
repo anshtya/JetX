@@ -2,20 +2,19 @@ package com.anshtya.jetx.auth.ui.signup
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.auth.data.AuthRepository
 import com.anshtya.jetx.auth.ui.AuthInputValidator
 import com.anshtya.jetx.auth.ui.AuthUiState
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.anshtya.jetx.shared.auth.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.android.annotation.KoinViewModel
 
-@HiltViewModel
-class SignUpViewModel @Inject constructor(
+@KoinViewModel
+class SignUpViewModel(
     private val authRepository: AuthRepository
-): ViewModel() {
+) : ViewModel() {
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState = _uiState.asStateFlow()
 

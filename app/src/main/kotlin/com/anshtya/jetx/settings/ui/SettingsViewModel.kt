@@ -5,19 +5,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.auth.data.AuthRepository
-import com.anshtya.jetx.common.model.ThemeOption
-import com.anshtya.jetx.preferences.PreferencesStore
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.anshtya.jetx.shared.auth.AuthRepository
+import com.anshtya.jetx.shared.model.ThemeOption
+import com.anshtya.jetx.shared.preferences.PreferencesStore
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.android.annotation.KoinViewModel
 
-@HiltViewModel
-class SettingsViewModel @Inject constructor(
+@KoinViewModel
+class SettingsViewModel(
     private val authRepository: AuthRepository,
     private val preferencesStore: PreferencesStore
 ) : ViewModel() {

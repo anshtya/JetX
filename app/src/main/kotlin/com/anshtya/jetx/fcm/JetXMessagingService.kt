@@ -1,28 +1,21 @@
 package com.anshtya.jetx.fcm
 
-import com.anshtya.jetx.common.coroutine.DefaultScope
+import com.anshtya.jetx.shared.coroutine.DefaultScope
+import com.anshtya.jetx.shared.fcm.FcmTokenManager
 import com.anshtya.jetx.work.WorkScheduler
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
 
-@AndroidEntryPoint
 class JetXMessagingService : FirebaseMessagingService() {
-    @Inject
-    lateinit var workScheduler: WorkScheduler
-
-    @Inject
-    lateinit var fcmTokenManager: FcmTokenManager
-
-    @Inject
-    @DefaultScope
-    lateinit var coroutineScope: CoroutineScope
+    private val workScheduler: WorkScheduler by inject()
+    private val fcmTokenManager: FcmTokenManager by inject()
+    @DefaultScope private val coroutineScope: CoroutineScope by inject()
 
     private var job: Job? = null
 

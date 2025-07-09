@@ -1,6 +1,6 @@
 package com.anshtya.jetx.sampledata
 
-import com.anshtya.jetx.common.model.UserProfile
+import com.anshtya.jetx.shared.model.UserProfile
 import java.util.UUID
 
 val sampleUsers = listOf(

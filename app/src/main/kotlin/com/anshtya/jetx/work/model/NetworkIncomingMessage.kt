@@ -1,6 +1,6 @@
 package com.anshtya.jetx.work.model
 
-import com.anshtya.jetx.common.UUIDSerializer
+import com.anshtya.jetx.shared.UUIDSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.UUID

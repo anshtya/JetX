@@ -29,7 +29,7 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.anshtya.jetx.attachments.ui.preview.MediaPreviewActivity
+import com.anshtya.jetx.attachments.MediaPreviewActivity
 import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
 import com.anshtya.jetx.chats.ui.chat.toChatDestination
 import com.anshtya.jetx.chats.ui.navigation.ChatsDestinations

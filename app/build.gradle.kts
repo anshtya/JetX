@@ -1,4 +1,4 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
@@ -6,8 +6,6 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.hilt)
-    alias(libs.plugins.room)
     alias(libs.plugins.google.services)
     id("kotlin-parcelize")
 }
@@ -15,10 +13,6 @@ plugins {
 android {
     namespace = "com.anshtya.jetx"
     compileSdk = 35
-
-    buildFeatures {
-        buildConfig = true
-    }
 
     defaultConfig {
         applicationId = "com.anshtya.jetx"
@@ -28,11 +22,6 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        val supabaseUrl = gradleLocalProperties(rootDir, providers).getProperty("SUPABASE_URL") ?: ""
-        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
-        val supabaseKey = gradleLocalProperties(rootDir, providers).getProperty("SUPABASE_KEY") ?: ""
-        buildConfigField("String", "SUPABASE_KEY", "\"$supabaseKey\"")
     }
 
     buildTypes {
@@ -49,13 +38,14 @@ android {
             isDebuggable = false
         }
     }
-
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlinOptions {
-        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -67,11 +57,12 @@ composeCompiler {
     metricsDestination = layout.buildDirectory.dir("compose_compiler")
 }
 
-room {
-    schemaDirectory("$projectDir/schemas")
+ksp {
+    arg("KOIN_CONFIG_CHECK","true")
 }
 
 dependencies {
+    implementation(project(":shared"))
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.camera.camera2)
@@ -79,10 +70,6 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
-    implementation(libs.androidx.datastore.preferences)
-    ksp(libs.androidx.hilt.compiler)
-    implementation(libs.androidx.hilt.navigation.compose)
-    implementation(libs.androidx.hilt.work)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(platform(libs.androidx.compose.bom))
@@ -92,9 +79,6 @@ dependencies {
     implementation(libs.androidx.media3.transformer)
     implementation(libs.androidx.media3.ui.compose)
     implementation(libs.androidx.navigation.compose)
-    ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
@@ -106,8 +90,12 @@ dependencies {
     implementation(libs.coil.video)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.android.compiler)
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+    implementation(libs.koin.androidx.workmanager)
+    implementation(libs.koin.annotations)
+    implementation(libs.koin.core)
+    ksp(libs.koin.ksp.compiler)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.ktor.client.cio)
     implementation(libs.okhttp)

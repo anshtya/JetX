@@ -24,20 +24,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
 import com.anshtya.jetx.auth.ui.AuthUiState
 import com.anshtya.jetx.auth.ui.components.AuthForm
 import com.anshtya.jetx.common.ui.BackButton
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SignInRoute(
     onNavigateToHome: () -> Unit,
     onNavigateToCreateProfile: () -> Unit,
     onBackClick: () -> Unit,
-    viewModel: SignInViewModel = hiltViewModel()
+    viewModel: SignInViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val profileCreated by viewModel.profileCreated.collectAsStateWithLifecycle()

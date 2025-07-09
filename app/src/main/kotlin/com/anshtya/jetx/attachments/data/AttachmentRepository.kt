@@ -19,14 +19,17 @@ import androidx.media3.transformer.Effects
 import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.ExportResult
 import androidx.media3.transformer.Transformer
-import com.anshtya.jetx.attachments.ImageCompressor
-import com.anshtya.jetx.common.coroutine.IoDispatcher
+import com.anshtya.jetx.shared.attachments.AttachmentMetadata
+import com.anshtya.jetx.shared.attachments.AttachmentType
+import com.anshtya.jetx.shared.attachments.AttachmentUploadResponse
+import com.anshtya.jetx.shared.attachments.ImageCompressor
+import com.anshtya.jetx.shared.attachments.NetworkAttachment
+import com.anshtya.jetx.shared.coroutine.IoDispatcher
+import com.anshtya.jetx.shared.util.UriUtil.getMimeType
 import com.anshtya.jetx.util.Constants
 import com.anshtya.jetx.util.FileUtil
 import com.anshtya.jetx.util.UriUtil.getImageDimensions
-import com.anshtya.jetx.util.UriUtil.getMimeType
 import com.anshtya.jetx.util.UriUtil.getReadableFileSize
-import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
@@ -35,18 +38,17 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import org.koin.core.annotation.Single
 import java.io.File
 import java.io.FileOutputStream
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlin.coroutines.resumeWithException
 
-@Singleton
-class AttachmentRepository @Inject constructor(
+@Single
+class AttachmentRepository (
     client: SupabaseClient,
-    @ApplicationContext private val context: Context,
+    private val context: Context,
     private val imageCompressor: ImageCompressor,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
     private val tag = this::class.simpleName
     private val mediaBucket = client.storage.from(Constants.MEDIA_STORAGE)
@@ -59,7 +61,7 @@ class AttachmentRepository @Inject constructor(
         if (mimeType == null) {
             throw IllegalArgumentException("Unsupported attachment type")
         }
-        val attachmentType = AttachmentType.fromMimeType(mimeType)
+        val attachmentType = AttachmentType.Companion.fromMimeType(mimeType)
         if (attachmentType == null) {
             throw IllegalArgumentException("Unsupported attachment type")
         }
@@ -106,7 +108,7 @@ class AttachmentRepository @Inject constructor(
             throw IllegalArgumentException("Unsupported attachment type")
         }
 
-        val attachmentType = AttachmentType.fromMimeType(mimeType)
+        val attachmentType = AttachmentType.Companion.fromMimeType(mimeType)
         val uri = when (attachmentType) {
             AttachmentType.IMAGE -> saveImageBeforeUpload(uri, mimeType).getOrThrow()
             AttachmentType.VIDEO -> saveVideoBeforeUpload(uri).getOrThrow()
@@ -147,7 +149,7 @@ class AttachmentRepository @Inject constructor(
                 width = attachmentMetadata.width,
                 size = attachmentUri.getReadableFileSize()
             )
-        ) { select(Columns.list("id")) }.decodeSingle<AttachmentUploadResponse>()
+        ) { select(Columns.Companion.list("id")) }.decodeSingle<AttachmentUploadResponse>()
 
         Result.success(attachmentUploadResponse.id)
     } catch (e: Exception) {
@@ -210,7 +212,7 @@ class AttachmentRepository @Inject constructor(
         mimeType: String
     ): Result<Uri> = try {
         val fileExtension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType) ?: "jpg"
-        val byteArray = imageCompressor.compressImage(uri, mimeType).getOrThrow()
+        val byteArray = imageCompressor.compressImage(uri.path!!).getOrThrow()
         withContext(ioDispatcher) {
             val fileDirectory = FileUtil.getAttachmentCacheDirectory(context)
             val outputPath = FileUtil.createFile(fileDirectory, ext = fileExtension)

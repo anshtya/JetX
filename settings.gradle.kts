@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "JetX"
 include(":app")
+include(":shared")

@@ -3,9 +3,9 @@ package com.anshtya.jetx.ui.navigation.authcheck
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.serialization.Serializable
+import org.koin.androidx.compose.koinViewModel
 
 @Serializable
 data object AuthCheck
@@ -15,7 +15,7 @@ fun AuthCheck(
     onNavigateToChatList: () -> Unit,
     onNavigateToAuth: () -> Unit,
     onNavigateToCreateProfile: () -> Unit,
-    viewModel: AuthCheckViewModel = hiltViewModel()
+    viewModel: AuthCheckViewModel = koinViewModel()
 ) {
     val userState by viewModel.userState.collectAsStateWithLifecycle()
 

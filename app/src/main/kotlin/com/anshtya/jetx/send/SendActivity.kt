@@ -14,18 +14,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.anshtya.jetx.MainActivity
-import com.anshtya.jetx.auth.data.AuthRepository
-import com.anshtya.jetx.auth.data.model.AuthStatus
+import com.anshtya.jetx.shared.auth.AuthRepository
+import com.anshtya.jetx.shared.auth.AuthStatus
 import com.anshtya.jetx.ui.theme.JetXTheme
 import com.anshtya.jetx.util.Constants
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
 
-@AndroidEntryPoint
 class SendActivity : ComponentActivity() {
-    @Inject
-    lateinit var authRepository: AuthRepository
+    private val authRepository: AuthRepository by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -3,11 +3,10 @@ package com.anshtya.jetx.chats.ui.chatlist
 import android.app.NotificationManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.chats.data.ChatsRepository
-import com.anshtya.jetx.common.model.Chat
-import com.anshtya.jetx.common.model.UserProfile
-import com.anshtya.jetx.profile.ProfileRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.anshtya.jetx.shared.chats.ChatsRepository
+import com.anshtya.jetx.shared.model.Chat
+import com.anshtya.jetx.shared.model.UserProfile
+import com.anshtya.jetx.shared.profile.ProfileRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,11 +20,11 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.android.annotation.KoinViewModel
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-@HiltViewModel
-class ChatListViewModel @Inject constructor(
+@KoinViewModel
+class ChatListViewModel(
     private val chatsRepository: ChatsRepository,
     private val profileRepository: ProfileRepository,
     private val notificationManager: NotificationManager

@@ -1,18 +1,17 @@
 package com.anshtya.jetx.auth.ui.createprofile
 
-import android.graphics.Bitmap
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.profile.ProfileRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.anshtya.jetx.shared.profile.ProfileRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.android.annotation.KoinViewModel
 
-@HiltViewModel
-class CreateProfileViewModel @Inject constructor(
+@KoinViewModel
+class CreateProfileViewModel(
     private val profileRepository: ProfileRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CreateProfileUiState())
@@ -30,7 +29,7 @@ class CreateProfileViewModel @Inject constructor(
         }
     }
 
-    fun setProfilePicture(profilePicture: Bitmap) {
+    fun setProfilePicture(profilePicture: Uri) {
         _uiState.update {
             it.copy(profilePicture = profilePicture)
         }
@@ -61,7 +60,7 @@ class CreateProfileViewModel @Inject constructor(
             val result = profileRepository.createProfile(
                 name = state.name,
                 username = state.username,
-                profilePicture = state.profilePicture
+                profilePicturePath = state.profilePicture?.path
             )
 
             if (result.isSuccess) {
@@ -117,7 +116,7 @@ class CreateProfileViewModel @Inject constructor(
 data class CreateProfileUiState(
     val name: String = "",
     val username: String = "",
-    val profilePicture: Bitmap? = null,
+    val profilePicture: Uri? = null,
     val nameError: String? = null,
     val usernameError: String? = null,
     val errorMessage: String? = null,

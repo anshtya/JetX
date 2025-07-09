@@ -1,33 +1,25 @@
 package com.anshtya.jetx
 
 import android.app.Application
-import android.app.NotificationManager
 import android.content.Context
-import androidx.hilt.work.HiltWorkerFactory
-import androidx.work.Configuration
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
 import coil3.request.crossfade
 import com.anshtya.jetx.notifications.NotificationChannels
-import dagger.hilt.android.HiltAndroidApp
-import javax.inject.Inject
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
+import org.koin.core.context.GlobalContext.startKoin
+import org.koin.ksp.generated.module
 
-@HiltAndroidApp
-class JetXApplication : Application(), Configuration.Provider, SingletonImageLoader.Factory {
-    @Inject
-    lateinit var workerFactory: HiltWorkerFactory
-
-    @Inject
-    lateinit var notificationManager: NotificationManager
-
-    override val workManagerConfiguration
-        get() = Configuration.Builder()
-            .setWorkerFactory(workerFactory)
-            .build()
-
+class JetXApplication : Application(), SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
-        NotificationChannels.create(this, notificationManager)
+        startKoin {
+            androidLogger()
+            androidContext(this@JetXApplication)
+            AppModule().module
+        }
+        NotificationChannels.create(this)
     }
 
     override fun newImageLoader(context: Context): ImageLoader {

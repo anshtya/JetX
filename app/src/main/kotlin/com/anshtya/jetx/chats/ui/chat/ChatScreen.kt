@@ -50,26 +50,26 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
-import com.anshtya.jetx.attachments.ui.preview.MediaPreviewActivity
+import com.anshtya.jetx.attachments.MediaPreviewActivity
 import com.anshtya.jetx.camera.CameraActivity
 import com.anshtya.jetx.chats.ui.chat.message.MessageItemContent
 import com.anshtya.jetx.chats.ui.components.DeleteMessageDialog
 import com.anshtya.jetx.chats.ui.components.ProfilePicturePopup
-import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.MessageInputField
 import com.anshtya.jetx.common.ui.ProfilePicture
 import com.anshtya.jetx.common.ui.SendButton
-import com.anshtya.jetx.database.model.AttachmentInfo
-import com.anshtya.jetx.database.model.MessageWithAttachment
 import com.anshtya.jetx.sampledata.sampleUsers
+import com.anshtya.jetx.shared.attachments.AttachmentInfo
+import com.anshtya.jetx.shared.database.model.MessageWithAttachment
+import com.anshtya.jetx.shared.model.MessageStatus
 import com.anshtya.jetx.util.Constants
 import com.anshtya.jetx.util.getDateOrTime
 import com.anshtya.jetx.util.isNotSameDay
+import org.koin.androidx.compose.koinViewModel
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -77,7 +77,7 @@ import java.util.UUID
 fun ChatRoute(
     onBackClick: () -> Unit,
     onNavigateToMediaScreen: (String) -> Unit,
-    viewModel: ChatViewModel = hiltViewModel()
+    viewModel: ChatViewModel = koinViewModel()
 ) {
     val chatUser by viewModel.recipientUser.collectAsStateWithLifecycle()
     val chatMessages by viewModel.chatMessages.collectAsStateWithLifecycle()

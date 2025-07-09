@@ -1,25 +1,22 @@
 package com.anshtya.jetx.work.worker
 
 import android.content.Context
-import android.net.Uri
 import android.util.Log
-import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.anshtya.jetx.attachments.data.AttachmentRepository
-import com.anshtya.jetx.attachments.data.AttachmentType
-import com.anshtya.jetx.database.dao.AttachmentDao
-import com.anshtya.jetx.database.model.AttachmentTransferState
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
+import com.anshtya.jetx.shared.attachments.AttachmentTransferState
+import com.anshtya.jetx.shared.attachments.AttachmentType
+import com.anshtya.jetx.shared.database.dao.AttachmentDao
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.koin.android.annotation.KoinWorker
 import java.io.File
 
-@HiltWorker
-class AttachmentDownloadWorker @AssistedInject constructor(
-    @Assisted appContext: Context,
-    @Assisted workerParams: WorkerParameters,
+@KoinWorker
+class AttachmentDownloadWorker(
+    appContext: Context,
+    workerParams: WorkerParameters,
     private val attachmentRepository: AttachmentRepository,
     private val attachmentDao: AttachmentDao
 ) : CoroutineWorker(appContext, workerParams) {
@@ -42,10 +39,11 @@ class AttachmentDownloadWorker @AssistedInject constructor(
             val response = client.newCall(request).execute()
 
             val fileUri = when (attachmentType) {
-                AttachmentType.IMAGE -> attachmentRepository.saveImage(response.body!!.bytes()).getOrThrow()
+                AttachmentType.IMAGE -> attachmentRepository.saveImage(response.body!!.bytes())
+                    .getOrThrow()
 
-                AttachmentType.VIDEO -> attachmentRepository.saveVideo(response.body!!.bytes()).getOrThrow()
-                else -> Uri.EMPTY
+                AttachmentType.VIDEO -> attachmentRepository.saveVideo(response.body!!.bytes())
+                    .getOrThrow()
             }
             attachmentDao.updateAttachmentDownloadAsFinished(
                 attachmentId, messageId, File(fileUri.path!!).absolutePath

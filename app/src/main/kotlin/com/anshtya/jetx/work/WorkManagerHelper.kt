@@ -10,12 +10,13 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
+import org.koin.core.annotation.Single
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 import kotlin.reflect.KClass
 
-class WorkManagerHelper @Inject constructor(
+@Single
+class WorkManagerHelper(
     context: Context
 ) {
     private val workManager = WorkManager.getInstance(context)

@@ -11,24 +11,18 @@ import androidx.core.net.toUri
 import com.anshtya.jetx.MainActivity
 import com.anshtya.jetx.R
 import com.anshtya.jetx.chats.data.MessagesRepository
-import com.anshtya.jetx.common.coroutine.DefaultScope
+import com.anshtya.jetx.shared.coroutine.DefaultScope
 import com.anshtya.jetx.util.Constants
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.java.KoinJavaComponent.inject
 
-@AndroidEntryPoint
 class ReplyReceiver : BroadcastReceiver() {
-    @Inject
-    lateinit var messagesRepository: MessagesRepository
+    private val messagesRepository: MessagesRepository by inject(MessagesRepository::class.java)
+    private val notificationManager: NotificationManager by inject(NotificationManager::class.java)
 
-    @Inject
-    lateinit var notificationManager: NotificationManager
-
-    @Inject
     @DefaultScope
-    lateinit var coroutineScope: CoroutineScope
+    private val coroutineScope: CoroutineScope by inject(CoroutineScope::class.java)
 
     override fun onReceive(context: Context?, intent: Intent?) {
         val chatId = intent?.getIntExtra(Constants.CHAT_ID_ARG, 0) ?: return

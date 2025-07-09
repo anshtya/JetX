@@ -1,0 +1,19 @@
+package com.anshtya.jetx.shared.auth
+
+import kotlinx.coroutines.flow.Flow
+
+interface AuthRepository {
+    val authStatus: Flow<AuthStatus>
+
+    suspend fun signIn(
+        email: String,
+        password: String
+    ): Result<Boolean>
+
+    suspend fun signUp(
+        email: String,
+        password: String
+    ): Result<Unit>
+
+    suspend fun signOut(): Result<Unit>
+}

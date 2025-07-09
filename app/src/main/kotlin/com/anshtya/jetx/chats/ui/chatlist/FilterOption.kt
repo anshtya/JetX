@@ -4,7 +4,7 @@ import androidx.annotation.StringRes
 import com.anshtya.jetx.R
 
 enum class FilterOption(
-    @StringRes val displayName: Int
+    @param:StringRes val displayName: Int
 ) {
     ALL(displayName = R.string.filter_all),
     UNREAD(displayName = R.string.filter_unread),

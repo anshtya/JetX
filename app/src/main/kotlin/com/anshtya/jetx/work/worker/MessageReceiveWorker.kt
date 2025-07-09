@@ -9,28 +9,26 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.RemoteInput
 import androidx.core.content.ContextCompat.getString
 import androidx.core.net.toUri
-import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.anshtya.jetx.MainActivity
 import com.anshtya.jetx.R
-import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
-import com.anshtya.jetx.database.dao.ChatDao
 import com.anshtya.jetx.notifications.MarkAsReadReceiver
 import com.anshtya.jetx.notifications.NotificationChannels
 import com.anshtya.jetx.notifications.ReplyReceiver
-import com.anshtya.jetx.profile.ProfileRepository
+import com.anshtya.jetx.shared.chats.ChatsRepository
+import com.anshtya.jetx.shared.database.dao.ChatDao
+import com.anshtya.jetx.shared.profile.ProfileRepository
 import com.anshtya.jetx.util.Constants
 import com.anshtya.jetx.work.model.NetworkIncomingMessage
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
 import kotlinx.serialization.json.Json
+import org.koin.android.annotation.KoinWorker
 
-@HiltWorker
-class MessageReceiveWorker @AssistedInject constructor(
-    @Assisted appContext: Context,
-    @Assisted workerParams: WorkerParameters,
+@KoinWorker
+class MessageReceiveWorker(
+    appContext: Context,
+    workerParams: WorkerParameters,
     private val chatsRepository: ChatsRepository,
     private val profileRepository: ProfileRepository,
     private val messagesRepository: MessagesRepository,

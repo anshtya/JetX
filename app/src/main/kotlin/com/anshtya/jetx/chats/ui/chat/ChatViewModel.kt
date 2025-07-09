@@ -5,15 +5,14 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
 import com.anshtya.jetx.chats.ui.navigation.ChatsDestinations
-import com.anshtya.jetx.database.model.MessageWithAttachment
-import com.anshtya.jetx.profile.ProfileRepository
+import com.anshtya.jetx.shared.chats.ChatsRepository
+import com.anshtya.jetx.shared.database.model.MessageWithAttachment
+import com.anshtya.jetx.shared.profile.ProfileRepository
 import com.anshtya.jetx.work.WorkManagerHelper
 import com.anshtya.jetx.work.WorkScheduler
 import com.anshtya.jetx.work.worker.AttachmentDownloadWorker
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,12 +23,12 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.android.annotation.KoinViewModel
 import java.util.UUID
-import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@HiltViewModel
-class ChatViewModel @Inject constructor(
+@KoinViewModel
+class ChatViewModel(
     savedStateHandle: SavedStateHandle,
     private val chatsRepository: ChatsRepository,
     private val messagesRepository: MessagesRepository,

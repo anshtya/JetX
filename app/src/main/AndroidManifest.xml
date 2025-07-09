@@ -43,7 +43,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".attachments.ui.preview.MediaPreviewActivity"
+            android:name=".attachments.MediaPreviewActivity"
             android:exported="false"
             android:theme="@style/Theme.JetX" />
         <activity

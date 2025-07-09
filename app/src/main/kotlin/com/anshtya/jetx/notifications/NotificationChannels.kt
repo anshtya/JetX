@@ -16,10 +16,9 @@ object NotificationChannels {
     const val OTHER_CHANNEL = "other"
 
 
-    fun create(
-        context: Context,
-        notificationManager: NotificationManager
-    ) {
+    fun create(context: Context) {
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         val chatNotificationGroup = NotificationChannelGroup(
             CHAT_GROUP,

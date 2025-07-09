@@ -40,7 +40,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -48,12 +47,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.camera.permission.CameraPermissionRequest
 import com.anshtya.jetx.util.FileUtil
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun CameraScreen(
     onBackClick: () -> Unit,
     onNavigateToPreview: (Uri) -> Unit,
-    viewModel: CameraViewModel = hiltViewModel()
+    viewModel: CameraViewModel = koinViewModel()
 ) {
     val navigateToPreview by viewModel.navigateToPreview.collectAsStateWithLifecycle()
     LaunchedEffect(navigateToPreview) {

@@ -27,18 +27,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.SendButton
 import com.anshtya.jetx.common.ui.UserListItem
 import com.anshtya.jetx.common.ui.noRippleClickable
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SendScreen(
-    sendViewModel: SendViewModel = hiltViewModel(),
+    sendViewModel: SendViewModel = koinViewModel(),
     onNavigateUp: () -> Unit,
     onSend: (Set<Int>) -> Unit,
 ) {

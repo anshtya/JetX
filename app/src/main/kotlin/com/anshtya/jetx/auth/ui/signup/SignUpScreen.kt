@@ -24,19 +24,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
 import com.anshtya.jetx.auth.ui.AuthUiState
 import com.anshtya.jetx.auth.ui.components.AuthForm
 import com.anshtya.jetx.common.ui.BackButton
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SignUpRoute(
     onContinueClick: () -> Unit,
     onBackClick: () -> Unit,
-    viewModel: SignUpViewModel = hiltViewModel()
+    viewModel: SignUpViewModel = koinViewModel()
 ) {
     val signUpState by viewModel.uiState.collectAsStateWithLifecycle()
     val authSuccessful by viewModel.authSuccessful.collectAsStateWithLifecycle()

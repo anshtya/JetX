@@ -34,7 +34,7 @@ fun NotificationPermissionHandler() {
         if (!isGranted) {
             if ((context as Activity).shouldShowRequestPermissionRationale(
                     Manifest.permission.POST_NOTIFICATIONS
-                ) == true
+                )
             ) {
                 showRationaleDialog = true
             }

@@ -2,19 +2,18 @@ package com.anshtya.jetx
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.auth.data.AuthRepository
-import com.anshtya.jetx.common.model.AppUiProperties
-import com.anshtya.jetx.auth.data.model.AuthStatus
-import com.anshtya.jetx.preferences.PreferencesStore
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.anshtya.jetx.shared.auth.AuthRepository
+import com.anshtya.jetx.shared.auth.AuthStatus
+import com.anshtya.jetx.shared.model.AppUiProperties
+import com.anshtya.jetx.shared.preferences.PreferencesStore
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
+import org.koin.android.annotation.KoinViewModel
 
-@HiltViewModel
-class MainActivityViewModel @Inject constructor(
+@KoinViewModel
+class MainActivityViewModel(
     authRepository: AuthRepository,
     preferencesStore: PreferencesStore
 ) : ViewModel() {

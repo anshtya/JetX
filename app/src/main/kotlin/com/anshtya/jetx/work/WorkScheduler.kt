@@ -5,10 +5,11 @@ import androidx.work.ExistingWorkPolicy
 import com.anshtya.jetx.work.worker.AttachmentDownloadWorker
 import com.anshtya.jetx.work.worker.MessageReceiveWorker
 import com.anshtya.jetx.work.worker.MessageSendWorker
+import org.koin.core.annotation.Single
 import java.util.UUID
-import javax.inject.Inject
 
-class WorkScheduler @Inject constructor(
+@Single
+class WorkScheduler(
     private val workManagerHelper: WorkManagerHelper
 ) {
     fun createMessageReceiveWork(

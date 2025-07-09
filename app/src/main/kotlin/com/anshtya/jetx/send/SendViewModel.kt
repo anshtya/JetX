@@ -2,8 +2,7 @@ package com.anshtya.jetx.send
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.chats.data.ChatsRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.anshtya.jetx.shared.chats.ChatsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -11,10 +10,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import javax.inject.Inject
+import org.koin.android.annotation.KoinViewModel
 
-@HiltViewModel
-class SendViewModel @Inject constructor(
+@KoinViewModel
+class SendViewModel(
     chatsRepository: ChatsRepository
 ) : ViewModel() {
     private val _selectedChatIds = MutableStateFlow<Set<Int>>(emptySet())

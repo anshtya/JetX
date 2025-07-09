@@ -1,6 +1,5 @@
 package com.anshtya.jetx.auth.ui.createprofile
 
-import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -22,34 +21,30 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.ProfilePicture
 import com.anshtya.jetx.common.ui.rememberMediaPicker
-import com.anshtya.jetx.util.UriUtil.toBitmap
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun CreateProfileRoute(
     onNavigateToHome: () -> Unit,
     onNavigateUp: () -> Unit,
-    viewModel: CreateProfileViewModel = hiltViewModel()
+    viewModel: CreateProfileViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -74,24 +69,15 @@ private fun CreateProfileScreen(
     onContinueClick: () -> Unit,
     onProfileCreated: () -> Unit,
     onBackClick: () -> Unit,
-    setProfilePicture: (Bitmap) -> Unit,
+    setProfilePicture: (Uri) -> Unit,
     onErrorShown: () -> Unit
 ) {
     LaunchedEffect(uiState.profileCreated) {
         if (uiState.profileCreated) onProfileCreated()
     }
 
-    var selectedProfilePicture by remember { mutableStateOf<Uri?>(null) }
-    val context = LocalContext.current
     val pickMedia = rememberMediaPicker { uri ->
-        if (uri != null) {
-            selectedProfilePicture = uri
-        }
-    }
-    LaunchedEffect(selectedProfilePicture) {
-        if (selectedProfilePicture != null) {
-            setProfilePicture(selectedProfilePicture!!.toBitmap(context))
-        }
+        if (uri != null) setProfilePicture(uri)
     }
 
     val scope = rememberCoroutineScope()

@@ -4,7 +4,6 @@ agp = "8.11.0"
 androidxCamera = "1.4.1"
 androidxCoreSplashScreen = "1.0.1"
 androidxDatastore = "1.1.1"
-androidxHilt = "1.2.0"
 androidxLifecycle = "2.8.7"
 androidxMedia3 = "1.7.1"
 androidxNavigation = "2.8.5"
@@ -18,13 +17,18 @@ google-services = "4.4.2"
 hilt = "2.55"
 junit = "4.13.2"
 junitVersion = "1.2.1"
-kotlin = "2.0.20"
+koin-annotations = "2.1.0"
+koin = "4.1.0"
+kotlin = "2.2.0"
 kotlinxSerializationJson = "1.7.3"
 ktor-client = "3.0.2"
-ksp = "2.0.20-1.0.25"
+ksp = "2.2.0-2.0.2"
 okhttp3 = "4.12.0"
-room = "2.6.1"
+room = "2.7.2"
 supabase = "3.0.3"
+kotlinTest = "2.1.21"
+runner = "1.6.2"
+core = "1.6.1"
 
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
@@ -36,9 +40,6 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "androidxCoreSplashScreen" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "androidxDatastore" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "androidxHilt" }
-androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidxHilt" }
-androidx-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "androidxHilt" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
@@ -65,9 +66,13 @@ coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp"
 coil-video = { group = "io.coil-kt.coil3", name = "coil-video" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase-bom" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
-hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
-hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+koin-annotations = { group = "io.insert-koin", name = "koin-annotations", version.ref = "koin-annotations" }
+koin-ksp-compiler = { group = "io.insert-koin", name = "koin-ksp-compiler", version.ref = "koin-annotations" }
+koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
+koin-androidx-workmanager = { group = "io.insert-koin", name = "koin-androidx-workmanager", version.ref = "koin" }
+koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor-client" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp3" }
@@ -75,6 +80,10 @@ supabase-bom = { group = "io.github.jan-tennert.supabase", name = "bom", version
 supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt" }
 supabase-realtime = { group = "io.github.jan-tennert.supabase", name = "realtime-kt" }
 supabase-storage = { group = "io.github.jan-tennert.supabase", name = "storage-kt" }
+#kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlinStdlib" }
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlinTest" }
+androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
+androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -85,3 +94,5 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 room = { id = "androidx.room", version.ref = "room" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
