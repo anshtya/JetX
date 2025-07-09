@@ -29,10 +29,14 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        val supabaseUrl = gradleLocalProperties(rootDir, providers).getProperty("SUPABASE_URL") ?: ""
-        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
-        val supabaseKey = gradleLocalProperties(rootDir, providers).getProperty("SUPABASE_KEY") ?: ""
-        buildConfigField("String", "SUPABASE_KEY", "\"$supabaseKey\"")
+        val debugUrl = gradleLocalProperties(rootDir, providers).getProperty("DEBUG_URL") ?: ""
+        buildConfigField("String", "DEBUG_URL", "\"$debugUrl\"")
+        val debugKey = gradleLocalProperties(rootDir, providers).getProperty("DEBUG_KEY") ?: ""
+        buildConfigField("String", "DEBUG_KEY", "\"$debugKey\"")
+        val releaseUrl = gradleLocalProperties(rootDir, providers).getProperty("RELEASE_URL") ?: ""
+        buildConfigField("String", "RELEASE_URL", "\"$releaseUrl\"")
+        val releaseKey = gradleLocalProperties(rootDir, providers).getProperty("RELEASE_KEY") ?: ""
+        buildConfigField("String", "RELEASE_KEY", "\"$releaseKey\"")
     }
 
     buildTypes {
