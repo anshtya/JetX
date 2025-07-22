@@ -1,4 +1,4 @@
-package com.anshtya.jetx.profile
+package com.anshtya.jetx.profile.data
 
 import android.graphics.Bitmap
 import com.anshtya.jetx.attachments.ImageCompressor
@@ -8,10 +8,10 @@ import com.anshtya.jetx.database.entity.UserProfileEntity
 import com.anshtya.jetx.database.entity.toExternalModel
 import com.anshtya.jetx.fcm.FcmTokenManager
 import com.anshtya.jetx.preferences.PreferencesStore
-import com.anshtya.jetx.profile.model.CreateProfileRequest
-import com.anshtya.jetx.profile.model.NetworkProfile
-import com.anshtya.jetx.profile.model.toEntity
-import com.anshtya.jetx.profile.model.toExternalModel
+import com.anshtya.jetx.profile.data.model.CreateProfileRequest
+import com.anshtya.jetx.profile.data.model.NetworkProfile
+import com.anshtya.jetx.profile.data.model.toEntity
+import com.anshtya.jetx.profile.data.model.toExternalModel
 import com.anshtya.jetx.util.Constants.MEDIA_STORAGE
 import com.anshtya.jetx.util.Constants.PROFILE_TABLE
 import io.github.jan.supabase.SupabaseClient
@@ -101,10 +101,7 @@ class ProfileRepositoryImpl @Inject constructor(
             val pattern = "%${query}%"
             profileTable.select {
                 filter {
-                    or {
-                        ilike(column = "username", pattern = pattern)
-                        ilike(column = "name", pattern = pattern)
-                    }
+                    ilike(column = "username", pattern = pattern)
                     and {
                         neq(
                             column = "user_id",

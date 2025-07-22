@@ -10,11 +10,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -30,7 +32,7 @@ fun AuthForm(
     email: String,
     password: String,
     passwordVisible: Boolean,
-    authButtonEnabled: Boolean,
+    isLoading: Boolean,
     authButtonText: String,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
@@ -45,12 +47,12 @@ fun AuthForm(
         OutlinedTextField(
             value = email,
             onValueChange = onEmailChange,
-            enabled = authButtonEnabled,
+            enabled = !isLoading,
             placeholder = {
                 Text(text = stringResource(id = R.string.email))
             },
             singleLine = true,
-            isError = emailError != null && authButtonEnabled,
+            isError = emailError != null && !isLoading,
             supportingText = {
                 Text(text = emailError ?: "")
             },
@@ -64,12 +66,12 @@ fun AuthForm(
         OutlinedTextField(
             value = password,
             onValueChange = onPasswordChange,
-            enabled = authButtonEnabled,
+            enabled = !isLoading,
             placeholder = {
                 Text(text = stringResource(id = R.string.password))
             },
             singleLine = true,
-            isError = passwordError != null && authButtonEnabled,
+            isError = passwordError != null && !isLoading,
             supportingText = {
                 Text(text = passwordError ?: "")
             },
@@ -104,13 +106,15 @@ fun AuthForm(
             ),
             modifier = Modifier.fillMaxWidth()
         )
+
         Spacer(Modifier.height(10.dp))
-        Button(
+
+        if (isLoading) CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
+        else Button(
             onClick = {
                 focusManager.clearFocus()
                 onAuthButtonClick()
             },
-            enabled = authButtonEnabled,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)

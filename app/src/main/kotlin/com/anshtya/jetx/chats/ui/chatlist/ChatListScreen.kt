@@ -81,19 +81,21 @@ fun ChatListRoute(
         archivedChatEmpty = archivedChatEmpty,
         selectedFilter = selectedFilter,
         searchQuery = searchQuery,
-        searchSuggestions = searchSuggestions,
+        searchResults = searchSuggestions,
         onChatClick = {
             viewModel.clearNotification(it.chatId!!)
             onNavigateToChat(it)
         },
         onSelectChat = viewModel::selectChat,
-        onUnselectChat = viewModel::unSelectChat,
+        onUnselectChat = viewModel::unselectChat,
         onClearSelectedChats = viewModel::clearSelectedChats,
         onDeleteChatClick = viewModel::deleteChat,
         onArchiveClick = viewModel::archiveChat,
         onFilterOptionClick = viewModel::changeFilter,
         onArchivedChatsClick = onNavigateToArchivedChats,
         onSearchQueryChange = viewModel::changeSearchQuery,
+        onSearch = viewModel::onSearch,
+        onClearSearch = viewModel::clearSearch,
         onStarredMessagesClick = {},
         onSettingsClick = onNavigateToSettings,
         onProfileClick = onNavigateToChat
@@ -108,7 +110,7 @@ private fun ChatListScreen(
     archivedChatEmpty: Boolean,
     selectedFilter: FilterOption,
     searchQuery: String,
-    searchSuggestions: List<UserProfile>,
+    searchResults: List<UserProfile>,
     onChatClick: (ChatUserArgs) -> Unit,
     onSelectChat: (Int) -> Unit,
     onUnselectChat: (Int) -> Unit,
@@ -118,6 +120,8 @@ private fun ChatListScreen(
     onFilterOptionClick: (FilterOption) -> Unit,
     onArchivedChatsClick: () -> Unit,
     onSearchQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    onClearSearch: () -> Unit,
     onStarredMessagesClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onProfileClick: (ChatUserArgs) -> Unit,
@@ -147,7 +151,7 @@ private fun ChatListScreen(
         }
         BackHandler(chatsSelected || searchEnabled) {
             if (searchEnabled) {
-                onSearchQueryChange("")
+                onClearSearch()
                 searchEnabled = false
             } else if (chatsSelected) onClearSelectedChats()
         }
@@ -161,9 +165,10 @@ private fun ChatListScreen(
                         inputText = searchQuery,
                         onInputTextChange = onSearchQueryChange,
                         onSearchDisable = {
-                            onSearchQueryChange("")
+                            onClearSearch()
                             searchEnabled = false
                         },
+                        onSearch = onSearch,
                         modifier = Modifier
                             .focusRequester(focusRequester)
                             .padding(8.dp)
@@ -186,7 +191,7 @@ private fun ChatListScreen(
                 }
             }
         ) { innerPadding ->
-            if (searchSuggestions.isNotEmpty()) {
+            if (searchResults.isNotEmpty()) {
                 val focusManager = LocalFocusManager.current
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -195,7 +200,7 @@ private fun ChatListScreen(
                         .fillMaxSize()
                 ) {
                     items(
-                        items = searchSuggestions,
+                        items = searchResults,
                         key = { it.id }
                     ) {
                         UserListItem(
@@ -205,7 +210,7 @@ private fun ChatListScreen(
                             modifier = Modifier.noRippleClickable {
                                 focusManager.clearFocus()
                                 onProfileClick(it.toChatUserArgs())
-                                onSearchQueryChange("")
+                                onClearSearch()
                             }
                         )
                     }
@@ -400,7 +405,7 @@ private fun ChatsScreenPreview() {
             archivedChatEmpty = true,
             selectedFilter = FilterOption.ALL,
             searchQuery = "",
-            searchSuggestions = emptyList(),
+            searchResults = emptyList(),
             onChatClick = {},
             onSelectChat = {},
             onUnselectChat = {},
@@ -410,6 +415,8 @@ private fun ChatsScreenPreview() {
             onFilterOptionClick = {},
             onArchivedChatsClick = {},
             onSearchQueryChange = {},
+            onSearch = {},
+            onClearSearch = {},
             onStarredMessagesClick = {},
             onSettingsClick = {}
         ) {}

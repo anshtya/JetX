@@ -9,7 +9,7 @@ import com.anshtya.jetx.database.dao.ChatDao
 import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
 import com.anshtya.jetx.database.entity.MessageEntity
 import com.anshtya.jetx.database.model.MessageWithAttachment
-import com.anshtya.jetx.profile.ProfileRepository
+import com.anshtya.jetx.profile.data.ProfileRepository
 import com.anshtya.jetx.util.Constants
 import com.anshtya.jetx.util.Constants.MESSAGE_TABLE
 import com.anshtya.jetx.work.WorkScheduler

@@ -1,4 +1,4 @@
-package com.anshtya.jetx.auth.ui.entry
+package com.anshtya.jetx.auth.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

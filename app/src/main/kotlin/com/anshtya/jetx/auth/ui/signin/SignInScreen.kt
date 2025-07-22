@@ -1,5 +1,6 @@
 package com.anshtya.jetx.auth.ui.signin
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,10 +46,10 @@ fun SignInRoute(
     SignInScreen(
         uiState = uiState,
         profileCreated = profileCreated,
-        onUsernameChange = viewModel::changeUsername,
-        onPasswordChange = viewModel::changePassword,
-        onPasswordVisibilityChange = viewModel::changePasswordVisibility,
-        onErrorShown = viewModel::errorShown,
+        onUsernameChange = viewModel::onUsernameChange,
+        onPasswordChange = viewModel::onPasswordChange,
+        onPasswordVisibilityChange = viewModel::onPasswordVisibilityChange,
+        onErrorShown = viewModel::onErrorShown,
         onSignInClick = viewModel::signIn,
         onSignInSuccessful = onNavigateToHome,
         onNavigateToCreateProfile = onNavigateToCreateProfile,
@@ -70,6 +71,8 @@ private fun SignInScreen(
     onNavigateToCreateProfile: () -> Unit,
     onBackClick: () -> Unit
 ) {
+    BackHandler(uiState.isLoading) {  }
+
     LaunchedEffect(profileCreated) {
         profileCreated?.let {
             if (it) onSignInSuccessful()
@@ -115,7 +118,7 @@ private fun SignInScreen(
                 email = uiState.email,
                 password = uiState.password,
                 passwordVisible = uiState.passwordVisible,
-                authButtonEnabled = uiState.authButtonEnabled,
+                isLoading = uiState.isLoading,
                 authButtonText = stringResource(id = R.string.sign_in),
                 onEmailChange = onUsernameChange,
                 onPasswordChange = onPasswordChange,

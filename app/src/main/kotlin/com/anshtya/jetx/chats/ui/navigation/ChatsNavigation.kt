@@ -4,7 +4,6 @@ import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navDeepLink
@@ -79,13 +78,4 @@ fun NavGraphBuilder.chats(
             )
         }
     }
-}
-
-fun NavController.navigateToChats(
-    navOptionsBuilder: NavOptionsBuilder.() -> Unit
-) {
-    navigate(
-        route = Chats,
-        builder = navOptionsBuilder
-    )
 }

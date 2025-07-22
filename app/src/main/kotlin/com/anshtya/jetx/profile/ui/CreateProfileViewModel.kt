@@ -1,9 +1,9 @@
-package com.anshtya.jetx.auth.ui.createprofile
+package com.anshtya.jetx.profile.ui
 
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.profile.ProfileRepository
+import com.anshtya.jetx.profile.data.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

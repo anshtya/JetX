@@ -6,18 +6,17 @@ import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.common.model.Chat
 import com.anshtya.jetx.common.model.UserProfile
-import com.anshtya.jetx.profile.ProfileRepository
+import com.anshtya.jetx.profile.data.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -30,6 +29,8 @@ class ChatListViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val notificationManager: NotificationManager
 ) : ViewModel() {
+    private var searchProfileJob: Job? = null
+
     private val _selectedFilter = MutableStateFlow(FilterOption.ALL)
     val selectedFilter = _selectedFilter.asStateFlow()
 
@@ -38,6 +39,9 @@ class ChatListViewModel @Inject constructor(
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
+
+    private val _searchSuggestions = MutableStateFlow<List<UserProfile>>(emptyList())
+    val searchSuggestions = _searchSuggestions.asStateFlow()
 
     val chatList: StateFlow<ChatListState> = _selectedFilter
         .flatMapLatest { filter ->
@@ -69,21 +73,26 @@ class ChatListViewModel @Inject constructor(
             initialValue = true
         )
 
-    val searchSuggestions: StateFlow<List<UserProfile>> = _searchQuery
-        .debounce { if (it.isNotBlank()) 500 else 0 }
-        .mapLatest {
-            if (it.isNotBlank()) {
-                val result = profileRepository.searchProfiles(it)
-                result.getOrElse { emptyList() }
-            } else {
-                emptyList()
+    fun onSearch() {
+        searchProfileJob = viewModelScope.launch {
+            val query = _searchQuery.value
+            _searchSuggestions.update {
+                if (query.isNotBlank()) {
+                    val result = profileRepository.searchProfiles(query)
+                    result.getOrElse { emptyList() }
+                } else {
+                    emptyList()
+                }
             }
+            searchProfileJob = null
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = emptyList()
-        )
+    }
+
+    fun clearSearch() {
+        _searchQuery.update { "" }
+        _searchSuggestions.update { emptyList() }
+        searchProfileJob = null
+    }
 
     fun changeFilter(filterOption: FilterOption) {
         _selectedFilter.update { filterOption }
@@ -95,7 +104,7 @@ class ChatListViewModel @Inject constructor(
         }
     }
 
-    fun unSelectChat(id: Int) {
+    fun unselectChat(id: Int) {
         _selectedChats.update {
             it.toMutableSet().apply { remove(id) }
         }
@@ -128,6 +137,7 @@ class ChatListViewModel @Inject constructor(
 
     fun changeSearchQuery(searchQuery: String) {
         _searchQuery.update { searchQuery }
+        searchProfileJob = null
     }
 
     fun clearNotification(chatId: Int) {

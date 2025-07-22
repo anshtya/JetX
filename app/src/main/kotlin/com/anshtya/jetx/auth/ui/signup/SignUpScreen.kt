@@ -1,5 +1,6 @@
 package com.anshtya.jetx.auth.ui.signup
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,10 +45,10 @@ fun SignUpRoute(
     SignUpScreen(
         uiState = signUpState,
         authSuccessful = authSuccessful,
-        onUsernameChange = viewModel::changeUsername,
-        onPasswordChange = viewModel::changePassword,
-        onPasswordVisibilityChange = viewModel::changePasswordVisibility,
-        onErrorShown = viewModel::errorShown,
+        onUsernameChange = viewModel::onUsernameChange,
+        onPasswordChange = viewModel::onPasswordChange,
+        onPasswordVisibilityChange = viewModel::onPasswordVisibilityChange,
+        onErrorShown = viewModel::onErrorShown,
         onSignUpClick = viewModel::signUp,
         onContinueClick = onContinueClick,
         onBackClick = onBackClick
@@ -67,6 +68,8 @@ private fun SignUpScreen(
     onContinueClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
+    BackHandler(uiState.isLoading) {}
+
     LaunchedEffect(authSuccessful) {
         authSuccessful?.let { if (it) onContinueClick() }
     }
@@ -109,7 +112,7 @@ private fun SignUpScreen(
                 email = uiState.email,
                 password = uiState.password,
                 passwordVisible = uiState.passwordVisible,
-                authButtonEnabled = uiState.authButtonEnabled,
+                isLoading = uiState.isLoading,
                 authButtonText = stringResource(id = R.string.sign_up),
                 onEmailChange = onUsernameChange,
                 onPasswordChange = onPasswordChange,

@@ -1,4 +1,4 @@
-package com.anshtya.jetx.auth.ui.createprofile
+package com.anshtya.jetx.profile.ui
 
 import android.graphics.Bitmap
 import android.net.Uri
@@ -44,6 +44,10 @@ import com.anshtya.jetx.common.ui.ProfilePicture
 import com.anshtya.jetx.common.ui.rememberMediaPicker
 import com.anshtya.jetx.util.UriUtil.toBitmap
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+
+@Serializable
+data object CreateProfileRoute
 
 @Composable
 fun CreateProfileRoute(

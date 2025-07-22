@@ -2,7 +2,6 @@ package com.anshtya.jetx.ui.navigation.home
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.navigation
 import com.anshtya.jetx.calls.ui.navigation.calls
 import com.anshtya.jetx.chats.ui.navigation.Chats
@@ -31,13 +30,4 @@ fun NavGraphBuilder.homeGraph(
             onNavigateToAuth = onNavigateToAuth
         )
     }
-}
-
-fun NavController.navigateToHome(
-    navOptionsBuilder: NavOptionsBuilder.() -> Unit
-) {
-    navigate(
-        route = HomeGraph,
-        builder = navOptionsBuilder
-    )
 }

@@ -1,4 +1,4 @@
-package com.anshtya.jetx.profile
+package com.anshtya.jetx.profile.data
 
 import android.graphics.Bitmap
 import com.anshtya.jetx.common.model.UserProfile

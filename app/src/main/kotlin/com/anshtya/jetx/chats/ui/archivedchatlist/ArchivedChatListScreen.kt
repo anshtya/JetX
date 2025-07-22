@@ -46,7 +46,7 @@ fun ArchivedChatListRoute(
         selectedChats = selectedChats,
         onChatClick = onNavigateToChat,
         onSelectChat = viewModel::selectChat,
-        onUnselectChat = viewModel::unSelectChat,
+        onUnselectChat = viewModel::unselectChat,
         onClearSelectedChats = viewModel::clearSelectedChats,
         onUnarchiveClick = viewModel::unarchiveChat,
         onBackClick = onBackClick

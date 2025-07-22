@@ -22,25 +22,25 @@ class SignUpViewModel @Inject constructor(
     private val _authSuccessful = MutableStateFlow<Boolean?>(null)
     val authSuccessful = _authSuccessful.asStateFlow()
 
-    fun changeUsername(username: String) {
+    fun onUsernameChange(username: String) {
         _uiState.update {
             it.copy(email = username)
         }
     }
 
-    fun changePassword(password: String) {
+    fun onPasswordChange(password: String) {
         _uiState.update {
             it.copy(password = password)
         }
     }
 
-    fun changePasswordVisibility() {
+    fun onPasswordVisibilityChange() {
         _uiState.update {
             it.copy(passwordVisible = !(_uiState.value.passwordVisible))
         }
     }
 
-    fun errorShown() {
+    fun onErrorShown() {
         _uiState.update {
             it.copy(errorMessage = null)
         }
@@ -52,7 +52,7 @@ class SignUpViewModel @Inject constructor(
                 it.copy(
                     emailError = null,
                     passwordError = null,
-                    authButtonEnabled = false
+                    isLoading = true
                 )
             }
 
@@ -71,7 +71,7 @@ class SignUpViewModel @Inject constructor(
             )
             if (!inputsValid) {
                 _uiState.update {
-                    it.copy(authButtonEnabled = true)
+                    it.copy(isLoading = false)
                 }
                 return@launch
             }
@@ -87,7 +87,7 @@ class SignUpViewModel @Inject constructor(
             } else {
                 _uiState.update {
                     it.copy(
-                        authButtonEnabled = true,
+                        isLoading = false,
                         errorMessage = authResult.exceptionOrNull()?.message
                     )
                 }

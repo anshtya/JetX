@@ -1,7 +1,7 @@
 package com.anshtya.jetx.profile.di
 
-import com.anshtya.jetx.profile.ProfileRepository
-import com.anshtya.jetx.profile.ProfileRepositoryImpl
+import com.anshtya.jetx.profile.data.ProfileRepository
+import com.anshtya.jetx.profile.data.ProfileRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

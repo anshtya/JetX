@@ -11,7 +11,4 @@ sealed interface AuthDestinations {
 
     @Serializable
     data object SignUp : AuthDestinations
-
-    @Serializable
-    data object CreateProfile : AuthDestinations
 }

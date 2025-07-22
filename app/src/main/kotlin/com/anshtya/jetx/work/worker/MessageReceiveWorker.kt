@@ -20,7 +20,7 @@ import com.anshtya.jetx.database.dao.ChatDao
 import com.anshtya.jetx.notifications.MarkAsReadReceiver
 import com.anshtya.jetx.notifications.NotificationChannels
 import com.anshtya.jetx.notifications.ReplyReceiver
-import com.anshtya.jetx.profile.ProfileRepository
+import com.anshtya.jetx.profile.data.ProfileRepository
 import com.anshtya.jetx.util.Constants
 import com.anshtya.jetx.work.model.NetworkIncomingMessage
 import dagger.assisted.Assisted
