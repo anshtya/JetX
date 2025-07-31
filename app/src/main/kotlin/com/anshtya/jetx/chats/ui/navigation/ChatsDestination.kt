@@ -2,9 +2,9 @@ package com.anshtya.jetx.chats.ui.navigation
 
 import kotlinx.serialization.Serializable
 
-sealed interface ChatsDestinations {
+sealed interface ChatsDestination {
     @Serializable
-    data object ChatList : ChatsDestinations
+    data object ChatList : ChatsDestination
 
     @Serializable
     data class Chat(
@@ -12,10 +12,10 @@ sealed interface ChatsDestinations {
         val chatId: Int? = null,
         val username: String? = null,
         val pictureUrl: String? = null
-    ) : ChatsDestinations
+    ) : ChatsDestination
 
     @Serializable
-    data object ArchivedChatList : ChatsDestinations
+    data object ArchivedChatList : ChatsDestination
 
     @Serializable
     data class Media(val data: String)

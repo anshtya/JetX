@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
-import com.anshtya.jetx.chats.ui.navigation.ChatsDestinations
+import com.anshtya.jetx.chats.ui.navigation.ChatsDestination
 import com.anshtya.jetx.database.model.MessageWithAttachment
 import com.anshtya.jetx.profile.data.ProfileRepository
 import com.anshtya.jetx.work.WorkManagerHelper
@@ -37,7 +37,7 @@ class ChatViewModel @Inject constructor(
     private val workScheduler: WorkScheduler,
     private val workManagerHelper: WorkManagerHelper
 ) : ViewModel() {
-    private val chatArgs = savedStateHandle.toRoute<ChatsDestinations.Chat>()
+    private val chatArgs = savedStateHandle.toRoute<ChatsDestination.Chat>()
 
     private val chatId = MutableStateFlow<Int?>(null)
 

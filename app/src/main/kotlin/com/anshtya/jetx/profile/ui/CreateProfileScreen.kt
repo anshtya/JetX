@@ -51,7 +51,6 @@ data object CreateProfileRoute
 
 @Composable
 fun CreateProfileRoute(
-    onNavigateToHome: () -> Unit,
     onNavigateUp: () -> Unit,
     viewModel: CreateProfileViewModel = hiltViewModel()
 ) {
@@ -62,7 +61,6 @@ fun CreateProfileRoute(
         onNameChange = viewModel::onNameChange,
         onUsernameChange = viewModel::onUsernameChange,
         onContinueClick = viewModel::createProfile,
-        onProfileCreated = onNavigateToHome,
         onBackClick = onNavigateUp,
         setProfilePicture = viewModel::setProfilePicture,
         onErrorShown = viewModel::onErrorShown
@@ -76,14 +74,10 @@ private fun CreateProfileScreen(
     onNameChange: (String) -> Unit,
     onUsernameChange: (String) -> Unit,
     onContinueClick: () -> Unit,
-    onProfileCreated: () -> Unit,
     onBackClick: () -> Unit,
     setProfilePicture: (Bitmap) -> Unit,
     onErrorShown: () -> Unit
 ) {
-    LaunchedEffect(uiState.profileCreated) {
-        if (uiState.profileCreated) onProfileCreated()
-    }
 
     var selectedProfilePicture by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
@@ -192,7 +186,6 @@ private fun CreateProfileScreenPreview() {
             onNameChange = {},
             onUsernameChange = {},
             onContinueClick = {},
-            onProfileCreated = {},
             onBackClick = {},
             setProfilePicture = {},
             onErrorShown = {}

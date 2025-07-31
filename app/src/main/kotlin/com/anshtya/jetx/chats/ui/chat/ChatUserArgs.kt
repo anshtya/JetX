@@ -1,6 +1,6 @@
 package com.anshtya.jetx.chats.ui.chat
 
-import com.anshtya.jetx.chats.ui.navigation.ChatsDestinations
+import com.anshtya.jetx.chats.ui.navigation.ChatsDestination
 import com.anshtya.jetx.common.model.Chat
 import com.anshtya.jetx.common.model.UserProfile
 import java.util.UUID
@@ -24,8 +24,8 @@ fun Chat.toChatUserArgs(): ChatUserArgs {
     return ChatUserArgs(chatId = id)
 }
 
-fun ChatUserArgs.toChatDestination(): ChatsDestinations.Chat {
-    return ChatsDestinations.Chat(
+fun ChatUserArgs.toChatDestination(): ChatsDestination.Chat {
+    return ChatsDestination.Chat(
         recipientId = recipientId?.toString(),
         chatId = chatId,
         username = username,

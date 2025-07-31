@@ -13,35 +13,30 @@ import kotlinx.serialization.Serializable
 data object AuthGraph
 
 fun NavGraphBuilder.authGraph(
-    navController: NavController,
-    onNavigateToHome: () -> Unit,
-    onNavigateToCreateProfile: () -> Unit
+    navController: NavController
 ) {
     navigation<AuthGraph>(
-        startDestination = AuthDestinations.Entry
+        startDestination = AuthDestination.Entry
     ) {
-        composable<AuthDestinations.Entry> {
+        composable<AuthDestination.Entry> {
             EntryScreen(
                 onCreateAccountClick = {
-                    navController.navigate(AuthDestinations.SignUp)
+                    navController.navigate(AuthDestination.SignUp)
                 },
                 onSignInClick = {
-                    navController.navigate(AuthDestinations.SignIn)
+                    navController.navigate(AuthDestination.SignIn)
                 }
             )
         }
 
-        composable<AuthDestinations.SignIn> {
+        composable<AuthDestination.SignIn> {
             SignInRoute(
-                onNavigateToHome = onNavigateToHome,
-                onNavigateToCreateProfile = onNavigateToCreateProfile,
                 onBackClick = navController::navigateUp
             )
         }
 
-        composable<AuthDestinations.SignUp> {
+        composable<AuthDestination.SignUp> {
             SignUpRoute(
-                onContinueClick = onNavigateToCreateProfile,
                 onBackClick = navController::navigateUp
             )
         }

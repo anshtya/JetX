@@ -1,4 +1,4 @@
-package com.anshtya.jetx
+package com.anshtya.jetx.ui.app
 
 import android.content.Context
 import android.content.Intent
@@ -16,6 +16,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -23,33 +25,45 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.IntentCompat
 import androidx.core.util.Consumer
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navOptions
 import com.anshtya.jetx.attachments.ui.preview.MediaPreviewActivity
+import com.anshtya.jetx.auth.ui.navigation.AuthGraph
+import com.anshtya.jetx.auth.ui.navigation.authGraph
 import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
 import com.anshtya.jetx.chats.ui.chat.toChatDestination
-import com.anshtya.jetx.chats.ui.navigation.ChatsDestinations
-import com.anshtya.jetx.ui.navigation.JetXNavigation
-import com.anshtya.jetx.ui.navigation.home.TopLevelHomeDestination
+import com.anshtya.jetx.chats.ui.navigation.ChatsDestination
+import com.anshtya.jetx.profile.ui.CreateProfileRoute
+import com.anshtya.jetx.ui.LoadingRoute
+import com.anshtya.jetx.ui.authenticated.AuthenticatedDestination
+import com.anshtya.jetx.ui.authenticated.AuthenticatedGraph
+import com.anshtya.jetx.ui.authenticated.authenticatedGraph
 import com.anshtya.jetx.util.Constants
 import kotlin.reflect.KClass
 
 @Composable
 fun App(
-    modifier: Modifier = Modifier
+    onHideSplashScreen: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: AppViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
 
-    val topLevelHomeDestinations = remember { TopLevelHomeDestination.entries }
+    val authenticatedDestinations = remember { AuthenticatedDestination.entries }
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = currentBackStackEntry?.destination
 
     val showBottomBar = remember(currentDestination) {
-        topLevelHomeDestinations.any {
+        authenticatedDestinations.any {
             currentDestination?.hasRoute(it.route::class) == true
         }
     }
@@ -63,13 +77,22 @@ fun App(
         onDispose { activity.removeOnNewIntentListener(listener) }
     }
 
+    val navState by viewModel.navState.collectAsStateWithLifecycle()
+
+    val initialised by remember {
+        derivedStateOf { navState != AppNavState.Initialising }
+    }
+    LaunchedEffect(initialised) {
+        if (initialised) onHideSplashScreen()
+    }
+
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
                 BottomNavigationBar(
-                    destinations = topLevelHomeDestinations,
+                    destinations = authenticatedDestinations,
                     currentDestination = currentDestination,
-                    onNavigateToDestination = navController::navigateToTopLevelHomeDestination
+                    onNavigateToDestination = navController::navigateToAuthenticatedDestination
                 )
             }
         },
@@ -82,20 +105,59 @@ fun App(
                 .consumeWindowInsets(paddingValues)
                 .imePadding()
         ) {
-            JetXNavigation(
+            NavHost(
                 navController = navController,
-                onSetGraph = {
-                    // Handle onCreate intent
-                    handleIntent(activity.intent, navController, context)
+                startDestination = LoadingRoute
+            ) {
+                composable<LoadingRoute> {
+                    LoadingRoute()
                 }
-            )
+
+                authGraph(navController = navController)
+
+                composable<CreateProfileRoute> {
+                    CreateProfileRoute(
+                        onNavigateUp = navController::navigateUp
+                    )
+                }
+
+                authenticatedGraph(navController = navController)
+            }
+
+            // Handle onCreate intent
+            handleIntent(activity.intent, navController, context)
+
+            LaunchedEffect(navState) {
+                val appNavOptions = navOptions {
+                    popUpTo(navController.graph.id) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+
+                when (navState) {
+                    AppNavState.Authenticated -> {
+                        navController.navigate(AuthenticatedGraph, appNavOptions)
+                    }
+
+                    AppNavState.CreateProfile -> {
+                        navController.navigate(CreateProfileRoute, appNavOptions)
+                    }
+
+                    AppNavState.Unauthenticated -> {
+                        navController.navigate(AuthGraph, appNavOptions)
+                    }
+
+                    AppNavState.Initialising -> {}
+                }
+            }
         }
     }
 }
 
 @Composable
 private fun BottomNavigationBar(
-    destinations: List<TopLevelHomeDestination>,
+    destinations: List<AuthenticatedDestination>,
     currentDestination: NavDestination?,
     onNavigateToDestination: (Any) -> Unit,
     modifier: Modifier = Modifier
@@ -130,9 +192,9 @@ fun NavDestination?.isDestinationInHierarchy(
     return this?.hierarchy?.any { it.hasRoute(route) } == true
 }
 
-fun <T : Any> NavController.navigateToTopLevelHomeDestination(route: T) {
+fun <T : Any> NavController.navigateToAuthenticatedDestination(route: T) {
     navigate(route) {
-        popUpTo(ChatsDestinations.ChatList) {
+        popUpTo(ChatsDestination.ChatList) {
             saveState = true
         }
         launchSingleTop = true

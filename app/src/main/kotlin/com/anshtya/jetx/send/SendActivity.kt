@@ -15,7 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.anshtya.jetx.MainActivity
 import com.anshtya.jetx.auth.data.AuthRepository
-import com.anshtya.jetx.auth.data.model.AuthStatus
+import com.anshtya.jetx.auth.data.model.AuthState
 import com.anshtya.jetx.ui.theme.JetXTheme
 import com.anshtya.jetx.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,26 +31,24 @@ class SendActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        var isAuthenticated by mutableStateOf<Boolean?>(null)
+        var isLoading by mutableStateOf(true)
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                authRepository.authStatus.collect { authStatus ->
-                    if (authStatus is AuthStatus.Success) {
-                        isAuthenticated = authStatus.authenticated
-                        if (isAuthenticated == false) {
-                            val intent = Intent(this@SendActivity, MainActivity::class.java)
-                            startActivity(intent)
-                            finish()
-                        }
+                authRepository.authState.collect { authStatus ->
+                    if (authStatus is AuthState.Unauthenticated) {
+                        val intent = Intent(this@SendActivity, MainActivity::class.java)
+                        startActivity(intent)
+                        finish()
                     }
+                    isLoading = false
                 }
             }
         }
 
         setContent {
             JetXTheme {
-                if (isAuthenticated == true) {
+                if (!isLoading) {
                     SendScreen(
                         onNavigateUp = this::finish,
                         onSend = { chatIds ->

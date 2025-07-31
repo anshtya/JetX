@@ -14,7 +14,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -35,24 +34,18 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SignInRoute(
-    onNavigateToHome: () -> Unit,
-    onNavigateToCreateProfile: () -> Unit,
     onBackClick: () -> Unit,
     viewModel: SignInViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val profileCreated by viewModel.profileCreated.collectAsStateWithLifecycle()
 
     SignInScreen(
         uiState = uiState,
-        profileCreated = profileCreated,
         onUsernameChange = viewModel::onUsernameChange,
         onPasswordChange = viewModel::onPasswordChange,
         onPasswordVisibilityChange = viewModel::onPasswordVisibilityChange,
         onErrorShown = viewModel::onErrorShown,
         onSignInClick = viewModel::signIn,
-        onSignInSuccessful = onNavigateToHome,
-        onNavigateToCreateProfile = onNavigateToCreateProfile,
         onBackClick = onBackClick
     )
 }
@@ -61,24 +54,14 @@ fun SignInRoute(
 @Composable
 private fun SignInScreen(
     uiState: AuthUiState,
-    profileCreated: Boolean?,
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onPasswordVisibilityChange: () -> Unit,
     onErrorShown: () -> Unit,
     onSignInClick: () -> Unit,
-    onSignInSuccessful: () -> Unit,
-    onNavigateToCreateProfile: () -> Unit,
     onBackClick: () -> Unit
 ) {
     BackHandler(uiState.isLoading) {  }
-
-    LaunchedEffect(profileCreated) {
-        profileCreated?.let {
-            if (it) onSignInSuccessful()
-            else onNavigateToCreateProfile()
-        }
-    }
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -136,14 +119,11 @@ private fun SignInScreen(
 private fun SignInScreenPreview() {
     SignInScreen(
         uiState = AuthUiState(),
-        profileCreated = null,
         onUsernameChange = {},
         onPasswordChange = {},
         onPasswordVisibilityChange = {},
         onErrorShown = {},
         onSignInClick = {},
-        onSignInSuccessful = {},
-        onNavigateToCreateProfile = {},
         onBackClick = {}
     )
 }

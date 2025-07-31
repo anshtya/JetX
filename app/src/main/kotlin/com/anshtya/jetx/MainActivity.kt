@@ -9,43 +9,34 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.common.model.ThemeOption
+import com.anshtya.jetx.ui.app.App
 import com.anshtya.jetx.ui.theme.JetXTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainActivityViewModel by viewModels()
-    private var uiState by mutableStateOf<MainActivityUiState>(MainActivityUiState.Loading)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashScreen = installSplashScreen()
+        var showSplashScreen = true
+        installSplashScreen().setKeepOnScreenCondition { showSplashScreen }
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { uiState = it }
-            }
-        }
-
-        splashScreen.setKeepOnScreenCondition { uiState is MainActivityUiState.Loading }
-
         setContent {
-            val useDarkTheme = shouldUseDarkTheme(uiState)
+            val state by viewModel.state.collectAsStateWithLifecycle()
             JetXTheme(
-                darkTheme = useDarkTheme
+                darkTheme = shouldUseDarkTheme(state.theme)
             ) {
-                App(Modifier.fillMaxSize())
+                App(
+                    onHideSplashScreen = { showSplashScreen = false },
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         }
     }
@@ -53,14 +44,11 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun shouldUseDarkTheme(
-    uiState: MainActivityUiState
+    theme: ThemeOption
 ): Boolean {
-    return when (uiState) {
-        is MainActivityUiState.Loading -> isSystemInDarkTheme()
-        is MainActivityUiState.Success -> when (uiState.uiProperties.theme) {
-            ThemeOption.SYSTEM_DEFAULT -> isSystemInDarkTheme()
-            ThemeOption.LIGHT -> false
-            ThemeOption.DARK -> true
-        }
+    return when (theme) {
+        ThemeOption.SYSTEM_DEFAULT -> isSystemInDarkTheme()
+        ThemeOption.LIGHT -> false
+        ThemeOption.DARK -> true
     }
 }

@@ -7,7 +7,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.anshtya.jetx.common.model.AppUiProperties
 import com.anshtya.jetx.common.model.ThemeOption
-import kotlinx.coroutines.flow.first
+import com.anshtya.jetx.preferences.model.UserState
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,15 +22,18 @@ class PreferencesStore @Inject constructor(
         val THEME = stringPreferencesKey("theme")
     }
 
-    val appUiProperties = dataStore.data.map { preferences ->
+    val appUiProperties: Flow<AppUiProperties> = dataStore.data.map { preferences ->
         AppUiProperties(
             theme = preferences[THEME]?.let { enumValueOf<ThemeOption>(it) }
                 ?: ThemeOption.SYSTEM_DEFAULT
         )
     }
 
-    suspend fun getProfileCreated(): Boolean =
-        dataStore.data.map { it[PROFILE_CREATED] == true }.first()
+    val userState: Flow<UserState> = dataStore.data.map { preferences ->
+        UserState(
+            profileCreated = preferences[PROFILE_CREATED]
+        )
+    }
 
     suspend fun setProfileCreated(profileCreated: Boolean) {
         dataStore.edit {

@@ -19,9 +19,6 @@ class SignInViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _profileCreated = MutableStateFlow<Boolean?>(null)
-    val profileCreated = _profileCreated.asStateFlow()
-
     fun onUsernameChange(username: String) {
         _uiState.update {
             it.copy(email = username)
@@ -82,7 +79,9 @@ class SignInViewModel @Inject constructor(
             )
 
             if (authResult.isSuccess) {
-                _profileCreated.update { authResult.getOrNull() }
+                _uiState.update {
+                    it.copy(isLoading = false)
+                }
             } else {
                 _uiState.update {
                     it.copy(

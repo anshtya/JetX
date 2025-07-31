@@ -8,18 +8,16 @@ import com.anshtya.jetx.settings.ui.SettingsRoute
 import kotlinx.serialization.Serializable
 
 @Serializable
-private data object Settings
+private data object SettingsGraph
 
-fun NavGraphBuilder.settings(
-    navController: NavController,
-    onNavigateToAuth: () -> Unit
+fun NavGraphBuilder.settingsGraph(
+    navController: NavController
 ) {
-    navigation<Settings>(
-        startDestination = SettingsDestinations.SettingList
+    navigation<SettingsGraph>(
+        startDestination = SettingsDestination.SettingList
     ) {
-        composable<SettingsDestinations.SettingList> {
+        composable<SettingsDestination.SettingList> {
             SettingsRoute(
-                onNavigateToAuth = onNavigateToAuth,
                 onBackClick = navController::navigateUp
             )
         }
@@ -28,6 +26,6 @@ fun NavGraphBuilder.settings(
     }
 }
 
-fun NavController.navigateToSettings() {
-    navigate(Settings)
+fun NavController.navigateToSettingsGraph() {
+    navigate(SettingsGraph)
 }

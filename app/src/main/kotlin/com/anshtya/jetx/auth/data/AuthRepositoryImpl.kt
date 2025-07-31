@@ -1,6 +1,6 @@
 package com.anshtya.jetx.auth.data
 
-import com.anshtya.jetx.auth.data.model.AuthStatus
+import com.anshtya.jetx.auth.data.model.AuthState
 import com.anshtya.jetx.chats.data.MessageUpdatesListener
 import com.anshtya.jetx.database.dao.UserProfileDao
 import com.anshtya.jetx.fcm.FcmTokenManager
@@ -28,14 +28,16 @@ class AuthRepositoryImpl @Inject constructor(
 ) : AuthRepository {
     private val supabaseAuth = client.auth
 
-    override val authStatus: Flow<AuthStatus> = supabaseAuth.sessionStatus
+    override val authState: Flow<AuthState> = supabaseAuth.sessionStatus
         .map { status ->
             when (status) {
-                is SessionStatus.Initializing -> AuthStatus.Loading
-                else -> AuthStatus.Success(
-                    authenticated = status is SessionStatus.Authenticated,
-                    profileCreated = preferencesStore.getProfileCreated()
-                )
+                is SessionStatus.Initializing -> AuthState.Initializing
+                is SessionStatus.Authenticated -> AuthState.Authenticated
+                is SessionStatus.NotAuthenticated -> AuthState.Unauthenticated
+                is SessionStatus.RefreshFailure -> {
+                    val sessionExists = supabaseAuth.loadFromStorage(autoRefresh = false)
+                    AuthState.RefreshError(sessionExists)
+                }
             }
         }
 
@@ -54,6 +56,8 @@ class AuthRepositoryImpl @Inject constructor(
             if (profileSaved) {
                 fcmTokenManager.addToken()
                 preferencesStore.setProfileCreated(true)
+            } else {
+                preferencesStore.setProfileCreated(false)
             }
 
             profileSaved
@@ -69,16 +73,17 @@ class AuthRepositoryImpl @Inject constructor(
                 this.email = email
                 this.password = password
             }
+            preferencesStore.setProfileCreated(false)
         }
     }
 
     override suspend fun signOut(): Result<Unit> {
         return runCatching {
             messageUpdatesListener.unsubscribe()
-            fcmTokenManager.removeToken()
             workManagerHelper.cancelAllWork()
             userProfileDao.deleteAllProfiles()
             preferencesStore.clearPreferences()
+            fcmTokenManager.removeToken()
             supabaseAuth.signOut()
         }
     }

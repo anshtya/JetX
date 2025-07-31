@@ -2,7 +2,7 @@ package com.anshtya.jetx.settings.ui.navigation
 
 import kotlinx.serialization.Serializable
 
-sealed interface SettingsDestinations {
+sealed interface SettingsDestination {
     @Serializable
-    data object SettingList : SettingsDestinations
+    data object SettingList : SettingsDestination
 }

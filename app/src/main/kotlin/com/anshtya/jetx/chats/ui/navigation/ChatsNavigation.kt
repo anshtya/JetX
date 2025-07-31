@@ -18,34 +18,34 @@ import com.anshtya.jetx.util.Constants
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object Chats
+data object ChatsGraphRoute
 
-fun NavGraphBuilder.chats(
+fun NavGraphBuilder.chatsGraph(
     navController: NavController,
     onNavigateToSettings: () -> Unit
 ) {
-    navigation<Chats>(
-        startDestination = ChatsDestinations.ChatList
+    navigation<ChatsGraphRoute>(
+        startDestination = ChatsDestination.ChatList
     ) {
-        composable<ChatsDestinations.ChatList> { backStackEntry ->
+        composable<ChatsDestination.ChatList> { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Chats)
+                navController.getBackStackEntry(ChatsGraphRoute)
             }
             ChatListRoute(
                 onNavigateToChat = { args ->
                     navController.navigate(args.toChatDestination())
                 },
                 onNavigateToArchivedChats = {
-                    navController.navigate(ChatsDestinations.ArchivedChatList)
+                    navController.navigate(ChatsDestination.ArchivedChatList)
                 },
                 onNavigateToSettings = onNavigateToSettings,
                 viewModel = hiltViewModel<ChatListViewModel>(parentEntry)
             )
         }
 
-        composable<ChatsDestinations.ArchivedChatList> { backStackEntry ->
+        composable<ChatsDestination.ArchivedChatList> { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(Chats)
+                navController.getBackStackEntry(ChatsGraphRoute)
             }
             ArchivedChatListRoute(
                 onNavigateToChat = { args ->
@@ -56,24 +56,24 @@ fun NavGraphBuilder.chats(
             )
         }
 
-        composable<ChatsDestinations.Chat>(
+        composable<ChatsDestination.Chat>(
             deepLinks = listOf(
-                navDeepLink<ChatsDestinations.Chat>(
+                navDeepLink<ChatsDestination.Chat>(
                     basePath = "${Constants.BASE_APP_URL}/${Constants.CHAT_ARG}"
                 )
             )
         ) {
             ChatRoute(
                 onNavigateToMediaScreen = { data ->
-                    navController.navigate(ChatsDestinations.Media(data))
+                    navController.navigate(ChatsDestination.Media(data))
                 },
                 onBackClick = navController::navigateUp
             )
         }
 
-        composable<ChatsDestinations.Media> { backStackEntry ->
+        composable<ChatsDestination.Media> { backStackEntry ->
             MediaScreen(
-                data = backStackEntry.toRoute<ChatsDestinations.Media>().data,
+                data = backStackEntry.toRoute<ChatsDestination.Media>().data,
                 onBackClick = navController::navigateUp
             )
         }

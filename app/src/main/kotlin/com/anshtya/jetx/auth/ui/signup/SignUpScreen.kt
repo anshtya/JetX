@@ -14,7 +14,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -35,22 +34,18 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SignUpRoute(
-    onContinueClick: () -> Unit,
     onBackClick: () -> Unit,
     viewModel: SignUpViewModel = hiltViewModel()
 ) {
     val signUpState by viewModel.uiState.collectAsStateWithLifecycle()
-    val authSuccessful by viewModel.authSuccessful.collectAsStateWithLifecycle()
 
     SignUpScreen(
         uiState = signUpState,
-        authSuccessful = authSuccessful,
         onUsernameChange = viewModel::onUsernameChange,
         onPasswordChange = viewModel::onPasswordChange,
         onPasswordVisibilityChange = viewModel::onPasswordVisibilityChange,
         onErrorShown = viewModel::onErrorShown,
         onSignUpClick = viewModel::signUp,
-        onContinueClick = onContinueClick,
         onBackClick = onBackClick
     )
 }
@@ -59,20 +54,14 @@ fun SignUpRoute(
 @Composable
 private fun SignUpScreen(
     uiState: AuthUiState,
-    authSuccessful: Boolean?,
     onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onPasswordVisibilityChange: () -> Unit,
     onErrorShown: () -> Unit,
     onSignUpClick: () -> Unit,
-    onContinueClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
     BackHandler(uiState.isLoading) {}
-
-    LaunchedEffect(authSuccessful) {
-        authSuccessful?.let { if (it) onContinueClick() }
-    }
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -130,13 +119,11 @@ private fun SignUpScreen(
 private fun SignUpScreenPreview() {
     SignUpScreen(
         uiState = AuthUiState(),
-        authSuccessful = null,
         onUsernameChange = {},
         onPasswordChange = {},
         onPasswordVisibilityChange = {},
         onErrorShown = {},
         onSignUpClick = {},
-        onContinueClick = {},
         onBackClick = {}
     )
 }

@@ -24,7 +24,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,21 +42,16 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
+import com.anshtya.jetx.common.model.ThemeOption
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
-import com.anshtya.jetx.common.model.ThemeOption
 
 @Composable
 fun SettingsRoute(
     onBackClick: () -> Unit,
-    onNavigateToAuth: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
-
-    LaunchedEffect(viewModel.signedOut) {
-        if (viewModel.signedOut) onNavigateToAuth()
-    }
 
     SettingsScreen(
         userSettings = userSettings,
