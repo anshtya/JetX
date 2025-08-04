@@ -7,9 +7,9 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.anshtya.jetx.attachments.data.AttachmentRepository
 import com.anshtya.jetx.chats.data.model.toNetworkMessage
-import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.database.dao.AttachmentDao
 import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
+import com.anshtya.jetx.database.model.MessageStatus
 import com.anshtya.jetx.util.Constants
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject

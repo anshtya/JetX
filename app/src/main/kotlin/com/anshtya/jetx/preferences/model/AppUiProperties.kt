@@ -1,4 +1,4 @@
-package com.anshtya.jetx.common.model
+package com.anshtya.jetx.preferences.model
 
 data class AppUiProperties(
     val theme: ThemeOption

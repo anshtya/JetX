@@ -1,7 +1,7 @@
-package com.anshtya.jetx.sampledata
+package com.anshtya.jetx.common.model.sampledata
 
 import com.anshtya.jetx.common.model.Chat
-import com.anshtya.jetx.common.model.MessageStatus
+import com.anshtya.jetx.database.model.MessageStatus
 import java.util.UUID
 
 val sampleChats = listOf(

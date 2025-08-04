@@ -2,8 +2,8 @@ package com.anshtya.jetx
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.common.model.ThemeOption
 import com.anshtya.jetx.preferences.PreferencesStore
+import com.anshtya.jetx.preferences.model.ThemeOption
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

@@ -1,4 +1,4 @@
-package com.anshtya.jetx.common.model
+package com.anshtya.jetx.database.model
 
 enum class MessageStatus {
     SENDING,

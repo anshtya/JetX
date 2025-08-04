@@ -1,4 +1,4 @@
-package com.anshtya.jetx.sampledata
+package com.anshtya.jetx.common.model.sampledata
 
 import com.anshtya.jetx.common.model.UserProfile
 import java.util.UUID

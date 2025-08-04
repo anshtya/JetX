@@ -4,7 +4,6 @@ import androidx.core.net.toFile
 import androidx.room.withTransaction
 import com.anshtya.jetx.attachments.data.AttachmentFormat
 import com.anshtya.jetx.attachments.data.AttachmentType
-import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.database.JetXDatabase
 import com.anshtya.jetx.database.dao.AttachmentDao
 import com.anshtya.jetx.database.dao.ChatDao
@@ -13,6 +12,7 @@ import com.anshtya.jetx.database.dao.MessageDao
 import com.anshtya.jetx.database.entity.AttachmentEntity
 import com.anshtya.jetx.database.entity.ChatEntity
 import com.anshtya.jetx.database.entity.MessageEntity
+import com.anshtya.jetx.database.model.MessageStatus
 import com.anshtya.jetx.database.model.MessageWithAttachment
 import kotlinx.coroutines.flow.Flow
 import java.time.ZoneId

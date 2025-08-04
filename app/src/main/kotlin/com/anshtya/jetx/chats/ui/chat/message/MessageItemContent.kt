@@ -16,8 +16,8 @@ import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.database.model.AttachmentInfo
+import com.anshtya.jetx.database.model.MessageStatus
 
 private const val TEXT_LAYOUT_ID = 1
 private const val DETAILS_LAYOUT_ID = 2

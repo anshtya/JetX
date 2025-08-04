@@ -2,7 +2,6 @@ package com.anshtya.jetx.database.model
 
 import androidx.room.ColumnInfo
 import com.anshtya.jetx.common.model.Chat
-import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.util.getDateOrTime
 import java.time.ZonedDateTime
 import java.util.UUID

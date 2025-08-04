@@ -4,9 +4,9 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
-import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.database.entity.ChatEntity
 import com.anshtya.jetx.database.model.ChatWithRecentMessage
+import com.anshtya.jetx.database.model.MessageStatus
 import kotlinx.coroutines.flow.Flow
 import java.time.ZonedDateTime
 import java.util.UUID

@@ -53,12 +53,12 @@ import com.anshtya.jetx.chats.ui.components.DeleteChatDialog
 import com.anshtya.jetx.chats.ui.components.SearchTextField
 import com.anshtya.jetx.chats.ui.permissions.NotificationPermissionHandler
 import com.anshtya.jetx.common.model.UserProfile
+import com.anshtya.jetx.common.model.sampledata.sampleChats
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.IconButtonDropdownMenu
 import com.anshtya.jetx.common.ui.UserListItem
 import com.anshtya.jetx.common.ui.noRippleClickable
-import com.anshtya.jetx.sampledata.sampleChats
 import com.anshtya.jetx.util.Constants.defaultPadding
 
 @Composable

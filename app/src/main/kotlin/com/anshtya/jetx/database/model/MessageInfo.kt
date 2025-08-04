@@ -1,7 +1,6 @@
 package com.anshtya.jetx.database.model
 
 import androidx.room.ColumnInfo
-import com.anshtya.jetx.common.model.MessageStatus
 import java.time.ZonedDateTime
 import java.util.UUID
 

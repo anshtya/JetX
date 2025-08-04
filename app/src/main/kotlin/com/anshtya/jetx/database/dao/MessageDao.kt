@@ -4,8 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.anshtya.jetx.common.model.MessageStatus
 import com.anshtya.jetx.database.entity.MessageEntity
+import com.anshtya.jetx.database.model.MessageStatus
 import java.time.ZonedDateTime
 import java.util.UUID
 

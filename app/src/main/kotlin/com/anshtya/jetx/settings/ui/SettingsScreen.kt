@@ -42,9 +42,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
-import com.anshtya.jetx.common.model.ThemeOption
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
+import com.anshtya.jetx.preferences.model.ThemeOption
 
 @Composable
 fun SettingsRoute(

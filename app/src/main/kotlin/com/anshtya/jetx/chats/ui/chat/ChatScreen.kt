@@ -58,15 +58,15 @@ import com.anshtya.jetx.camera.CameraActivity
 import com.anshtya.jetx.chats.ui.chat.message.MessageItemContent
 import com.anshtya.jetx.chats.ui.components.DeleteMessageDialog
 import com.anshtya.jetx.chats.ui.components.ProfilePicturePopup
-import com.anshtya.jetx.common.model.MessageStatus
+import com.anshtya.jetx.common.model.sampledata.sampleUsers
 import com.anshtya.jetx.common.ui.BackButton
 import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.MessageInputField
 import com.anshtya.jetx.common.ui.ProfilePicture
 import com.anshtya.jetx.common.ui.SendButton
 import com.anshtya.jetx.database.model.AttachmentInfo
+import com.anshtya.jetx.database.model.MessageStatus
 import com.anshtya.jetx.database.model.MessageWithAttachment
-import com.anshtya.jetx.sampledata.sampleUsers
 import com.anshtya.jetx.util.Constants
 import com.anshtya.jetx.util.getDateOrTime
 import com.anshtya.jetx.util.isNotSameDay

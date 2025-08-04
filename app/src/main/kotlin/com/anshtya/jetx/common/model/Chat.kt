@@ -1,5 +1,6 @@
 package com.anshtya.jetx.common.model
 
+import com.anshtya.jetx.database.model.MessageStatus
 import java.util.UUID
 
 data class Chat(

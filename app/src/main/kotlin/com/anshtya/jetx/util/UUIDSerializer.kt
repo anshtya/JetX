@@ -1,4 +1,4 @@
-package com.anshtya.jetx.common
+package com.anshtya.jetx.util
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind

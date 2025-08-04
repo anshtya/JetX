@@ -5,7 +5,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.anshtya.jetx.common.model.MessageStatus
+import com.anshtya.jetx.database.model.MessageStatus
 import java.time.ZonedDateTime
 import java.util.UUID
 

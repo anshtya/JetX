@@ -5,8 +5,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.anshtya.jetx.common.model.AppUiProperties
-import com.anshtya.jetx.common.model.ThemeOption
+import com.anshtya.jetx.preferences.model.AppUiProperties
+import com.anshtya.jetx.preferences.model.ThemeOption
 import com.anshtya.jetx.preferences.model.UserState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
