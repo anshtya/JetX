@@ -1,4 +1,4 @@
-package com.anshtya.jetx.ui.authenticated
+package com.anshtya.jetx.ui.main
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
@@ -10,7 +10,7 @@ import com.anshtya.jetx.R
 import com.anshtya.jetx.calls.ui.navigation.CallsDestinations
 import com.anshtya.jetx.chats.ui.navigation.ChatsDestination
 
-enum class AuthenticatedDestination(
+enum class TopLevelDestination(
     val text: Int,
     val route: Any,
     val selectedIcon: ImageVector,

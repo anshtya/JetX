@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -33,10 +34,9 @@ class MainActivity : ComponentActivity() {
             JetXTheme(
                 darkTheme = shouldUseDarkTheme(state.theme)
             ) {
-                App(
-                    onHideSplashScreen = { showSplashScreen = false },
-                    modifier = Modifier.fillMaxSize()
-                )
+                    App(
+                        onHideSplashScreen = { showSplashScreen = false }
+                    )
             }
         }
     }
