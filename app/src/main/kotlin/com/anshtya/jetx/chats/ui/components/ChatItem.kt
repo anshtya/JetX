@@ -40,9 +40,9 @@ import com.anshtya.jetx.chats.ui.chat.message.MessageStatusIcon
 import com.anshtya.jetx.chats.ui.chat.toChatUserArgs
 import com.anshtya.jetx.common.model.Chat
 import com.anshtya.jetx.common.model.sampledata.sampleChats
-import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.DayNightPreview
 import com.anshtya.jetx.common.ui.ProfilePicture
+import com.anshtya.jetx.ui.theme.JetXTheme
 import com.anshtya.jetx.util.Constants.defaultPadding
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -185,7 +185,7 @@ fun ChatItem(
 @DayNightPreview
 @Composable
 private fun ChatItemPreview() {
-    ComponentPreview {
+    JetXTheme {
         ChatItem(
             chat = sampleChats.first(),
             chatsSelected = false,

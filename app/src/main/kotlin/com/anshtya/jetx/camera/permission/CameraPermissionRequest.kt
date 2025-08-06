@@ -21,7 +21,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.anshtya.jetx.R
-import com.anshtya.jetx.common.ui.ComponentPreview
 
 @Composable
 fun CameraPermissionRequest(
@@ -98,16 +97,14 @@ private fun getPresentablePermissionText(text: String): String = when (text) {
     else -> ""
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun CameraPermissionDeniedPreview() {
-    ComponentPreview {
-        CameraPermissionRequest(
-            permissionsDenied = false,
-            deniedPermissions = listOf(Manifest.permission.CAMERA),
-            onPermissionRequest = {},
-            onGoToAppInfo = {},
-            onNotNowClick = {},
-        )
-    }
+    CameraPermissionRequest(
+        permissionsDenied = false,
+        deniedPermissions = listOf(Manifest.permission.CAMERA),
+        onPermissionRequest = {},
+        onGoToAppInfo = {},
+        onNotNowClick = {},
+    )
 }

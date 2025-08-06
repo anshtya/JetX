@@ -11,14 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,10 +35,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
-import com.anshtya.jetx.common.ui.BackButton
-import com.anshtya.jetx.common.ui.ComponentPreview
 import com.anshtya.jetx.common.ui.ProfilePicture
+import com.anshtya.jetx.common.ui.components.button.BackButton
+import com.anshtya.jetx.common.ui.components.scaffold.JetxScaffold
+import com.anshtya.jetx.common.ui.components.topappbar.JetxTopAppBar
 import com.anshtya.jetx.common.ui.rememberMediaPicker
+import com.anshtya.jetx.ui.theme.JetXTheme
 import com.anshtya.jetx.util.UriUtil.toBitmap
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -67,7 +66,6 @@ fun CreateProfileRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CreateProfileScreen(
     uiState: CreateProfileUiState,
@@ -100,9 +98,9 @@ private fun CreateProfileScreen(
         onErrorShown()
     }
 
-    Scaffold(
+    JetxScaffold(
         topBar = {
-            TopAppBar(
+            JetxTopAppBar(
                 title = {},
                 navigationIcon = { BackButton(onClick = onBackClick) }
             )
@@ -110,13 +108,12 @@ private fun CreateProfileScreen(
         snackbarHost = {
             SnackbarHost(snackbarHostState)
         }
-    ) { innerPadding ->
+    ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(innerPadding)
                 .padding(horizontal = 20.dp)
+                .fillMaxWidth()
         ) {
             Text(
                 text = stringResource(id = R.string.create_your_profile),
@@ -180,7 +177,7 @@ private fun CreateProfileScreen(
 @Preview
 @Composable
 private fun CreateProfileScreenPreview() {
-    ComponentPreview {
+    JetXTheme {
         CreateProfileScreen(
             uiState = CreateProfileUiState(),
             onNameChange = {},

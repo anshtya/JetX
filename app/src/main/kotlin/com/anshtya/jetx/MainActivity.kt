@@ -34,9 +34,11 @@ class MainActivity : ComponentActivity() {
             JetXTheme(
                 darkTheme = shouldUseDarkTheme(state.theme)
             ) {
+                Surface(Modifier.fillMaxSize()) {
                     App(
                         onHideSplashScreen = { showSplashScreen = false }
                     )
+                }
             }
         }
     }

@@ -18,14 +18,11 @@ import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,11 +51,13 @@ import com.anshtya.jetx.chats.ui.components.SearchTextField
 import com.anshtya.jetx.chats.ui.permissions.NotificationPermissionHandler
 import com.anshtya.jetx.common.model.UserProfile
 import com.anshtya.jetx.common.model.sampledata.sampleChats
-import com.anshtya.jetx.common.ui.BackButton
-import com.anshtya.jetx.common.ui.ComponentPreview
-import com.anshtya.jetx.common.ui.IconButtonDropdownMenu
 import com.anshtya.jetx.common.ui.UserListItem
+import com.anshtya.jetx.common.ui.components.button.BackButton
+import com.anshtya.jetx.common.ui.components.button.IconButtonDropdownMenu
+import com.anshtya.jetx.common.ui.components.scaffold.JetxScaffold
+import com.anshtya.jetx.common.ui.components.topappbar.JetxTopAppBar
 import com.anshtya.jetx.common.ui.noRippleClickable
+import com.anshtya.jetx.ui.theme.JetXTheme
 import com.anshtya.jetx.util.Constants.defaultPadding
 
 @Composable
@@ -102,7 +101,6 @@ fun ChatListRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ChatListScreen(
     state: ChatListState,
@@ -156,7 +154,7 @@ private fun ChatListScreen(
             } else if (chatsSelected) onClearSelectedChats()
         }
 
-        Scaffold(
+        JetxScaffold(
             topBar = {
                 if (searchEnabled) {
                     val focusRequester = remember { FocusRequester() }
@@ -190,14 +188,12 @@ private fun ChatListScreen(
                     )
                 }
             }
-        ) { innerPadding ->
+        ) {
             if (searchResults.isNotEmpty()) {
                 val focusManager = LocalFocusManager.current
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxSize()
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     items(
                         items = searchResults,
@@ -236,7 +232,7 @@ private fun ChatListScreen(
                         }
                         if (!archivedChatEmpty) {
                             item {
-                                ArchivedChatsItem(
+                                ArchivedChatsHeader(
                                     enabled = !chatsSelected,
                                     onArchivedChatsClick = onArchivedChatsClick,
                                     modifier = Modifier
@@ -246,16 +242,13 @@ private fun ChatListScreen(
                             }
                         }
                     },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
+                    modifier = Modifier.fillMaxSize()
                 )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ChatListTopAppBar(
     chatsSelected: Boolean,
@@ -270,11 +263,11 @@ private fun ChatListTopAppBar(
     onSettingsClick: () -> Unit,
     onSearchButtonClick: () -> Unit
 ) {
-    TopAppBar(
+    JetxTopAppBar(
         title = {
             if (chatsSelected) Text("$selectedChatCount")
             else Text(
-                text = stringResource(R.string.app_name),
+                text = stringResource(R.string.app_title),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary
@@ -363,7 +356,7 @@ private fun FilterRow(
 }
 
 @Composable
-fun ArchivedChatsItem(
+fun ArchivedChatsHeader(
     enabled: Boolean,
     onArchivedChatsClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -398,7 +391,7 @@ fun ArchivedChatsItem(
 @Preview
 @Composable
 private fun ChatsScreenPreview() {
-    ComponentPreview {
+    JetXTheme {
         ChatListScreen(
             state = ChatListState.Success(sampleChats),
             selectedChats = emptySet(),

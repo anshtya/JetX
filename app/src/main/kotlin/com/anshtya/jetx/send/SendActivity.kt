@@ -6,20 +6,12 @@ import android.os.Parcelable
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.core.content.IntentCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.anshtya.jetx.MainActivity
 import com.anshtya.jetx.auth.data.AuthRepository
-import com.anshtya.jetx.auth.data.model.AuthState
 import com.anshtya.jetx.ui.theme.JetXTheme
 import com.anshtya.jetx.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -31,31 +23,19 @@ class SendActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        var isLoading by mutableStateOf(true)
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                authRepository.authState.collect { authStatus ->
-                    if (authStatus is AuthState.Unauthenticated) {
+        setContent {
+            JetXTheme {
+                SendScreen(
+                    onNavigateUp = this::finish,
+                    onActivityFinish = {
                         val intent = Intent(this@SendActivity, MainActivity::class.java)
                         startActivity(intent)
                         finish()
+                    },
+                    onSend = { chatIds ->
+                        createSendIntent(intent, chatIds)
                     }
-                    isLoading = false
-                }
-            }
-        }
-
-        setContent {
-            JetXTheme {
-                if (!isLoading) {
-                    SendScreen(
-                        onNavigateUp = this::finish,
-                        onSend = { chatIds ->
-                            createSendIntent(intent, chatIds)
-                        }
-                    )
-                }
+                )
             }
         }
     }

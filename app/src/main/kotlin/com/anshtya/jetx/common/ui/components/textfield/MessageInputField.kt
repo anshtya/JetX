@@ -1,4 +1,4 @@
-package com.anshtya.jetx.common.ui
+package com.anshtya.jetx.common.ui.components.textfield
 
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions

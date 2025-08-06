@@ -9,17 +9,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,10 +39,12 @@ import coil3.compose.AsyncImage
 import coil3.video.VideoFrameDecoder
 import com.anshtya.jetx.R
 import com.anshtya.jetx.attachments.data.AttachmentType
-import com.anshtya.jetx.common.ui.BackButton
-import com.anshtya.jetx.common.ui.MessageInputField
-import com.anshtya.jetx.common.ui.SendButton
 import com.anshtya.jetx.common.ui.VideoPlayerSurface
+import com.anshtya.jetx.common.ui.components.button.BackButton
+import com.anshtya.jetx.common.ui.components.button.SendButton
+import com.anshtya.jetx.common.ui.components.scaffold.JetxScaffold
+import com.anshtya.jetx.common.ui.components.textfield.MessageInputField
+import com.anshtya.jetx.common.ui.components.topappbar.JetxTopAppBar
 import com.anshtya.jetx.util.UriUtil.getMimeType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -70,14 +70,13 @@ fun MediaPreviewRoute(
         errorMessage = errorMessage,
         onCurrentItemChange = viewModel::onSelectItem,
         onCurrentItemCaptionChange = viewModel::onCaptionChange,
-        onSend = viewModel::onSend,
+        onSendClick = viewModel::onSendClick,
         onBackClick = onBackClick,
         onDiscardMedia = viewModel::discardMedia,
         onErrorShown = viewModel::onErrorShown
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MediaPreviewScreen(
     uiState: MediaPreviewUiState,
@@ -86,7 +85,7 @@ private fun MediaPreviewScreen(
     onCurrentItemChange: (Int) -> Unit,
     onCurrentItemCaptionChange: (Int, String) -> Unit,
     onBackClick: () -> Unit,
-    onSend: () -> Unit,
+    onSendClick: () -> Unit,
     onDiscardMedia: () -> Unit,
     onErrorShown: () -> Unit,
 ) {
@@ -98,10 +97,10 @@ private fun MediaPreviewScreen(
         onErrorShown()
     }
 
-    Scaffold(
+    JetxScaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
+            JetxTopAppBar(
                 title = {},
                 navigationIcon = { BackButton { onBackClick() } }
             )
@@ -118,87 +117,105 @@ private fun MediaPreviewScreen(
                     onCurrentItemCaptionChange(currentItemIndex, currentItemCaption)
                 }
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    MessageInputField(
-                        inputText = currentItemCaption,
-                        onInputTextChange = { currentItemCaption = it },
-                        onMessageSent = {},
-                        modifier = Modifier.weight(1f)
-                    )
-                    SendButton(onClick = onSend)
-                }
+                MediaSendRow(
+                    currentItemCaption = currentItemCaption,
+                    onCurrentItemCaptionChange = { currentItemCaption = it },
+                    onSendClick = onSendClick,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxWidth()
+                        .imePadding()
+                )
             }
         }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            val context = LocalContext.current
-            when (uiState) {
-                is MediaPreviewUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                is MediaPreviewUiState.DataLoaded -> {
-                    val sendItems = uiState.data
-                    if (sendItems.isNotEmpty()) {
-                        val currentUri = sendItems[currentItemIndex].uri
-                        val attachmentType = currentUri.getMimeType(context)?.let {
-                            AttachmentType.fromMimeType(it)
-                        }!!
+    ) {
+        val context = LocalContext.current
+        when (uiState) {
+            is MediaPreviewUiState.Loading -> {
+                Box(Modifier.fillMaxSize()) {
+                    CircularProgressIndicator(Modifier.align(Alignment.Center))
+                }
+            }
 
-                        val player = remember(currentUri) {
-                            if (attachmentType == AttachmentType.VIDEO) {
-                                ExoPlayer.Builder(context).build().apply {
-                                    setMediaItem(MediaItem.fromUri(currentUri))
-                                    prepare()
-                                }
-                            } else null
-                        }
+            is MediaPreviewUiState.DataLoaded -> {
+                val sendItems = uiState.data
+                if (sendItems.isNotEmpty()) {
+                    val currentUri = sendItems[currentItemIndex].uri
+                    val attachmentType = currentUri.getMimeType(context)?.let {
+                        AttachmentType.fromMimeType(it)
+                    }!!
 
-                        var showDiscardMediaDialog by remember { mutableStateOf(false) }
-                        if (showDiscardMediaDialog) {
-                            DiscardMediaDialog(
-                                onDismiss = { showDiscardMediaDialog = false },
-                                onConfirmClick = {
-                                    player?.release()
-                                    onDiscardMedia()
-                                }
-                            )
-                        }
+                    val player = remember(currentUri) {
+                        if (attachmentType == AttachmentType.VIDEO) {
+                            ExoPlayer.Builder(context).build().apply {
+                                setMediaItem(MediaItem.fromUri(currentUri))
+                                prepare()
+                            }
+                        } else null
+                    }
 
-                        BackHandler {
-                            player?.pause()
-                            showDiscardMediaDialog = true
-                        }
+                    var showDiscardMediaDialog by remember { mutableStateOf(false) }
+                    if (showDiscardMediaDialog) {
+                        DiscardMediaDialog(
+                            onDismiss = { showDiscardMediaDialog = false },
+                            onConfirmClick = {
+                                player?.release()
+                                onDiscardMedia()
+                            }
+                        )
+                    }
 
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .fillMaxSize()
-                        ) {
-                            UriPreview(
-                                uri = currentUri,
-                                attachmentType = attachmentType,
-                                player = player,
-                                modifier = Modifier.weight(1f)
-                            )
-                            MediaRow(
-                                sendItems = sendItems,
-                                onItemClick = {
-                                    player?.release()
-                                    onCurrentItemChange(it)
-                                }
-                            )
-                        }
+                    BackHandler {
+                        player?.pause()
+                        showDiscardMediaDialog = true
+                    }
+
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .fillMaxSize()
+                    ) {
+                        UriPreview(
+                            uri = currentUri,
+                            attachmentType = attachmentType,
+                            player = player,
+                            modifier = Modifier.weight(1f)
+                        )
+                        MediaRow(
+                            sendItems = sendItems,
+                            onItemClick = {
+                                player?.release()
+                                onCurrentItemChange(it)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun MediaSendRow(
+    currentItemCaption: String,
+    onCurrentItemCaptionChange: (String) -> Unit,
+    onSendClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+    ) {
+        MessageInputField(
+            inputText = currentItemCaption,
+            onInputTextChange = onCurrentItemCaptionChange,
+            onMessageSent = {},
+            modifier = Modifier.weight(1f)
+        )
+        SendButton(onClick = onSendClick)
     }
 }
 

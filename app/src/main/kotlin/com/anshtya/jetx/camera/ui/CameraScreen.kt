@@ -46,6 +46,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.camera.permission.CameraPermissionRequest
+import com.anshtya.jetx.common.ui.components.scaffold.JetxScaffold
 import com.anshtya.jetx.util.FileUtil
 import kotlinx.coroutines.launch
 
@@ -115,26 +116,28 @@ fun CameraScreen(
         requiredPermissions.filterNot { grantedPermissions.contains(it) }
     }
 
-    if (permissionsChecked) {
-        if (notGranted.isEmpty()) {
-            CameraLayout(
-                onImageCapture = viewModel::onImageCapture,
-                onVideoCapture = viewModel::onVideoCapture,
-                modifier = Modifier.fillMaxSize()
-            )
-        } else {
-            CameraPermissionRequest(
-                permissionsDenied = permissionsRequested,
-                deniedPermissions = notGranted,
-                onGoToAppInfo = {
-                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                        data = Uri.fromParts("package", context.packageName, null)
-                    }
-                    context.startActivity(intent)
-                },
-                onPermissionRequest = { launcher.launch(requiredPermissions.toTypedArray()) },
-                onNotNowClick = onBackClick
-            )
+    JetxScaffold {
+        if (permissionsChecked) {
+            if (notGranted.isEmpty()) {
+                CameraLayout(
+                    onImageCapture = viewModel::onImageCapture,
+                    onVideoCapture = viewModel::onVideoCapture,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                CameraPermissionRequest(
+                    permissionsDenied = permissionsRequested,
+                    deniedPermissions = notGranted,
+                    onGoToAppInfo = {
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", context.packageName, null)
+                        }
+                        context.startActivity(intent)
+                    },
+                    onPermissionRequest = { launcher.launch(requiredPermissions.toTypedArray()) },
+                    onNotNowClick = onBackClick
+                )
+            }
         }
     }
 }

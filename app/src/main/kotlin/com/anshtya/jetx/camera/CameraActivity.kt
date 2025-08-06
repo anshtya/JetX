@@ -8,7 +8,6 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.content.IntentCompat
@@ -36,11 +35,7 @@ class CameraActivity : ComponentActivity() {
 
         setContent {
             JetXTheme(darkTheme = true) {
-                Surface(
-                    modifier = Modifier
-                        .safeDrawingPadding()
-                        .fillMaxSize()
-                ) {
+                Surface(Modifier.fillMaxSize()) {
                     CameraScreen(
                         onBackClick = ::finish,
                         onNavigateToPreview = { mediaUri ->

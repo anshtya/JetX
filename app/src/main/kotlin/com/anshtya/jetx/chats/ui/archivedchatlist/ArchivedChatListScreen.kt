@@ -2,16 +2,12 @@ package com.anshtya.jetx.chats.ui.archivedchatlist
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Unarchive
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,8 +25,10 @@ import com.anshtya.jetx.chats.ui.chatlist.ChatListViewModel
 import com.anshtya.jetx.chats.ui.components.ChatList
 import com.anshtya.jetx.chats.ui.components.DeleteChatDialog
 import com.anshtya.jetx.common.model.sampledata.sampleChats
-import com.anshtya.jetx.common.ui.BackButton
-import com.anshtya.jetx.common.ui.ComponentPreview
+import com.anshtya.jetx.common.ui.components.button.BackButton
+import com.anshtya.jetx.common.ui.components.scaffold.JetxScaffold
+import com.anshtya.jetx.common.ui.components.topappbar.JetxTopAppBar
+import com.anshtya.jetx.ui.theme.JetXTheme
 
 @Composable
 fun ArchivedChatListRoute(
@@ -53,7 +51,6 @@ fun ArchivedChatListRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ArchivedChatListScreen(
     state: ChatListState,
@@ -85,52 +82,63 @@ private fun ArchivedChatListScreen(
             onClearSelectedChats()
         }
 
-        Scaffold(
+        JetxScaffold(
             topBar = {
-                TopAppBar(
-                    title = { Text(text = stringResource(id = R.string.archived)) },
-                    navigationIcon = { BackButton(onClick = onBackClick) },
-                    actions = {
-                        if (chatsSelected) {
-                            IconButton(
-                                onClick = onUnarchiveClick,
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Unarchive,
-                                    contentDescription = stringResource(id = R.string.unarchive_chat)
-                                )
-                            }
-                            IconButton(
-                                onClick = { showDeleteChatDialog = true },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.Delete,
-                                    contentDescription = stringResource(id = R.string.delete_chat)
-                                )
-                            }
-                        }
-                    }
+                ArchivedListTopAppBar(
+                    chatsSelected = chatsSelected,
+                    onBackClick = onBackClick,
+                    onUnarchiveClick = onUnarchiveClick,
+                    onDeleteClick = { showDeleteChatDialog = true }
                 )
             },
-        ) { innerPadding ->
+        ) {
             ChatList(
                 chatList = state.list,
                 selectedChats = selectedChats,
                 onChatClick = onChatClick,
                 onSelectChat = onSelectChat,
                 onUnselectChat = onUnselectChat,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(innerPadding)
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
 }
 
+@Composable
+private fun ArchivedListTopAppBar(
+    chatsSelected: Boolean,
+    onBackClick: () -> Unit,
+    onUnarchiveClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    JetxTopAppBar(
+        title = { Text(text = stringResource(id = R.string.archived)) },
+        navigationIcon = { BackButton(onClick = onBackClick) },
+        actions = {
+            if (chatsSelected) {
+                IconButton(onClick = onUnarchiveClick) {
+                    Icon(
+                        imageVector = Icons.Filled.Unarchive,
+                        contentDescription = stringResource(id = R.string.unarchive_chat)
+                    )
+                }
+                IconButton(onClick = onDeleteClick) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = stringResource(id = R.string.delete_chat)
+                    )
+                }
+            }
+        },
+        modifier = modifier
+    )
+}
+
 @Preview
 @Composable
 private fun ArchivedChatsScreenPreview() {
-    ComponentPreview {
+    JetXTheme {
         ArchivedChatListScreen(
             state = ChatListState.Success(sampleChats),
             selectedChats = emptySet(),

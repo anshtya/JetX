@@ -20,7 +20,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.anshtya.jetx.R
-import com.anshtya.jetx.common.ui.ComponentPreview
 
 @Composable
 fun DeleteChatDialog(
@@ -71,11 +70,9 @@ fun DeleteChatDialog(
 @Preview
 @Composable
 private fun DeleteChatDialogPreview() {
-    ComponentPreview {
-        DeleteChatDialog(
-            chatCount = 10,
-            onDismissRequest = {},
-            onConfirmClick = {}
-        )
-    }
+    DeleteChatDialog(
+        chatCount = 10,
+        onDismissRequest = {},
+        onConfirmClick = {}
+    )
 }

@@ -8,6 +8,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
 import androidx.core.content.IntentCompat
 import com.anshtya.jetx.MainActivity
 import com.anshtya.jetx.ui.theme.JetXTheme
@@ -21,20 +24,25 @@ class MediaPreviewActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        handleIntent(intent)
         enableEdgeToEdge()
+
+        handleIntent(intent)
+
         setContent {
             JetXTheme(darkTheme = true) {
-                MediaPreviewRoute(
-                    onBackClick = ::finish,
-                    navigateToChat = {
-                        val intent = Intent(this, MainActivity::class.java).apply {
-                            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                        }
-                        startActivity(intent)
-                    },
-                    viewModel = viewModel
-                )
+                Surface(Modifier.fillMaxSize()) {
+                    MediaPreviewRoute(
+                        onBackClick = ::finish,
+                        navigateToChat = {
+                            val intent = Intent(this, MainActivity::class.java).apply {
+                                flags =
+                                    Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                            }
+                            startActivity(intent)
+                        },
+                        viewModel = viewModel
+                    )
+                }
             }
         }
     }

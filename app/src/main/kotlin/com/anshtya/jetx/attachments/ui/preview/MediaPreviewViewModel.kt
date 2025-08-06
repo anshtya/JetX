@@ -94,7 +94,7 @@ class MediaPreviewViewModel @Inject constructor(
         _currentItemIndex.update { index }
     }
 
-    fun onSend() {
+    fun onSendClick() {
         viewModelScope.launch {
             if (_chatIds.isNotEmpty()) {
                 _chatIds.map { chatId ->

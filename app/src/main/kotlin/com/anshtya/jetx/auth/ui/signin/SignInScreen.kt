@@ -5,14 +5,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -29,7 +27,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
 import com.anshtya.jetx.auth.ui.AuthUiState
 import com.anshtya.jetx.auth.ui.components.AuthForm
-import com.anshtya.jetx.common.ui.BackButton
+import com.anshtya.jetx.common.ui.components.button.BackButton
+import com.anshtya.jetx.common.ui.components.scaffold.JetxScaffold
+import com.anshtya.jetx.common.ui.components.topappbar.JetxTopAppBar
 import kotlinx.coroutines.launch
 
 @Composable
@@ -50,7 +50,6 @@ fun SignInRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SignInScreen(
     uiState: AuthUiState,
@@ -71,9 +70,9 @@ private fun SignInScreen(
         onErrorShown()
     }
 
-    Scaffold(
+    JetxScaffold(
         topBar = {
-            TopAppBar(
+            JetxTopAppBar(
                 title = {},
                 navigationIcon = { BackButton(onClick = onBackClick) }
             )
@@ -81,13 +80,13 @@ private fun SignInScreen(
         snackbarHost = {
             SnackbarHost(snackbarHostState)
         }
-    ) { innerPadding ->
+    ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
                 .padding(horizontal = 20.dp)
+                .fillMaxSize()
+                .imePadding()
         ) {
             Spacer(Modifier.height(40.dp))
             Text(

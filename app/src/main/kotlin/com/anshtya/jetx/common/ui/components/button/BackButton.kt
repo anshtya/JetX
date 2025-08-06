@@ -1,4 +1,4 @@
-package com.anshtya.jetx.common.ui
+package com.anshtya.jetx.common.ui.components.button
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack

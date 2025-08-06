@@ -1,4 +1,4 @@
-package com.anshtya.jetx.common.ui
+package com.anshtya.jetx.common.ui.components.button
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,8 +33,8 @@ fun SendButton(
         Icon(
             imageVector = Icons.AutoMirrored.Filled.Send,
             contentDescription = stringResource(id = R.string.send_message),
-            tint = Color.White,
-            modifier = Modifier.align(Alignment.Center)
+            tint = Color.Companion.White,
+            modifier = Modifier.Companion.align(Alignment.Companion.Center)
         )
     }
 }

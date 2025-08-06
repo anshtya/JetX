@@ -27,16 +27,14 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,14 +57,16 @@ import com.anshtya.jetx.chats.ui.chat.message.MessageItemContent
 import com.anshtya.jetx.chats.ui.components.DeleteMessageDialog
 import com.anshtya.jetx.chats.ui.components.ProfilePicturePopup
 import com.anshtya.jetx.common.model.sampledata.sampleUsers
-import com.anshtya.jetx.common.ui.BackButton
-import com.anshtya.jetx.common.ui.ComponentPreview
-import com.anshtya.jetx.common.ui.MessageInputField
 import com.anshtya.jetx.common.ui.ProfilePicture
-import com.anshtya.jetx.common.ui.SendButton
+import com.anshtya.jetx.common.ui.components.button.BackButton
+import com.anshtya.jetx.common.ui.components.button.SendButton
+import com.anshtya.jetx.common.ui.components.scaffold.JetxScaffold
+import com.anshtya.jetx.common.ui.components.textfield.MessageInputField
+import com.anshtya.jetx.common.ui.components.topappbar.JetxTopAppBar
 import com.anshtya.jetx.database.model.AttachmentInfo
 import com.anshtya.jetx.database.model.MessageStatus
 import com.anshtya.jetx.database.model.MessageWithAttachment
+import com.anshtya.jetx.ui.theme.JetXTheme
 import com.anshtya.jetx.util.Constants
 import com.anshtya.jetx.util.getDateOrTime
 import com.anshtya.jetx.util.isNotSameDay
@@ -170,7 +170,7 @@ private fun ChatScreen(
         onErrorShown()
     }
 
-    Scaffold(
+    JetxScaffold(
         topBar = {
             ChatTopAppBar(
                 selectedMessagesCount = selectedMessagesCount,
@@ -189,14 +189,12 @@ private fun ChatScreen(
                 modifier = Modifier.padding(8.dp)
             )
         }
-    ) { paddingValues ->
+    ) {
         LazyColumn(
             state = listState,
             reverseLayout = true,
             contentPadding = PaddingValues(vertical = 2.dp),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+            modifier = Modifier.fillMaxSize()
         ) {
             chatMessages.forEachIndexed { index, message ->
                 val messageInfo = message.messageInfo
@@ -254,7 +252,6 @@ private fun ChatScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ChatTopAppBar(
     selectedMessagesCount: Int,
@@ -266,9 +263,11 @@ private fun ChatTopAppBar(
     onStarClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val messageSelected = remember(selectedMessagesCount) { selectedMessagesCount > 0 }
+    val messageSelected by remember(selectedMessagesCount) {
+        derivedStateOf { selectedMessagesCount > 0 }
+    }
 
-    TopAppBar(
+    JetxTopAppBar(
         title = {
             if (messageSelected) Text("$selectedMessagesCount")
             else Row(
@@ -490,7 +489,7 @@ private fun MessageItem(
 @Preview
 @Composable
 private fun ChatScreenPreview() {
-    ComponentPreview {
+    JetXTheme {
         val user = sampleUsers.first()
         ChatScreen(
             recipientUser = RecipientUser(
@@ -519,7 +518,7 @@ private fun ChatScreenPreview() {
 @Preview
 @Composable
 private fun MessageItemPreview() {
-    ComponentPreview {
+    JetXTheme {
         MessageItem(
             id = 1,
             text = "text",

@@ -41,10 +41,8 @@ fun ProfilePicture(
 @Preview
 @Composable
 private fun ProfilePicturePreview() {
-    ComponentPreview {
-        ProfilePicture(
-            model = null,
-            modifier = Modifier.size(50.dp)
-        )
-    }
+    ProfilePicture(
+        model = null,
+        modifier = Modifier.size(50.dp)
+    )
 }
