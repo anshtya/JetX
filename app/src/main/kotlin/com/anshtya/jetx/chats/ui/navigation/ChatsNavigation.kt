@@ -67,7 +67,7 @@ fun NavGraphBuilder.chatsGraph(
                 onNavigateToMediaScreen = { data ->
                     navController.navigate(ChatsDestination.Media(data))
                 },
-                onBackClick = navController::navigateUp
+                onNavigateUp = navController::navigateUp
             )
         }
 

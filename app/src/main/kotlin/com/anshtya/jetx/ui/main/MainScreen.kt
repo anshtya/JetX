@@ -144,6 +144,16 @@ private fun handleIntent(
     navController: NavController,
     context: Context
 ) {
+    // Handle open conversation
+    if (intent.data?.host == Constants.APP_HOST) {
+        val chatId = intent.data?.getQueryParameter(Constants.CHAT_ID_ARG)
+        if (chatId != null) {
+            navController.navigate(ChatUserArgs(chatId = chatId.toInt()).toChatDestination())
+            return
+        }
+    }
+
+    // Handle media preview
     val chatIds = intent.getIntegerArrayListExtra(Constants.CHAT_IDS_INTENT_KEY)
     val uris = IntentCompat.getParcelableArrayListExtra(
         intent,
@@ -160,5 +170,6 @@ private fun handleIntent(
                 putIntegerArrayListExtra(Constants.CHAT_IDS_INTENT_KEY, chatIds)
             }
         )
+        return
     }
 }

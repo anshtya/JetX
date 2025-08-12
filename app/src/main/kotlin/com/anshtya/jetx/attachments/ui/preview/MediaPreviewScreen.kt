@@ -51,8 +51,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun MediaPreviewRoute(
-    onBackClick: () -> Unit,
-    navigateToChat: () -> Unit,
+    onNavigateUp: () -> Unit,
+    onNavigateToChat: () -> Unit,
     viewModel: MediaPreviewViewModel
 ) {
     val uiState by viewModel.mediaPreviewUiState.collectAsStateWithLifecycle()
@@ -60,18 +60,16 @@ fun MediaPreviewRoute(
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
     val navigateToChat by viewModel.navigateToChat.collectAsStateWithLifecycle()
 
-    LaunchedEffect(navigateToChat) {
-        if (navigateToChat) navigateToChat()
-    }
-
     MediaPreviewScreen(
         uiState = uiState,
+        navigateToChat = navigateToChat,
         currentItemIndex = currentItemIndex,
         errorMessage = errorMessage,
+        onNavigateToChat = onNavigateToChat,
         onCurrentItemChange = viewModel::onSelectItem,
         onCurrentItemCaptionChange = viewModel::onCaptionChange,
         onSendClick = viewModel::onSendClick,
-        onBackClick = onBackClick,
+        onBackClick = onNavigateUp,
         onDiscardMedia = viewModel::discardMedia,
         onErrorShown = viewModel::onErrorShown
     )
@@ -80,8 +78,10 @@ fun MediaPreviewRoute(
 @Composable
 private fun MediaPreviewScreen(
     uiState: MediaPreviewUiState,
+    navigateToChat: Boolean,
     currentItemIndex: Int,
     errorMessage: String?,
+    onNavigateToChat: () -> Unit,
     onCurrentItemChange: (Int) -> Unit,
     onCurrentItemCaptionChange: (Int, String) -> Unit,
     onBackClick: () -> Unit,
@@ -89,6 +89,10 @@ private fun MediaPreviewScreen(
     onDiscardMedia: () -> Unit,
     onErrorShown: () -> Unit,
 ) {
+    LaunchedEffect(navigateToChat) {
+        if (navigateToChat) onNavigateToChat()
+    }
+
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 

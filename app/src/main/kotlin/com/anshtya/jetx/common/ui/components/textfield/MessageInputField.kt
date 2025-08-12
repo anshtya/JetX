@@ -20,7 +20,7 @@ import com.anshtya.jetx.R
 fun MessageInputField(
     inputText: String,
     onInputTextChange: (String) -> Unit,
-    onMessageSent: (String) -> Unit,
+    onMessageSent: () -> Unit,
     modifier: Modifier = Modifier,
     trailingIcon: @Composable (() -> Unit)? = null
 ) {
@@ -41,10 +41,7 @@ fun MessageInputField(
             imeAction = ImeAction.Send
         ),
         keyboardActions = KeyboardActions {
-            if (inputText.isNotBlank()) {
-                onMessageSent(inputText)
-                onInputTextChange("")
-            }
+            if (inputText.isNotBlank()) onMessageSent()
         },
         modifier = modifier.clip(CircleShape)
     )

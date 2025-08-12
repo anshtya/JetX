@@ -32,8 +32,8 @@ class MediaPreviewActivity : ComponentActivity() {
             JetXTheme(darkTheme = true) {
                 Surface(Modifier.fillMaxSize()) {
                     MediaPreviewRoute(
-                        onBackClick = ::finish,
-                        navigateToChat = {
+                        onNavigateUp = ::finish,
+                        onNavigateToChat = {
                             val intent = Intent(this, MainActivity::class.java).apply {
                                 flags =
                                     Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP

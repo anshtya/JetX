@@ -12,7 +12,8 @@ object Constants {
     val defaultPadding = 10.dp
 
     // Deeplink
-    const val BASE_APP_URL = "https://jetx.anshtya.com"
+    const val APP_HOST = "jetx.anshtya.com"
+    const val BASE_APP_URL = "https://$APP_HOST"
     const val CHAT_ARG = "chat"
     const val CHAT_ID_ARG = "chatId"
     const val CHAT_TITLE = "chatTitle"

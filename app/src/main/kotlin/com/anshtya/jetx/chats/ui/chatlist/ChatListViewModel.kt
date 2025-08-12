@@ -4,6 +4,7 @@ import android.app.NotificationManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.chats.data.ChatsRepository
+import com.anshtya.jetx.chats.data.MessageUpdatesListener
 import com.anshtya.jetx.common.model.Chat
 import com.anshtya.jetx.common.model.UserProfile
 import com.anshtya.jetx.profile.data.ProfileRepository
@@ -27,7 +28,8 @@ import javax.inject.Inject
 class ChatListViewModel @Inject constructor(
     private val chatsRepository: ChatsRepository,
     private val profileRepository: ProfileRepository,
-    private val notificationManager: NotificationManager
+    private val notificationManager: NotificationManager,
+    private val messageUpdatesListener: MessageUpdatesListener
 ) : ViewModel() {
     private var searchProfileJob: Job? = null
 
@@ -72,6 +74,16 @@ class ChatListViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000L),
             initialValue = true
         )
+
+    init {
+        subscribeToMessageUpdates()
+    }
+
+    private fun subscribeToMessageUpdates() {
+        viewModelScope.launch {
+            messageUpdatesListener.subscribe()
+        }
+    }
 
     fun onSearch() {
         searchProfileJob = viewModelScope.launch {

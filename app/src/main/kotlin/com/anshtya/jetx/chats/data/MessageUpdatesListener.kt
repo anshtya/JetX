@@ -14,6 +14,7 @@ import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.decodeRecord
 import io.github.jan.supabase.realtime.postgresChangeFlow
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
@@ -27,6 +28,8 @@ class MessageUpdatesListener @Inject constructor(
     private val messagesChannel = client.channel("messages-db-changes")
 
     suspend fun subscribe() {
+        if (messagesChannel.status.first() == RealtimeChannel.Status.SUBSCRIBED) return
+
         val userId = supabaseAuth.currentUserOrNull()?.id
             ?: throw IllegalStateException("User should be logged in to observe messages")
         listenSentMessageUpdates(messagesChannel, userId)

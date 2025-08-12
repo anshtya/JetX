@@ -71,11 +71,10 @@ import com.anshtya.jetx.util.Constants
 import com.anshtya.jetx.util.getDateOrTime
 import com.anshtya.jetx.util.isNotSameDay
 import java.time.ZonedDateTime
-import java.util.UUID
 
 @Composable
 fun ChatRoute(
-    onBackClick: () -> Unit,
+    onNavigateUp: () -> Unit,
     onNavigateToMediaScreen: (String) -> Unit,
     viewModel: ChatViewModel = hiltViewModel()
 ) {
@@ -99,7 +98,7 @@ fun ChatRoute(
         onAttachmentDownloadClick = viewModel::downloadAttachment,
         onCancelDownloadClick = viewModel::cancelAttachmentDownload,
         onErrorShown = viewModel::errorShown,
-        onBackClick = onBackClick
+        onBackClick = onNavigateUp
     )
 }
 
@@ -170,6 +169,20 @@ private fun ChatScreen(
         onErrorShown()
     }
 
+    var chatInputText by rememberSaveable { mutableStateOf("") }
+
+    val pickMediaLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(5)
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            val intent = Intent(context, MediaPreviewActivity::class.java).apply {
+                putExtra(Constants.RECIPIENT_INTENT_KEY, recipientUser?.id)
+                putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+            }
+            context.startActivity(intent)
+        }
+    }
+
     JetxScaffold(
         topBar = {
             ChatTopAppBar(
@@ -184,8 +197,23 @@ private fun ChatScreen(
         },
         bottomBar = {
             ChatTextInput(
-                recipientUserId = recipientUser?.id,
-                onMessageSent = onMessageSent,
+                text = chatInputText,
+                onTextChange = { chatInputText = it },
+                onCameraClick = {
+                    val intent = Intent(context, CameraActivity::class.java).apply {
+                        putExtra(Constants.RECIPIENT_INTENT_KEY, recipientUser?.id)
+                    }
+                    context.startActivity(intent)
+                },
+                onPickMediaClick = {
+                    pickMediaLauncher.launch(
+                        input = PickVisualMediaRequest(PickVisualMedia.ImageAndVideo)
+                    )
+                },
+                onMessageSent = {
+                    onMessageSent(chatInputText)
+                    chatInputText = ""
+                },
                 modifier = Modifier.padding(8.dp)
             )
         }
@@ -318,34 +346,21 @@ private fun ChatTopAppBar(
 
 @Composable
 private fun ChatTextInput(
-    recipientUserId: UUID?,
-    onMessageSent: (String) -> Unit,
+    text: String,
+    onTextChange: (String) -> Unit,
+    onCameraClick: () -> Unit,
+    onPickMediaClick: () -> Unit,
+    onMessageSent: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var inputText by rememberSaveable { mutableStateOf("") }
-
-    val context = LocalContext.current
-
-    val pickMediaLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickMultipleVisualMedia(5)
-    ) { uris ->
-        if (uris.isNotEmpty()) {
-            val intent = Intent(context, MediaPreviewActivity::class.java).apply {
-                putExtra(Constants.RECIPIENT_INTENT_KEY, recipientUserId)
-                putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
-            }
-            context.startActivity(intent)
-        }
-    }
-
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.fillMaxWidth()
     ) {
         MessageInputField(
-            inputText = inputText,
-            onInputTextChange = { inputText = it },
+            inputText = text,
+            onInputTextChange = onTextChange,
             onMessageSent = onMessageSent,
             modifier = Modifier.weight(1f),
             trailingIcon = {
@@ -353,26 +368,13 @@ private fun ChatTextInput(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    IconButton(
-                        onClick = {
-                            pickMediaLauncher.launch(
-                                input = PickVisualMediaRequest(PickVisualMedia.ImageAndVideo)
-                            )
-                        }
-                    ) {
+                    IconButton(onClick = onPickMediaClick) {
                         Icon(
                             imageVector = Icons.Default.PhotoLibrary,
                             contentDescription = null
                         )
                     }
-                    IconButton(
-                        onClick = {
-                            val intent = Intent(context, CameraActivity::class.java).apply {
-                                putExtra(Constants.RECIPIENT_INTENT_KEY, recipientUserId)
-                            }
-                            context.startActivity(intent)
-                        }
-                    ) {
+                    IconButton(onClick = onCameraClick) {
                         Icon(
                             imageVector = Icons.Default.CameraAlt,
                             contentDescription = null
@@ -382,14 +384,7 @@ private fun ChatTextInput(
             }
         )
 
-        SendButton(
-            onClick = {
-                if (inputText.isNotBlank()) {
-                    onMessageSent(inputText)
-                    inputText = ""
-                }
-            }
-        )
+        SendButton(onClick = { if (text.isNotBlank()) onMessageSent() })
     }
 }
 

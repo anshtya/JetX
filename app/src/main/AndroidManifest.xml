@@ -61,7 +61,7 @@
             </intent-filter>
             <intent-filter android:autoVerify="true">
                 <data
-                    android:host="anshtya.com"
+                    android:host="jetx.anshtya.com"
                     android:scheme="https" />
 
                 <action android:name="android.intent.action.VIEW" />
