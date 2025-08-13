@@ -55,9 +55,8 @@ class MessageUpdatesListener @Inject constructor(
             }
         ).onEach { action ->
             val networkMessage = action.decodeRecord<NetworkMessage>()
-            localMessagesDataSource.updateMessage(
+            localMessagesDataSource.updateMessageStatus(
                 messageId = networkMessage.id,
-                text = networkMessage.text,
                 status = if (networkMessage.hasSeen) {
                     MessageStatus.SEEN
                 } else if (networkMessage.hasReceived) {

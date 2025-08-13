@@ -38,15 +38,10 @@ interface MessageDao {
         status: MessageStatus
     )
 
-    @Query("""
-        UPDATE message 
-        SET text = :text, status = :status 
-        WHERE uid = :uid
-    """)
-    suspend fun updateMessage(
-        uid: UUID,
-        text: String,
-        status: MessageStatus,
+    @Query("UPDATE message SET text = :text WHERE id = :id")
+    suspend fun updateMessageText(
+        id: Int,
+        text: String
     )
 
     @Query("""

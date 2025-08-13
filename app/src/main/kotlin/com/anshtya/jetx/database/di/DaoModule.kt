@@ -5,6 +5,7 @@ import com.anshtya.jetx.database.dao.AttachmentDao
 import com.anshtya.jetx.database.dao.ChatDao
 import com.anshtya.jetx.database.dao.MessageAttachmentsDao
 import com.anshtya.jetx.database.dao.MessageDao
+import com.anshtya.jetx.database.dao.RecentMessageDao
 import com.anshtya.jetx.database.dao.UserProfileDao
 import dagger.Module
 import dagger.Provides
@@ -37,6 +38,12 @@ object DaoModule {
     @Provides
     fun provideMessageAttachmentsDao(db: JetXDatabase): MessageAttachmentsDao {
         return db.messageAttachmentsDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideRecentMessageDao(db: JetXDatabase): RecentMessageDao {
+        return db.recentMessageDao()
     }
 
     @Singleton

@@ -8,7 +8,6 @@ import com.anshtya.jetx.database.entity.ChatEntity
 import com.anshtya.jetx.database.model.ChatWithRecentMessage
 import com.anshtya.jetx.database.model.MessageStatus
 import kotlinx.coroutines.flow.Flow
-import java.time.ZonedDateTime
 import java.util.UUID
 
 @Dao
@@ -17,10 +16,17 @@ interface ChatDao {
     @Query(
         value = """
             SELECT 
-                chat.id, chat.recipient_id, chat.unread_count, chat.recent_message_text, 
-                chat.recent_message_status, chat.recent_message_timestamp, chat.recent_message_sender_id,
-                user_profile.username, user_profile.profile_picture
-            FROM chat
+                chat.id, chat.recipient_id,
+                message.text, message.status, message.created_at, message.sender_id,
+                user_profile.username, user_profile.profile_picture,
+                (
+                    SELECT COUNT(message.id) FROM message
+                    WHERE message.chat_id = chat.id AND chat.recipient_id == message.sender_id
+                    AND message.status = :receivedStatus
+                ) AS unread_count
+            FROM recent_message
+            JOIN chat ON recent_message.chat_id = chat.id
+            JOIN message ON recent_message.message_id = message.id
             JOIN user_profile ON chat.recipient_id = user_profile.id
             AND
                 CASE WHEN :showArchivedChats
@@ -34,10 +40,10 @@ interface ChatDao {
                 END
             AND
                 CASE WHEN :showUnreadChats
-                    THEN chat.recent_message_status = :receivedStatus
+                    THEN message.status = :receivedStatus
                     ELSE 1
                 END
-            ORDER BY chat.recent_message_timestamp DESC
+            ORDER BY message.created_at DESC
         """
     )
     fun getChatsWithRecentMessage(
@@ -53,9 +59,6 @@ interface ChatDao {
     @Query("SELECT recipient_id FROM chat WHERE id =:chatId")
     suspend fun getChatRecipientId(chatId: Int): UUID
 
-    @Query("SELECT recent_message_text FROM chat WHERE id =:chatId")
-    suspend fun getRecentMessageText(chatId: Int): String
-
     @Insert
     suspend fun insertChat(chatEntity: ChatEntity): Long
 
@@ -67,52 +70,4 @@ interface ChatDao {
 
     @Query("UPDATE chat SET is_archived = 0 WHERE id in (:chatIds)")
     suspend fun unarchiveChat(chatIds: List<Int>)
-
-    @Query("UPDATE chat SET unread_count = unread_count + 1 WHERE id = :chatId")
-    suspend fun updateUnreadCount(chatId: Int)
-
-    @Query("""
-        UPDATE chat
-        SET recent_message_text = :messageText, recent_message_timestamp = :messageTimestamp,
-        recent_message_status = :messageStatus, recent_message_sender_id = :senderId
-        WHERE id = :chatId
-    """)
-    suspend fun updateRecentMessage(
-        chatId: Int,
-        senderId: UUID,
-        messageText: String,
-        messageTimestamp: ZonedDateTime,
-        messageStatus: MessageStatus
-    )
-
-    @Query("""
-        UPDATE chat
-        SET recent_message_status = :messageStatus
-        WHERE id = :chatId
-    """)
-    suspend fun updateRecentMessageStatus(
-        chatId: Int,
-        messageStatus: MessageStatus
-    )
-
-    @Query("""
-        UPDATE chat
-        SET recent_message_text = :messageText, recent_message_status = :messageStatus
-        WHERE id = :chatId
-    """)
-    suspend fun updateRecentMessageTextAndStatus(
-        chatId: Int,
-        messageText: String,
-        messageStatus: MessageStatus
-    )
-
-    @Query("""
-        UPDATE chat 
-        SET unread_count = 0, recent_message_status = :seenMessageStatus 
-        WHERE id = :chatId
-    """)
-    suspend fun markChatAsRead(
-        chatId: Int,
-        seenMessageStatus: MessageStatus = MessageStatus.SEEN
-    )
 }

@@ -1,4 +1,4 @@
-package com.anshtya.jetx.database.util
+package com.anshtya.jetx.database.converter
 
 import androidx.room.TypeConverter
 import java.time.Instant

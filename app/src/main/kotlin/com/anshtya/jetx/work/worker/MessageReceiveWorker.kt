@@ -16,7 +16,7 @@ import com.anshtya.jetx.MainActivity
 import com.anshtya.jetx.R
 import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
-import com.anshtya.jetx.database.dao.ChatDao
+import com.anshtya.jetx.database.dao.MessageDao
 import com.anshtya.jetx.notifications.MarkAsReadReceiver
 import com.anshtya.jetx.notifications.NotificationChannels
 import com.anshtya.jetx.notifications.ReplyReceiver
@@ -34,16 +34,17 @@ class MessageReceiveWorker @AssistedInject constructor(
     private val chatsRepository: ChatsRepository,
     private val profileRepository: ProfileRepository,
     private val messagesRepository: MessagesRepository,
-    private val chatDao: ChatDao,
+    private val messageDao: MessageDao,
     private val notificationManager: NotificationManager
 ) : CoroutineWorker(appContext, workerParams) {
     override suspend fun doWork(): Result {
         return try {
             val message =
                 Json.decodeFromString<NetworkIncomingMessage>(inputData.getString(MESSAGE_KEY)!!)
+            val messageUid = message.id
 
             val chatId = messagesRepository.receiveChatMessage(
-                id = message.id,
+                id = messageUid,
                 senderId = message.senderId,
                 recipientId = message.recipientId,
                 text = message.text.takeIf { it.isNotBlank() },
@@ -54,7 +55,7 @@ class MessageReceiveWorker @AssistedInject constructor(
                 val senderProfile = profileRepository.getProfile(message.senderId)!!
                 postMessageNotification(
                     senderName = senderProfile.username,
-                    message = chatDao.getRecentMessageText(chatId),
+                    message = messageDao.getMessage(messageUid).text!!,
                     chatId = chatId
                 )
             }

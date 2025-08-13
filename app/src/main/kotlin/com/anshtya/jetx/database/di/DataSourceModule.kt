@@ -5,6 +5,7 @@ import com.anshtya.jetx.database.dao.AttachmentDao
 import com.anshtya.jetx.database.dao.ChatDao
 import com.anshtya.jetx.database.dao.MessageAttachmentsDao
 import com.anshtya.jetx.database.dao.MessageDao
+import com.anshtya.jetx.database.dao.RecentMessageDao
 import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
 import dagger.Module
 import dagger.Provides
@@ -22,6 +23,14 @@ object DataSourceModule {
         chatDao: ChatDao,
         db: JetXDatabase,
         messageDao: MessageDao,
-        messageAttachmentsDao: MessageAttachmentsDao
-    ) = LocalMessagesDataSource(attachmentDao, chatDao, db, messageDao, messageAttachmentsDao)
+        messageAttachmentsDao: MessageAttachmentsDao,
+        recentMessageDao: RecentMessageDao
+    ) = LocalMessagesDataSource(
+        attachmentDao,
+        chatDao,
+        db,
+        messageDao,
+        messageAttachmentsDao,
+        recentMessageDao
+    )
 }

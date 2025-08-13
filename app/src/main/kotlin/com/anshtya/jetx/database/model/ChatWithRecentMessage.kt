@@ -15,14 +15,14 @@ data class ChatWithRecentMessage(
     val profilePicture: String?,
     @ColumnInfo(name = "unread_count")
     val unreadCount: Int,
-    @ColumnInfo(name = "recent_message_sender_id")
-    val recentMessageSenderId: UUID?,
-    @ColumnInfo(name = "recent_message_text")
-    val recentMessageText: String?,
-    @ColumnInfo(name = "recent_message_status")
-    val recentMessageStatus: MessageStatus?,
-    @ColumnInfo(name = "recent_message_timestamp")
-    val recentMessageTimestamp: ZonedDateTime?,
+    @ColumnInfo(name = "sender_id")
+    val senderId: UUID?,
+    @ColumnInfo(name = "text")
+    val messageText: String?,
+    @ColumnInfo(name = "status")
+    val messageStatus: MessageStatus?,
+    @ColumnInfo(name = "created_at")
+    val messageTimestamp: ZonedDateTime?,
 )
 
 fun ChatWithRecentMessage.toExternalModel(): Chat {
@@ -31,10 +31,10 @@ fun ChatWithRecentMessage.toExternalModel(): Chat {
         recipientId = recipientId,
         username = username,
         profilePicture = profilePicture,
-        message = recentMessageText,
+        message = messageText,
         unreadCount = unreadCount,
-        timestamp = recentMessageTimestamp?.getDateOrTime(getYesterday = true),
-        messageStatus = recentMessageStatus,
-        isSender = recipientId != recentMessageSenderId
+        timestamp = messageTimestamp?.getDateOrTime(getYesterday = true),
+        messageStatus = messageStatus,
+        isSender = recipientId != senderId
     )
 }

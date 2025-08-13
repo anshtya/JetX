@@ -1,5 +1,6 @@
 package com.anshtya.jetx.database.datasource
 
+import android.util.Log
 import androidx.core.net.toFile
 import androidx.room.withTransaction
 import com.anshtya.jetx.attachments.data.AttachmentFormat
@@ -9,9 +10,11 @@ import com.anshtya.jetx.database.dao.AttachmentDao
 import com.anshtya.jetx.database.dao.ChatDao
 import com.anshtya.jetx.database.dao.MessageAttachmentsDao
 import com.anshtya.jetx.database.dao.MessageDao
+import com.anshtya.jetx.database.dao.RecentMessageDao
 import com.anshtya.jetx.database.entity.AttachmentEntity
 import com.anshtya.jetx.database.entity.ChatEntity
 import com.anshtya.jetx.database.entity.MessageEntity
+import com.anshtya.jetx.database.entity.RecentMessageEntity
 import com.anshtya.jetx.database.model.MessageStatus
 import com.anshtya.jetx.database.model.MessageWithAttachment
 import kotlinx.coroutines.flow.Flow
@@ -25,8 +28,11 @@ class LocalMessagesDataSource @Inject constructor(
     private val chatDao: ChatDao,
     private val db: JetXDatabase,
     private val messageDao: MessageDao,
-    private val messageAttachmentsDao: MessageAttachmentsDao
+    private val messageAttachmentsDao: MessageAttachmentsDao,
+    private val recentMessageDao: RecentMessageDao
 ) {
+    private val tag = this::class.simpleName
+
     fun getChatMessages(chatId: Int): Flow<List<MessageWithAttachment>> =
         messageAttachmentsDao.getMessageWithAttachments(chatId)
 
@@ -58,12 +64,16 @@ class LocalMessagesDataSource @Inject constructor(
                 status = if (currentUser) MessageStatus.SENDING else MessageStatus.RECEIVED,
                 createdAt = ZonedDateTime.now(ZoneId.of("UTC"))
             )
-            val messageId = messageDao.insertMessage(messageEntity)
+            val messageId = messageDao.insertMessage(messageEntity).toInt()
+            recentMessageDao.insertRecentMessage(
+                RecentMessageEntity(chatId = chatId, messageId = messageId)
+            )
+
             val attachmentEntity = when (attachmentFormat) {
                 is AttachmentFormat.UriAttachment -> {
                     val file = attachmentFormat.uri.toFile()
                     val entity = AttachmentEntity(
-                        messageId = messageId.toInt(),
+                        messageId = messageId,
                         fileName = file.name,
                         storageLocation = file.absolutePath,
                         remoteLocation = null,
@@ -80,7 +90,7 @@ class LocalMessagesDataSource @Inject constructor(
                 is AttachmentFormat.UrlAttachment -> {
                     val networkAttachment = attachmentFormat.networkAttachment
                     val entity = AttachmentEntity(
-                        messageId = messageId.toInt(),
+                        messageId = messageId,
                         fileName = null,
                         storageLocation = null,
                         remoteLocation = networkAttachment.url,
@@ -98,19 +108,12 @@ class LocalMessagesDataSource @Inject constructor(
                 is AttachmentFormat.None -> null
             }
 
-            val messageText = messageEntity.text ?: when (attachmentEntity!!.type) {
-                AttachmentType.IMAGE -> "Photo"
-                AttachmentType.VIDEO -> "Video"
-            }
-            chatDao.updateRecentMessage(
-                chatId = chatId,
-                senderId = messageEntity.senderId,
-                messageText = messageText,
-                messageTimestamp = messageEntity.createdAt,
-                messageStatus = messageEntity.status
-            )
-            if (!currentUser) {
-                chatDao.updateUnreadCount(messageEntity.chatId)
+            if (messageEntity.text == null) {
+                val messageText = when (attachmentEntity!!.type) {
+                    AttachmentType.IMAGE -> "Photo"
+                    AttachmentType.VIDEO -> "Video"
+                }
+                messageDao.updateMessageText(messageId, messageText)
             }
 
             return@withTransaction messageEntity
@@ -119,45 +122,20 @@ class LocalMessagesDataSource @Inject constructor(
 
     suspend fun markChatMessagesAsSeen(chatId: Int): List<UUID> {
         val unreadMessageIds = messageDao.getUnreadMessagesId(chatId)
-        db.withTransaction {
-            messageDao.markMessagesAsRead(chatId)
-            chatDao.markChatAsRead(chatId)
-        }
+        messageDao.markMessagesAsRead(chatId)
         return unreadMessageIds
     }
 
     suspend fun updateMessageStatus(
         messageId: UUID,
-        messageChatId: Int,
-        status: MessageStatus
-    ) {
-        db.withTransaction {
-            messageDao.updateMessageStatus(messageId, status)
-            chatDao.updateRecentMessageStatus(messageChatId, status)
-        }
-    }
-
-    suspend fun updateMessage(
-        messageId: UUID,
-        text: String?,
         status: MessageStatus?
     ) {
-        db.withTransaction {
-            if (text != null && status != null) {
-                messageDao.updateMessage(messageId, text, status)
-                chatDao.updateRecentMessageTextAndStatus(
-                    chatId = messageDao.getMessageChatId(messageId),
-                    messageText = text,
-                    messageStatus = status
-                )
-            } else if (status != null) {
-                updateMessageStatus(
-                    messageId = messageId,
-                    messageChatId = messageDao.getMessageChatId(messageId),
-                    status = status
-                )
-            }
+        if (status == null) {
+            Log.w(tag, "Update message status - null status received")
+            return
         }
+
+        messageDao.updateMessageStatus(messageId, status)
     }
 
     suspend fun deleteMessages(ids: List<Int>) {

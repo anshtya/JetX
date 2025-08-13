@@ -40,9 +40,7 @@ class MessageSendWorker @AssistedInject constructor(
             } else null
 
             messagesTable.insert(message.toNetworkMessage(attachmentId))
-            localMessagesDataSource.updateMessageStatus(
-                message.uid, message.chatId, MessageStatus.SENT
-            )
+            localMessagesDataSource.updateMessageStatus(message.uid,MessageStatus.SENT)
 
             Result.success()
         } catch (e: Exception) {
