@@ -135,10 +135,7 @@ class MessagesRepositoryImpl @Inject constructor(
         currentUser: Boolean
     ): Result<MessageEntity> = try {
         val profileId = if (currentUser) recipientId else senderId
-        val profileExists = profileRepository.getProfile(profileId)
-        if (profileExists == null) {
-            profileRepository.saveProfile(profileId.toString())
-        }
+        profileRepository.getProfile(profileId)
         Result.success(
             localMessagesDataSource.insertMessage(
                 id = id,
