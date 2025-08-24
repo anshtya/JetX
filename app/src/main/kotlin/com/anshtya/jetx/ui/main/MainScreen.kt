@@ -33,13 +33,12 @@ import com.anshtya.jetx.chats.ui.chat.toChatDestination
 import com.anshtya.jetx.chats.ui.navigation.ChatsGraphRoute
 import com.anshtya.jetx.chats.ui.navigation.chatsGraph
 import com.anshtya.jetx.common.ui.components.scaffold.JetxScaffold
-import com.anshtya.jetx.settings.ui.navigation.navigateToSettingsGraph
-import com.anshtya.jetx.settings.ui.navigation.settingsGraph
 import com.anshtya.jetx.util.Constants
 import kotlin.reflect.KClass
 
 @Composable
 fun MainScreen(
+    onNavigateToSettings: () -> Unit,
     navController: NavHostController = rememberNavController()
 ) {
     val topLevelDestinations = remember { TopLevelDestination.entries }
@@ -79,12 +78,9 @@ fun MainScreen(
         ) {
             chatsGraph(
                 navController = navController,
-                onNavigateToSettings = navController::navigateToSettingsGraph
+                onNavigateToSettings = onNavigateToSettings
             )
             calls()
-            settingsGraph(
-                navController = navController
-            )
         }
 
         // Handle onCreate intent

@@ -14,6 +14,8 @@ import androidx.navigation.navOptions
 import com.anshtya.jetx.auth.ui.navigation.AuthGraph
 import com.anshtya.jetx.auth.ui.navigation.authGraph
 import com.anshtya.jetx.profile.ui.CreateProfileRoute
+import com.anshtya.jetx.settings.ui.navigation.navigateToSettingsGraph
+import com.anshtya.jetx.settings.ui.navigation.settingsGraph
 import com.anshtya.jetx.ui.LoadingRoute
 import com.anshtya.jetx.ui.main.MainRoute
 import com.anshtya.jetx.ui.main.mainDestination
@@ -50,7 +52,13 @@ fun App(
             )
         }
 
-        mainDestination()
+        mainDestination(
+            onNavigateToSettings = navController::navigateToSettingsGraph
+        )
+
+        settingsGraph(
+            navController = navController
+        )
     }
 
     LaunchedEffect(navState) {
