@@ -14,7 +14,7 @@ plugins {
 
 android {
     namespace = "com.anshtya.jetx"
-    compileSdk = 35
+    compileSdk = 36
 
     buildFeatures {
         buildConfig = true
@@ -49,13 +49,10 @@ android {
             isDebuggable = false
         }
     }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        compilerOptions {
+            jvmToolchain(21)
+        }
     }
     buildFeatures {
         compose = true
