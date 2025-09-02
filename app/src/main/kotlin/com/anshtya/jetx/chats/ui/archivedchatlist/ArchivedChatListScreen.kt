@@ -24,10 +24,10 @@ import com.anshtya.jetx.chats.ui.chatlist.ChatListState
 import com.anshtya.jetx.chats.ui.chatlist.ChatListViewModel
 import com.anshtya.jetx.chats.ui.components.ChatList
 import com.anshtya.jetx.chats.ui.components.DeleteChatDialog
-import com.anshtya.jetx.common.model.sampledata.sampleChats
-import com.anshtya.jetx.common.ui.components.button.BackButton
-import com.anshtya.jetx.common.ui.components.scaffold.JetxScaffold
-import com.anshtya.jetx.common.ui.components.topappbar.JetxTopAppBar
+import com.anshtya.jetx.core.model.sampledata.sampleChats
+import com.anshtya.jetx.core.ui.components.button.BackButton
+import com.anshtya.jetx.core.ui.components.scaffold.JetxScaffold
+import com.anshtya.jetx.core.ui.components.topappbar.JetxTopAppBar
 import com.anshtya.jetx.ui.theme.JetXTheme
 
 @Composable

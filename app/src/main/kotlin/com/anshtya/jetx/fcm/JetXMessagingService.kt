@@ -1,6 +1,6 @@
 package com.anshtya.jetx.fcm
 
-import com.anshtya.jetx.common.coroutine.DefaultScope
+import com.anshtya.jetx.core.coroutine.DefaultScope
 import com.anshtya.jetx.work.WorkScheduler
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage

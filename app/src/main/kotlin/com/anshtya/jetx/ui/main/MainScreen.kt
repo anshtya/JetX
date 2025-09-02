@@ -32,7 +32,7 @@ import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
 import com.anshtya.jetx.chats.ui.chat.toChatDestination
 import com.anshtya.jetx.chats.ui.navigation.ChatsGraphRoute
 import com.anshtya.jetx.chats.ui.navigation.chatsGraph
-import com.anshtya.jetx.common.ui.components.scaffold.JetxScaffold
+import com.anshtya.jetx.core.ui.components.scaffold.JetxScaffold
 import com.anshtya.jetx.util.Constants
 import kotlin.reflect.KClass
 

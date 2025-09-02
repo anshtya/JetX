@@ -20,7 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.anshtya.jetx.R
 import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
-import com.anshtya.jetx.common.model.Chat
+import com.anshtya.jetx.core.model.Chat
 
 @Composable
 fun ChatList(

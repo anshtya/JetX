@@ -33,9 +33,9 @@ import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.video.VideoFrameDecoder
 import com.anshtya.jetx.attachments.data.AttachmentType
-import com.anshtya.jetx.common.ui.noRippleClickable
-import com.anshtya.jetx.database.model.AttachmentInfo
-import com.anshtya.jetx.database.model.AttachmentTransferState
+import com.anshtya.jetx.core.database.model.AttachmentInfo
+import com.anshtya.jetx.core.database.model.AttachmentTransferState
+import com.anshtya.jetx.core.ui.noRippleClickable
 import java.io.File
 
 @Composable

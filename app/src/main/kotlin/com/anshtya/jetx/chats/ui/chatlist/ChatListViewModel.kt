@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.MessageUpdatesListener
-import com.anshtya.jetx.common.model.Chat
-import com.anshtya.jetx.common.model.UserProfile
+import com.anshtya.jetx.core.model.Chat
+import com.anshtya.jetx.core.model.UserProfile
 import com.anshtya.jetx.profile.data.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi

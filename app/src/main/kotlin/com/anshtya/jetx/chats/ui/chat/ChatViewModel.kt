@@ -8,7 +8,7 @@ import androidx.navigation.toRoute
 import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
 import com.anshtya.jetx.chats.ui.navigation.ChatsDestination
-import com.anshtya.jetx.database.model.MessageWithAttachment
+import com.anshtya.jetx.core.database.model.MessageWithAttachment
 import com.anshtya.jetx.profile.data.ProfileRepository
 import com.anshtya.jetx.work.WorkManagerHelper
 import com.anshtya.jetx.work.WorkScheduler

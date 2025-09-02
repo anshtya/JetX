@@ -49,14 +49,14 @@ import com.anshtya.jetx.chats.ui.components.ChatList
 import com.anshtya.jetx.chats.ui.components.DeleteChatDialog
 import com.anshtya.jetx.chats.ui.components.SearchTextField
 import com.anshtya.jetx.chats.ui.permissions.NotificationPermissionHandler
-import com.anshtya.jetx.common.model.UserProfile
-import com.anshtya.jetx.common.model.sampledata.sampleChats
-import com.anshtya.jetx.common.ui.UserListItem
-import com.anshtya.jetx.common.ui.components.button.BackButton
-import com.anshtya.jetx.common.ui.components.button.IconButtonDropdownMenu
-import com.anshtya.jetx.common.ui.components.scaffold.JetxScaffold
-import com.anshtya.jetx.common.ui.components.topappbar.JetxTopAppBar
-import com.anshtya.jetx.common.ui.noRippleClickable
+import com.anshtya.jetx.core.model.UserProfile
+import com.anshtya.jetx.core.model.sampledata.sampleChats
+import com.anshtya.jetx.core.ui.UserListItem
+import com.anshtya.jetx.core.ui.components.button.BackButton
+import com.anshtya.jetx.core.ui.components.button.IconButtonDropdownMenu
+import com.anshtya.jetx.core.ui.components.scaffold.JetxScaffold
+import com.anshtya.jetx.core.ui.components.topappbar.JetxTopAppBar
+import com.anshtya.jetx.core.ui.noRippleClickable
 import com.anshtya.jetx.ui.theme.JetXTheme
 import com.anshtya.jetx.util.Constants.defaultPadding
 

@@ -16,7 +16,7 @@ import com.anshtya.jetx.MainActivity
 import com.anshtya.jetx.R
 import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
-import com.anshtya.jetx.database.dao.MessageDao
+import com.anshtya.jetx.core.database.dao.MessageDao
 import com.anshtya.jetx.notifications.MarkAsReadReceiver
 import com.anshtya.jetx.notifications.NotificationChannels
 import com.anshtya.jetx.notifications.ReplyReceiver

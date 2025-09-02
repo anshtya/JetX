@@ -5,8 +5,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
-import com.anshtya.jetx.common.coroutine.DefaultDispatcher
-import com.anshtya.jetx.common.coroutine.IoDispatcher
+import com.anshtya.jetx.core.coroutine.DefaultDispatcher
+import com.anshtya.jetx.core.coroutine.IoDispatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ensureActive

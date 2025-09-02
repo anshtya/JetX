@@ -38,10 +38,10 @@ import com.anshtya.jetx.R
 import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
 import com.anshtya.jetx.chats.ui.chat.message.MessageStatusIcon
 import com.anshtya.jetx.chats.ui.chat.toChatUserArgs
-import com.anshtya.jetx.common.model.Chat
-import com.anshtya.jetx.common.model.sampledata.sampleChats
-import com.anshtya.jetx.common.ui.DayNightPreview
-import com.anshtya.jetx.common.ui.ProfilePicture
+import com.anshtya.jetx.core.model.Chat
+import com.anshtya.jetx.core.model.sampledata.sampleChats
+import com.anshtya.jetx.core.ui.DayNightPreview
+import com.anshtya.jetx.core.ui.ProfilePicture
 import com.anshtya.jetx.ui.theme.JetXTheme
 import com.anshtya.jetx.util.Constants.defaultPadding
 
