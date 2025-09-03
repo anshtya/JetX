@@ -16,10 +16,10 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import coil3.compose.AsyncImage
 import com.anshtya.jetx.attachments.data.AttachmentType
-import com.anshtya.jetx.common.ui.VideoPlayerSurface
-import com.anshtya.jetx.common.ui.components.button.BackButton
-import com.anshtya.jetx.common.ui.components.scaffold.JetxScaffold
-import com.anshtya.jetx.common.ui.components.topappbar.JetxTopAppBar
+import com.anshtya.jetx.core.ui.VideoPlayerSurface
+import com.anshtya.jetx.core.ui.components.button.BackButton
+import com.anshtya.jetx.core.ui.components.scaffold.JetxScaffold
+import com.anshtya.jetx.core.ui.components.topappbar.JetxTopAppBar
 import com.anshtya.jetx.util.UriUtil.getMimeType
 
 @Composable

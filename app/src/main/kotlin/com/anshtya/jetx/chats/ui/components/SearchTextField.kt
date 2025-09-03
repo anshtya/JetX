@@ -19,7 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.anshtya.jetx.R
-import com.anshtya.jetx.common.ui.components.button.BackButton
+import com.anshtya.jetx.core.ui.components.button.BackButton
 
 @Composable
 fun SearchTextField(

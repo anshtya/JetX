@@ -46,7 +46,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.camera.permission.CameraPermissionRequest
-import com.anshtya.jetx.common.ui.components.scaffold.JetxScaffold
+import com.anshtya.jetx.core.ui.components.scaffold.JetxScaffold
 import com.anshtya.jetx.util.FileUtil
 import kotlinx.coroutines.launch
 

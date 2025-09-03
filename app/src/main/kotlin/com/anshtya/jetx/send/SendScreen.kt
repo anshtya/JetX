@@ -28,12 +28,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
 import com.anshtya.jetx.auth.data.model.AuthState
-import com.anshtya.jetx.common.ui.UserListItem
-import com.anshtya.jetx.common.ui.components.button.BackButton
-import com.anshtya.jetx.common.ui.components.button.SendButton
-import com.anshtya.jetx.common.ui.components.scaffold.JetxScaffold
-import com.anshtya.jetx.common.ui.components.topappbar.JetxTopAppBar
-import com.anshtya.jetx.common.ui.noRippleClickable
+import com.anshtya.jetx.core.ui.UserListItem
+import com.anshtya.jetx.core.ui.components.button.BackButton
+import com.anshtya.jetx.core.ui.components.button.SendButton
+import com.anshtya.jetx.core.ui.components.scaffold.JetxScaffold
+import com.anshtya.jetx.core.ui.components.topappbar.JetxTopAppBar
+import com.anshtya.jetx.core.ui.noRippleClickable
 
 @Composable
 fun SendScreen(

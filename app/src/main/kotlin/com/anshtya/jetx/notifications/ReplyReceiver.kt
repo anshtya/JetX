@@ -11,7 +11,7 @@ import androidx.core.net.toUri
 import com.anshtya.jetx.MainActivity
 import com.anshtya.jetx.R
 import com.anshtya.jetx.chats.data.MessagesRepository
-import com.anshtya.jetx.common.coroutine.DefaultScope
+import com.anshtya.jetx.core.coroutine.DefaultScope
 import com.anshtya.jetx.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope

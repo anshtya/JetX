@@ -27,9 +27,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
 import com.anshtya.jetx.auth.ui.AuthUiState
 import com.anshtya.jetx.auth.ui.components.AuthForm
-import com.anshtya.jetx.common.ui.components.button.BackButton
-import com.anshtya.jetx.common.ui.components.scaffold.JetxScaffold
-import com.anshtya.jetx.common.ui.components.topappbar.JetxTopAppBar
+import com.anshtya.jetx.core.ui.components.button.BackButton
+import com.anshtya.jetx.core.ui.components.scaffold.JetxScaffold
+import com.anshtya.jetx.core.ui.components.topappbar.JetxTopAppBar
 import kotlinx.coroutines.launch
 
 @Composable

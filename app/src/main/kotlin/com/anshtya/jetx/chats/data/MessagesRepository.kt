@@ -1,7 +1,7 @@
 package com.anshtya.jetx.chats.data
 
 import android.net.Uri
-import com.anshtya.jetx.database.model.MessageWithAttachment
+import com.anshtya.jetx.core.database.model.MessageWithAttachment
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 

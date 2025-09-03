@@ -19,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.anshtya.jetx.R
-import com.anshtya.jetx.common.ui.components.scaffold.JetxScaffold
+import com.anshtya.jetx.core.ui.components.scaffold.JetxScaffold
 
 @Composable
 fun EntryScreen(

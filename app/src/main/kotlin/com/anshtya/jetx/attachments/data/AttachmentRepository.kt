@@ -20,7 +20,7 @@ import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.ExportResult
 import androidx.media3.transformer.Transformer
 import com.anshtya.jetx.attachments.ImageCompressor
-import com.anshtya.jetx.common.coroutine.IoDispatcher
+import com.anshtya.jetx.core.coroutine.IoDispatcher
 import com.anshtya.jetx.util.Constants
 import com.anshtya.jetx.util.FileUtil
 import com.anshtya.jetx.util.UriUtil.getImageDimensions

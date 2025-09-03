@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.auth.data.AuthRepository
 import com.anshtya.jetx.auth.data.model.AuthState
-import com.anshtya.jetx.preferences.PreferencesStore
-import com.anshtya.jetx.preferences.model.UserState
+import com.anshtya.jetx.core.preferences.PreferencesStore
+import com.anshtya.jetx.core.preferences.model.UserState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

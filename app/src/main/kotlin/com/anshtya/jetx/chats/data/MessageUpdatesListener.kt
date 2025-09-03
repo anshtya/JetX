@@ -1,9 +1,9 @@
 package com.anshtya.jetx.chats.data
 
 import com.anshtya.jetx.chats.data.model.NetworkMessage
-import com.anshtya.jetx.common.coroutine.DefaultScope
-import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
-import com.anshtya.jetx.database.model.MessageStatus
+import com.anshtya.jetx.core.coroutine.DefaultScope
+import com.anshtya.jetx.core.database.datasource.LocalMessagesDataSource
+import com.anshtya.jetx.core.database.model.MessageStatus
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.query.filter.FilterOperation

@@ -1,8 +1,8 @@
 package com.anshtya.jetx.chats.ui.chat
 
 import com.anshtya.jetx.chats.ui.navigation.ChatsDestination
-import com.anshtya.jetx.common.model.Chat
-import com.anshtya.jetx.common.model.UserProfile
+import com.anshtya.jetx.core.model.Chat
+import com.anshtya.jetx.core.model.UserProfile
 import java.util.UUID
 
 data class ChatUserArgs(

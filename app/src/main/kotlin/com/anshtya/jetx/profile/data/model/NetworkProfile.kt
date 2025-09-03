@@ -1,7 +1,7 @@
 package com.anshtya.jetx.profile.data.model
 
-import com.anshtya.jetx.common.model.UserProfile
-import com.anshtya.jetx.database.entity.UserProfileEntity
+import com.anshtya.jetx.core.database.entity.UserProfileEntity
+import com.anshtya.jetx.core.model.UserProfile
 import com.anshtya.jetx.util.UUIDSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

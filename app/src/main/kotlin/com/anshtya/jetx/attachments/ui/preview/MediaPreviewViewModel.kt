@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.attachments.data.AttachmentRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
-import com.anshtya.jetx.common.coroutine.IoDispatcher
+import com.anshtya.jetx.core.coroutine.IoDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi

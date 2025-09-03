@@ -8,7 +8,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.anshtya.jetx.database.model.MessageStatus
+import com.anshtya.jetx.core.database.model.MessageStatus
 
 @Composable
 fun MessageStatusIcon(

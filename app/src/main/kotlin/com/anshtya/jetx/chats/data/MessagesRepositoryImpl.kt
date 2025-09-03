@@ -5,10 +5,10 @@ import android.util.Log
 import com.anshtya.jetx.attachments.data.AttachmentFormat
 import com.anshtya.jetx.attachments.data.AttachmentRepository
 import com.anshtya.jetx.attachments.data.NetworkAttachment
-import com.anshtya.jetx.database.dao.ChatDao
-import com.anshtya.jetx.database.datasource.LocalMessagesDataSource
-import com.anshtya.jetx.database.entity.MessageEntity
-import com.anshtya.jetx.database.model.MessageWithAttachment
+import com.anshtya.jetx.core.database.dao.ChatDao
+import com.anshtya.jetx.core.database.datasource.LocalMessagesDataSource
+import com.anshtya.jetx.core.database.entity.MessageEntity
+import com.anshtya.jetx.core.database.model.MessageWithAttachment
 import com.anshtya.jetx.profile.data.ProfileRepository
 import com.anshtya.jetx.util.Constants
 import com.anshtya.jetx.util.Constants.MESSAGE_TABLE

@@ -5,7 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.anshtya.jetx.chats.data.MessagesRepository
-import com.anshtya.jetx.common.coroutine.DefaultScope
+import com.anshtya.jetx.core.coroutine.DefaultScope
 import com.anshtya.jetx.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope

@@ -2,9 +2,9 @@ package com.anshtya.jetx.auth.data
 
 import com.anshtya.jetx.auth.data.model.AuthState
 import com.anshtya.jetx.chats.data.MessageUpdatesListener
-import com.anshtya.jetx.database.dao.UserProfileDao
+import com.anshtya.jetx.core.database.dao.UserProfileDao
+import com.anshtya.jetx.core.preferences.PreferencesStore
 import com.anshtya.jetx.fcm.FcmTokenManager
-import com.anshtya.jetx.preferences.PreferencesStore
 import com.anshtya.jetx.profile.data.ProfileRepository
 import com.anshtya.jetx.work.WorkManagerHelper
 import io.github.jan.supabase.SupabaseClient

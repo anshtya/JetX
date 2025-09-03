@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.anshtya.jetx.common.ui.ProfilePicture
+import com.anshtya.jetx.core.ui.ProfilePicture
 
 @Composable
 fun ProfilePicturePopup(

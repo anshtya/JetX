@@ -8,8 +8,8 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.anshtya.jetx.attachments.data.AttachmentRepository
 import com.anshtya.jetx.attachments.data.AttachmentType
-import com.anshtya.jetx.database.dao.AttachmentDao
-import com.anshtya.jetx.database.model.AttachmentTransferState
+import com.anshtya.jetx.core.database.dao.AttachmentDao
+import com.anshtya.jetx.core.database.model.AttachmentTransferState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import okhttp3.OkHttpClient
