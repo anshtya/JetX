@@ -1,5 +1,3 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -29,10 +27,11 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        val supabaseUrl = gradleLocalProperties(rootDir, providers).getProperty("SUPABASE_URL") ?: ""
-        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
-        val supabaseKey = gradleLocalProperties(rootDir, providers).getProperty("SUPABASE_KEY") ?: ""
-        buildConfigField("String", "SUPABASE_KEY", "\"$supabaseKey\"")
+        buildConfigField(
+            type = "String",
+            name = "BASE_URL",
+            value = "\"http://127.0.0.1:8080/api/v1/\""
+        )
     }
 
     buildTypes {
@@ -96,15 +95,19 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.work.runtime.ktx)
+
     implementation(platform(libs.coil.bom))
     implementation(libs.coil)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     implementation(libs.coil.video)
+
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
+
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.ktor.client.cio)
     implementation(libs.okhttp)
@@ -112,6 +115,7 @@ dependencies {
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.realtime)
     implementation(libs.supabase.storage)
+
 
     testImplementation(libs.junit)
 
