@@ -9,16 +9,15 @@ import com.anshtya.jetx.core.preferences.model.AppUiProperties
 import com.anshtya.jetx.core.preferences.model.ThemeOption
 import com.anshtya.jetx.core.preferences.model.UserState
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class PreferencesStore @Inject constructor(
+class PreferencesStore(
     private val dataStore: DataStore<Preferences>
 ) {
     companion object {
         val PROFILE_CREATED = booleanPreferencesKey("profile_created")
+        val ONBOARDED = booleanPreferencesKey("onboarded")
         val THEME = stringPreferencesKey("theme")
     }
 
@@ -27,17 +26,24 @@ class PreferencesStore @Inject constructor(
             theme = preferences[THEME]?.let { enumValueOf<ThemeOption>(it) }
                 ?: ThemeOption.SYSTEM_DEFAULT
         )
-    }
+    }.distinctUntilChanged()
 
     val userState: Flow<UserState> = dataStore.data.map { preferences ->
         UserState(
-            profileCreated = preferences[PROFILE_CREATED]
+            profileCreated = preferences[PROFILE_CREATED] ?: false,
+            onboardingCompleted = preferences[ONBOARDED] ?: false
         )
+    }.distinctUntilChanged()
+
+    suspend fun setProfileCreated() {
+        dataStore.edit {
+            it[PROFILE_CREATED] = true
+        }
     }
 
-    suspend fun setProfileCreated(profileCreated: Boolean) {
+    suspend fun setOnboarded() {
         dataStore.edit {
-            it[PROFILE_CREATED] = profileCreated
+            it[ONBOARDED] = true
         }
     }
 

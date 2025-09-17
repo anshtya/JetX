@@ -56,6 +56,9 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 composeCompiler {
@@ -91,6 +94,7 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
@@ -105,19 +109,25 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
 
+    implementation(libs.googlecode.libphonenumber)
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
 
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.okhttp)
-    implementation(platform(libs.supabase.bom))
-    implementation(libs.supabase.postgrest)
-    implementation(libs.supabase.realtime)
-    implementation(libs.supabase.storage)
 
+    implementation(libs.square.okhttp)
+    implementation(platform(libs.square.okhttp.bom))
+    implementation(libs.square.okhttp.logging)
+    implementation(libs.square.okhttp.mockwebserver)
+    implementation(libs.square.okhttp.mockwebserver)
+    implementation(libs.square.retrofit)
+    implementation(platform(libs.square.retrofit.bom))
+    implementation(libs.square.retrofit.kotlinx.serialization)
 
+    testImplementation(libs.io.mockk)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.espresso.core)

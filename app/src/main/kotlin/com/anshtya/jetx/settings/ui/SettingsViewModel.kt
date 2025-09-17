@@ -43,7 +43,7 @@ class SettingsViewModel @Inject constructor(
 
     fun onSignOutClick() {
         viewModelScope.launch {
-            authRepository.signOut()
+            authRepository.logout()
             signedOut = true
         }
     }

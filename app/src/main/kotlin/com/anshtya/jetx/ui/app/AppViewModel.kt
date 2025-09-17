@@ -10,9 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
@@ -29,34 +27,25 @@ class AppViewModel @Inject constructor(
             authRepository.authState,
             preferencesStore.userState
         ) { authState, userState ->
-            UserData(authState, userState)
-        }.distinctUntilChanged()
-            .onEach(::handleUserData)
-            .launchIn(viewModelScope)
+            handleUserData(authState, userState)
+        }.launchIn(viewModelScope)
     }
 
-    private fun handleUserData(userData: UserData) {
-        val authState = userData.authState
-        val userState = userData.userState
-
-        val updatedNavState = when(authState) {
+    private fun handleUserData(
+        authState: AuthState,
+        userState: UserState
+    ) {
+        val updatedNavState = when (authState) {
             is AuthState.Authenticated -> {
-                userState.profileCreated?.let { profileCreated ->
-                    if (profileCreated) {
-                        AppNavState.Authenticated
-                    } else {
-                        AppNavState.CreateProfile
-                    }
-                } ?: _navState.value
+                if (userState.profileCreated) AppNavState.Authenticated
+                else AppNavState.CreateProfile
             }
-            is AuthState.Unauthenticated -> AppNavState.Unauthenticated
-            is AuthState.RefreshError -> {
-                if (authState.sessionExists) {
-                    AppNavState.Authenticated
-                } else {
-                    AppNavState.Unauthenticated
-                }
+
+            is AuthState.Unauthenticated -> {
+                if (userState.onboardingCompleted) AppNavState.Unauthenticated
+                else AppNavState.Onboarding
             }
+
             else -> AppNavState.Initialising
         }
 
@@ -66,12 +55,8 @@ class AppViewModel @Inject constructor(
 
 sealed interface AppNavState {
     data object Initialising : AppNavState
+    data object Onboarding : AppNavState
     data object Authenticated : AppNavState
     data object Unauthenticated : AppNavState
     data object CreateProfile : AppNavState
 }
-
-data class UserData(
-    val authState: AuthState,
-    val userState: UserState
-)

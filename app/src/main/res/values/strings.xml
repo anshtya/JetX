@@ -1,10 +1,12 @@
 <resources>
     <string name="app_name">JetX</string>
     <string name="app_title">JetX</string>
+    <string name="app_tagline">Connect and share</string>
+
     <string name="chats">Chats</string>
     <string name="Camera">Camera</string>
     <string name="Calls">Calls</string>
-    <string name="create_account">Create an account</string>
+    <string name="get_started">Get Started</string>
     <string name="sign_in">Sign in</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
@@ -85,4 +87,12 @@
     <string name="no_recent_chats">No recent chats</string>
 
     <string name="discard_media">Discard media?</string>
+
+    <string name="next">Next</string>
+    <string name="phone_number">Phone number</string>
+    <string name="enter_phone_number">Enter your phone number to continue.</string>
+    <string name="create_pin">Create your PIN</string>
+    <string name="create_pin_text">PINs keep your account secure.</string>
+    <string name="enter_pin">Enter your PIN</string>
+    <string name="enter_pin_text">Enter your PIN to continue.</string>
 </resources>
