@@ -52,6 +52,13 @@ class RegistrationViewModel @Inject constructor(
 
             val state = _uiState.value
 
+            if (state.phoneNumber.isBlank() || state.phoneCountryCode.isBlank()) {
+                _uiState.update {
+                    it.copy(errorMessage = "Invalid phone number.")
+                }
+                return@launch
+            }
+
             authRepository.checkUser(
                 number = state.phoneNumber.toLong(),
                 countryCode = state.phoneCountryCode.toInt()

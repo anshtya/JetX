@@ -67,9 +67,7 @@ fun App(
 
     LaunchedEffect(navState) {
         val appNavOptions = navOptions {
-            popUpTo(navController.graph.id) {
-                inclusive = true
-            }
+            popUpTo(navController.graph.id)
             launchSingleTop = true
         }
 

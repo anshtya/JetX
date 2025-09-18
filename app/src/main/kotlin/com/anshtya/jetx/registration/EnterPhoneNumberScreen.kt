@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
 import com.anshtya.jetx.core.ui.DayNightPreview
-import com.anshtya.jetx.core.ui.components.button.BackButton
 import com.anshtya.jetx.core.ui.components.scaffold.JetxScaffold
 import com.anshtya.jetx.core.ui.components.topappbar.JetxTopAppBar
 import com.anshtya.jetx.ui.theme.JetXTheme
@@ -43,7 +42,6 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun EnterPhoneNumberRoute(
-    onNavigateUp: () -> Unit,
     onNavigateToSetupPin: () -> Unit,
     viewModel: RegistrationViewModel
 ) {
@@ -53,7 +51,6 @@ fun EnterPhoneNumberRoute(
     EnterPhoneNumber(
         uiState = uiState,
         navigateToNextScreen = navigateToNextScreen,
-        onBackClick = onNavigateUp,
         onNextClick = viewModel::onPhoneNumberConfirm,
         onCountryCodeChange = viewModel::onCountryCodeChange,
         onPhoneNumberChange = viewModel::onPhoneNumberChange,
@@ -66,7 +63,6 @@ fun EnterPhoneNumberRoute(
 private fun EnterPhoneNumber(
     uiState: RegistrationUiState,
     navigateToNextScreen: Boolean,
-    onBackClick: () -> Unit,
     onNextClick: () -> Unit,
     onCountryCodeChange: (String) -> Unit,
     onPhoneNumberChange: (String) -> Unit,
@@ -89,9 +85,7 @@ private fun EnterPhoneNumber(
 
     JetxScaffold(
         topBar = {
-            JetxTopAppBar(
-                navigationIcon = { BackButton(onBackClick) }
-            )
+            JetxTopAppBar()
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
@@ -167,7 +161,6 @@ private fun EnterPhoneNumberScreenPreview() {
         EnterPhoneNumber(
             uiState = RegistrationUiState(phoneCountryCode = "91"),
             navigateToNextScreen = false,
-            onBackClick = {},
             onNextClick = {},
             onCountryCodeChange = {},
             onPhoneNumberChange = {},
