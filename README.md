@@ -9,4 +9,6 @@ A real-time chat application built using [Supabase](https://supabase.com/), util
 - Share attachments (images and videos).
 
 ## Demo
+⚠️ **Note:** The demo was recorded with an earlier version of the app. Since then, the UI has been updated, but the main features and workflow remain the same.
+
 https://github.com/user-attachments/assets/76dabd56-0cfb-4144-8cfa-b765d1adf68d
