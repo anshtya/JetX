@@ -6,6 +6,8 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import com.anshtya.jetx.registration.EnterPhoneNumberRoute
+import com.anshtya.jetx.registration.SetupPinRoute
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -21,8 +23,7 @@ fun NavGraphBuilder.registrationGraph(
             val navBackStackEntry = remember(backStackEntry) {
                 navController.getBackStackEntry<RegistrationGraph>()
             }
-            _root_ide_package_.com.anshtya.jetx.registration.EnterPhoneNumberRoute(
-                onNavigateUp = navController::navigateUp,
+            EnterPhoneNumberRoute(
                 onNavigateToSetupPin = {
                     navController.navigate(RegistrationDestination.SetupPin)
                 },
@@ -33,7 +34,7 @@ fun NavGraphBuilder.registrationGraph(
             val navBackStackEntry = remember(backStackEntry) {
                 navController.getBackStackEntry<RegistrationGraph>()
             }
-            _root_ide_package_.com.anshtya.jetx.registration.SetupPinRoute(
+            SetupPinRoute(
                 onNavigateUp = navController::navigateUp,
                 viewModel = hiltViewModel(navBackStackEntry)
             )

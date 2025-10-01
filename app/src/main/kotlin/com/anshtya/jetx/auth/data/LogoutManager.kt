@@ -5,6 +5,8 @@ import com.anshtya.jetx.core.database.JetXDatabase
 import com.anshtya.jetx.core.preferences.PreferencesStore
 import com.anshtya.jetx.core.preferences.TokenStore
 import com.anshtya.jetx.work.WorkManagerHelper
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Handles the cleanup operations required during user logout.
@@ -13,7 +15,8 @@ import com.anshtya.jetx.work.WorkManagerHelper
  * cancelling background tasks, and unsubscribing from message updates.
  *
  */
-class LogoutManager(
+@Singleton
+class LogoutManager @Inject constructor(
     private val tokenStore: TokenStore,
     private val preferencesStore: PreferencesStore,
     private val db: JetXDatabase,

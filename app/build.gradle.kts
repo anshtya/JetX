@@ -116,14 +116,12 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
 
-    implementation(libs.square.okhttp)
-    implementation(platform(libs.square.okhttp.bom))
-    implementation(libs.square.okhttp.logging)
-    implementation(libs.square.okhttp.mockwebserver)
-    implementation(libs.square.okhttp.mockwebserver)
-    implementation(libs.square.retrofit)
-    implementation(platform(libs.square.retrofit.bom))
-    implementation(libs.square.retrofit.kotlinx.serialization)
+    implementation(libs.okhttp)
+    implementation(platform(libs.okhttp.bom))
+    implementation(libs.okhttp.logging)
+    implementation(libs.retrofit)
+    implementation(platform(libs.retrofit.bom))
+    implementation(libs.retrofit.kotlinx.serialization)
 
     testImplementation(libs.io.mockk)
     testImplementation(libs.junit)

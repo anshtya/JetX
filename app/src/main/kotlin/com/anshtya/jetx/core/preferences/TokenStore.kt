@@ -3,8 +3,11 @@ package com.anshtya.jetx.core.preferences
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.anshtya.jetx.core.preferences.model.AuthToken
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class TokenStore(
+@Singleton
+class TokenStore @Inject constructor(
     private val encryptedSharedPreferences: SharedPreferences
 ) {
     companion object {

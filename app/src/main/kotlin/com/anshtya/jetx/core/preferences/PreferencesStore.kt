@@ -11,8 +11,11 @@ import com.anshtya.jetx.core.preferences.model.UserState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class PreferencesStore(
+@Singleton
+class PreferencesStore @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) {
     companion object {

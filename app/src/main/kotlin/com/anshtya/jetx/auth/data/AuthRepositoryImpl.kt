@@ -2,6 +2,7 @@ package com.anshtya.jetx.auth.data
 
 import android.util.Log
 import com.anshtya.jetx.auth.data.model.AuthState
+import com.anshtya.jetx.core.coroutine.DefaultScope
 import com.anshtya.jetx.core.network.service.AuthService
 import com.anshtya.jetx.core.network.util.toResult
 import com.anshtya.jetx.core.preferences.TokenStore
@@ -12,12 +13,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AuthRepositoryImpl(
+@Singleton
+class AuthRepositoryImpl @Inject constructor(
     private val authService: AuthService,
     private val tokenStore: TokenStore,
     private val logoutManager: LogoutManager,
-    scope: CoroutineScope
+    @DefaultScope scope: CoroutineScope
 ) : AuthRepository {
     private val tag = this::class.simpleName
 

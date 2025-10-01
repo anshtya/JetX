@@ -9,8 +9,11 @@ import com.anshtya.jetx.core.network.model.body.UserCredentialsBody
 import com.anshtya.jetx.core.network.model.response.AuthTokenResponse
 import com.anshtya.jetx.core.network.model.response.CheckUserResponse
 import com.anshtya.jetx.core.network.util.safeApiCall
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AuthService(
+@Singleton
+class AuthService @Inject constructor(
     private val authApi: AuthApi
 ) {
     suspend fun register(
