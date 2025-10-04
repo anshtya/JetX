@@ -15,7 +15,18 @@ object FileUtil {
     }
 
     fun getAttachmentStorageDirectory(context: Context): File {
-        val dir = File(context.filesDir, "attachments")
+        return createStorageDirectory(context, "attachments")
+    }
+
+    fun getAvatarDirectory(context: Context): File {
+        return createStorageDirectory(context, "avatar")
+    }
+
+    private fun createStorageDirectory(
+        context: Context,
+        dirName: String
+    ): File {
+        val dir = File(context.filesDir, dirName)
         if (!dir.exists()) {
             dir.mkdirs()
         }

@@ -112,9 +112,9 @@ private fun SetupPinScreen(
                 Spacer(Modifier.height(8.dp))
                 Text(
                     text = if (userExists) {
-                        stringResource(id = R.string.create_pin_text)
-                    } else {
                         stringResource(id = R.string.enter_pin_text)
+                    } else {
+                        stringResource(id = R.string.create_pin_text)
                     },
                     style = MaterialTheme.typography.bodyLarge
                 )

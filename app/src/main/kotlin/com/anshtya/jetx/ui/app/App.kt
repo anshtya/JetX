@@ -51,9 +51,7 @@ fun App(
         registrationGraph(navController = navController)
 
         composable<CreateProfileRoute> {
-            CreateProfileRoute(
-                onNavigateUp = { navController.navigateUp() }
-            )
+            CreateProfileRoute()
         }
 
         mainDestination(

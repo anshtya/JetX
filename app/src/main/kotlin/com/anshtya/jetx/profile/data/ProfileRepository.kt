@@ -2,6 +2,7 @@ package com.anshtya.jetx.profile.data
 
 import android.graphics.Bitmap
 import com.anshtya.jetx.core.model.UserProfile
+import com.anshtya.jetx.core.network.model.response.CheckUsernameResponse
 import java.util.UUID
 
 interface ProfileRepository {
@@ -10,6 +11,8 @@ interface ProfileRepository {
         username: String,
         profilePicture: Bitmap?
     ): Result<Unit>
+
+    suspend fun checkUsername(username: String): Result<CheckUsernameResponse>
 
     suspend fun saveProfile(userId: String): Boolean
 

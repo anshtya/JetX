@@ -1,83 +1,92 @@
 package com.anshtya.jetx.profile.data
 
 import android.graphics.Bitmap
+import android.util.Log
 import com.anshtya.jetx.attachments.ImageCompressor
+import com.anshtya.jetx.auth.data.AuthRepository
 import com.anshtya.jetx.core.database.dao.UserProfileDao
 import com.anshtya.jetx.core.database.entity.UserProfileEntity
 import com.anshtya.jetx.core.database.entity.toExternalModel
 import com.anshtya.jetx.core.model.UserProfile
+import com.anshtya.jetx.core.network.model.body.CreateProfileBody
+import com.anshtya.jetx.core.network.model.response.CheckUsernameResponse
+import com.anshtya.jetx.core.network.service.UserProfileService
+import com.anshtya.jetx.core.network.util.toResult
 import com.anshtya.jetx.core.preferences.PreferencesStore
 import com.anshtya.jetx.fcm.FcmTokenManager
-import com.anshtya.jetx.profile.data.model.CreateProfileRequest
 import com.anshtya.jetx.profile.data.model.NetworkProfile
 import com.anshtya.jetx.profile.data.model.toEntity
 import com.anshtya.jetx.profile.data.model.toExternalModel
-import com.anshtya.jetx.util.Constants.MEDIA_STORAGE
-import com.anshtya.jetx.util.Constants.PROFILE_TABLE
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.storage.storage
+import kotlinx.coroutines.flow.first
+import java.io.File
 import java.util.UUID
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class ProfileRepositoryImpl @Inject constructor(
-    client: SupabaseClient,
+    private val authRepository: AuthRepository,
+    private val userProfileService: UserProfileService,
+    private val avatarManager: AvatarManager,
     private val fcmTokenManager: FcmTokenManager,
     private val preferencesStore: PreferencesStore,
     private val userProfileDao: UserProfileDao,
     private val imageCompressor: ImageCompressor
 ) : ProfileRepository {
-    private val supabaseStorage = client.storage
-    private val supabaseAuth = client.auth
-
-    private val profileTable = client.from(PROFILE_TABLE)
-    private val mediaBucket = supabaseStorage.from(MEDIA_STORAGE)
+    private val tag = this::class.simpleName
 
     override suspend fun createProfile(
         name: String,
         username: String,
         profilePicture: Bitmap?
-    ): Result<Unit> {
-        return runCatching {
-            val userId = supabaseAuth.currentUserOrNull()?.id
-                ?: throw IllegalStateException("User should be logged in to create profile")
-            var profilePicturePath: String? = null
+    ): Result<Unit> = runCatching {
+        val userId = authRepository.authState.first().currentUserIdOrNull()!!
 
-            if (profilePicture != null) {
-                val imageByteArray = imageCompressor.compressImage(profilePicture).getOrThrow()
-                val path = "profile-${userId}.png"
-                mediaBucket.upload(
-                    path = path,
-                    data = imageByteArray
-                )
-                profilePicturePath = mediaBucket.publicUrl(path)
+        val profilePictureFile: File? = if (profilePicture != null) {
+            val imageByteArray = imageCompressor.compressImage(profilePicture).getOrThrow()
+            avatarManager.saveAvatar(
+                userId = userId,
+                byteArray = imageByteArray
+            ).getOrThrow()
+        } else {
+            null
+        }
+
+        userProfileService.createProfile(
+            CreateProfileBody(
+                displayName = name,
+                username = username,
+                fcmToken = fcmTokenManager.getToken()
+            ),
+            photo = profilePictureFile
+        )
+            .toResult()
+            .onFailure { throwable ->
+                Log.e(tag, throwable.message, throwable)
+                return Result.failure(throwable)
             }
 
-            profileTable.insert(
-                value = CreateProfileRequest(
-                    name = name,
-                    username = username,
-                    profilePictureUrl = profilePicturePath
-                )
+        userProfileDao.upsertUserProfile(
+            UserProfileEntity(
+                id = UUID.fromString(userId),
+                name = name,
+                username = username,
+                profilePicture = profilePictureFile?.absolutePath
             )
-            saveProfile(
-                UserProfileEntity(
-                    id = UUID.fromString(userId),
-                    name = name,
-                    username = username,
-                    profilePicture = profilePicturePath
-                )
-            )
-            fcmTokenManager.addToken()
-            preferencesStore.setProfileCreated(true)
-        }
+        )
+        preferencesStore.setProfileCreated()
+    }
+
+    override suspend fun checkUsername(
+        username: String
+    ): Result<CheckUsernameResponse> {
+        return userProfileService.checkUsername(username).toResult()
     }
 
     override suspend fun saveProfile(userId: String): Boolean {
         val networkProfile = fetchProfile(userId)
         return networkProfile?.let {
-            saveProfile(it.toEntity())
+            userProfileDao.upsertUserProfile(it.toEntity())
             true
         } ?: false
     }
@@ -90,7 +99,7 @@ class ProfileRepositoryImpl @Inject constructor(
             val networkProfile = fetchProfile(userId.toString())
 
             networkProfile?.let {
-                saveProfile(it.toEntity())
+                userProfileDao.upsertUserProfile(it.toEntity())
                 return@let it.toExternalModel()
             }
         }
@@ -98,20 +107,7 @@ class ProfileRepositoryImpl @Inject constructor(
 
     override suspend fun searchProfiles(query: String): Result<List<UserProfile>> {
         return runCatching {
-            val pattern = "%${query}%"
-            profileTable.select {
-                filter {
-                    ilike(column = "username", pattern = pattern)
-                    and {
-                        neq(
-                            column = "user_id",
-                            value = supabaseAuth.currentUserOrNull()?.id!!
-                        )
-                    }
-                }
-            }
-                .decodeList<NetworkProfile>()
-                .map(NetworkProfile::toExternalModel)
+            emptyList() // TODO: implement
         }
     }
 
@@ -121,12 +117,6 @@ class ProfileRepositoryImpl @Inject constructor(
     }
 
     private suspend fun fetchProfile(userId: String): NetworkProfile? {
-        return profileTable.select {
-            filter { eq(column = "user_id", value = userId) }
-        }.decodeSingleOrNull<NetworkProfile>()
-    }
-
-    private suspend fun saveProfile(userProfileEntity: UserProfileEntity) {
-        userProfileDao.upsertUserProfile(userProfileEntity)
+        return null // TODO: implement
     }
 }

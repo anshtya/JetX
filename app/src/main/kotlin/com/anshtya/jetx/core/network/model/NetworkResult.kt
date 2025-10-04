@@ -19,10 +19,11 @@ sealed class NetworkResult<out T> {
         abstract val exception: Exception
 
         data class HttpError(override val exception: HttpException) : Failure() {
+            private val json = Json { ignoreUnknownKeys = true }
             fun code(): Int = exception.code()
-            fun errorMessage(): String = Json.decodeFromString<ErrorResult>(
-                exception.response()?.errorBody().toString()
-            ).message
+            fun errorMessage(): String = exception.response()?.errorBody()?.let {
+                json.decodeFromString<ErrorResult>(it.string()).message
+            } ?: "An unknown error occurred"
         }
 
         data class OtherError(override val exception: Exception) : Failure()

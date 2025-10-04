@@ -1,10 +1,13 @@
 package com.anshtya.jetx.auth.data
 
 import com.anshtya.jetx.chats.data.MessageUpdatesListener
+import com.anshtya.jetx.core.coroutine.IoDispatcher
 import com.anshtya.jetx.core.database.JetXDatabase
 import com.anshtya.jetx.core.preferences.PreferencesStore
 import com.anshtya.jetx.core.preferences.TokenStore
 import com.anshtya.jetx.work.WorkManagerHelper
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,13 +25,17 @@ class LogoutManager @Inject constructor(
     private val db: JetXDatabase,
     private val messageUpdatesListener: MessageUpdatesListener,
     private val workManagerHelper: WorkManagerHelper,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
-    suspend fun performLocalCleanup() {
-        workManagerHelper.cancelAllWork()
-        db.clearAllTables()
-        tokenStore.clearTokenStore()
+    suspend fun performLocalCleanup(): Result<Unit> =
+        runCatching {
+            workManagerHelper.cancelAllWork()
+            withContext(ioDispatcher) {
+                db.clearAllTables()
+            }
+            tokenStore.clearTokenStore()
 
-        preferencesStore.clearPreferences()
-        messageUpdatesListener.unsubscribe()
-    }
+            preferencesStore.clearPreferences()
+            messageUpdatesListener.unsubscribe()
+        }
 }

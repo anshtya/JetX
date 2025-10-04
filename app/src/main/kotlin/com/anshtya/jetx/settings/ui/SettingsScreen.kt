@@ -18,9 +18,12 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,9 +54,11 @@ fun SettingsRoute(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle(null)
 
     SettingsScreen(
         userSettings = userSettings,
+        errorMessage = errorMessage,
         onSignOutClick = viewModel::onSignOutClick,
         onThemeChange = viewModel::changeTheme,
         onBackClick = onBackClick
@@ -63,9 +68,10 @@ fun SettingsRoute(
 @Composable
 private fun SettingsScreen(
     userSettings: UserSettings?,
+    errorMessage: String?,
     onThemeChange: (ThemeOption) -> Unit,
     onSignOutClick: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
 ) {
     var showThemeDialog by rememberSaveable { mutableStateOf(false) }
     if (showThemeDialog) {
@@ -74,6 +80,13 @@ private fun SettingsScreen(
             onDismissDialog = { showThemeDialog = false },
             onThemeChange = onThemeChange
         )
+    }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+        }
     }
 
     JetxScaffold(
@@ -86,6 +99,9 @@ private fun SettingsScreen(
                     BackButton { onBackClick() }
                 }
             )
+        },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState)
         }
     ) {
         if (userSettings != null) {

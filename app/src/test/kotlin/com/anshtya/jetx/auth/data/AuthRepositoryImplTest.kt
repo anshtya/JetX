@@ -2,16 +2,22 @@ package com.anshtya.jetx.auth.data
 
 import com.anshtya.jetx.MainDispatcherRule
 import com.anshtya.jetx.auth.data.model.AuthState
+import com.anshtya.jetx.core.database.dao.UserProfileDao
 import com.anshtya.jetx.core.network.model.NetworkResult
 import com.anshtya.jetx.core.network.model.response.AuthTokenResponse
 import com.anshtya.jetx.core.network.model.response.CheckUserResponse
 import com.anshtya.jetx.core.network.service.AuthService
+import com.anshtya.jetx.core.network.service.UserProfileService
+import com.anshtya.jetx.core.preferences.PreferencesStore
 import com.anshtya.jetx.core.preferences.TokenStore
 import com.anshtya.jetx.core.preferences.model.AuthToken
+import com.anshtya.jetx.fcm.FcmTokenManager
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
 import io.mockk.verify
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
@@ -30,6 +36,14 @@ class AuthRepositoryImplTest {
     private val service: AuthService = mockk()
     private val logoutManager: LogoutManager = mockk()
     private val tokenStore: TokenStore = mockk()
+    private val fcmTokenManager: FcmTokenManager = mockk {
+        coEvery { getToken() } returns "fcm"
+    }
+    private val preferencesStore: PreferencesStore = mockk {
+        coEvery { setProfileCreated() } just runs
+    }
+    private val userProfileDao: UserProfileDao = mockk()
+    private val userProfileService: UserProfileService = mockk()
     private lateinit var repository: AuthRepositoryImpl
 
     private var phoneNumber = "+12234567891"
@@ -44,6 +58,10 @@ class AuthRepositoryImplTest {
             authService = service,
             tokenStore = tokenStore,
             logoutManager = logoutManager,
+            fcmTokenManager = fcmTokenManager,
+            preferencesStore = preferencesStore,
+            userProfileService = userProfileService,
+            userProfileDao = userProfileDao,
             scope = TestScope()
         )
     }
@@ -52,24 +70,33 @@ class AuthRepositoryImplTest {
     fun `initialAuth sets authenticated state`() = runTest {
         coEvery {
             service.refreshToken(any())
-        } returns NetworkResult.Success(AuthTokenResponse("access", "refresh"))
+        } returns NetworkResult.Success(AuthTokenResponse("userid", "access", "refresh"))
         coEvery {
             tokenStore.getAuthToken()
         } returns AuthToken("access", "refresh")
         coEvery {
-            tokenStore.storeAuthToken(any(), any())
+            tokenStore.storeAuthToken(any(), any(), any())
         } returns Unit
         coEvery {
-            tokenStore.getAccessToken()
-        } returns "access"
+            tokenStore.getUserId()
+        } returns "userid"
 
-        repository = AuthRepositoryImpl(service, tokenStore, logoutManager, this)
+        repository = AuthRepositoryImpl(
+            authService = service,
+            fcmTokenManager = fcmTokenManager,
+            tokenStore = tokenStore,
+            preferencesStore = preferencesStore,
+            logoutManager = logoutManager,
+            userProfileDao = userProfileDao,
+            userProfileService = userProfileService,
+            scope = this,
+        )
 
         advanceUntilIdle()
 
         val authState = repository.authState.first()
         assertTrue(authState is AuthState.Authenticated)
-        assertEquals("access", (authState as AuthState.Authenticated).token)
+        assertEquals("userid", (authState as AuthState.Authenticated).userId)
     }
 
     @Test
@@ -78,7 +105,16 @@ class AuthRepositoryImplTest {
             tokenStore.getAuthToken()
         } returns AuthToken(null, null)
 
-        repository = AuthRepositoryImpl(service, tokenStore, logoutManager, this)
+        repository = AuthRepositoryImpl(
+            authService = service,
+            fcmTokenManager = fcmTokenManager,
+            tokenStore = tokenStore,
+            preferencesStore = preferencesStore,
+            logoutManager = logoutManager,
+            userProfileDao = userProfileDao,
+            userProfileService = userProfileService,
+            scope = this,
+        )
 
         advanceUntilIdle()
 
@@ -87,13 +123,14 @@ class AuthRepositoryImplTest {
     }
 
     @Test
-    fun `login success saves token and updates state`() = runTest {
-        val authResponse = AuthTokenResponse("access", "refresh")
+    fun `login success saves user id and updates state`() = runTest {
+        val authResponse = AuthTokenResponse("userid", "access", "refresh")
         coEvery {
-            service.login(any(), any())
+            service.login(any(), any(), any())
         } returns NetworkResult.Success(authResponse)
         every {
             tokenStore.storeAuthToken(
+                userId = authResponse.userId,
                 access = authResponse.accessToken,
                 refresh = authResponse.refreshToken
             )
@@ -102,27 +139,30 @@ class AuthRepositoryImplTest {
         val result = repository.login(phoneNumber, pin)
         assertTrue(result.isSuccess)
 
-        coVerify(exactly = 1) { service.login(phoneNumber, pin) }
+        coVerify(exactly = 1) { service.login(phoneNumber, pin, "fcm") }
         verify(exactly = 1) {
             tokenStore.storeAuthToken(
+                userId = authResponse.userId,
                 access = authResponse.accessToken,
                 refresh = authResponse.refreshToken
             )
         }
+        coVerify(exactly = 1) { preferencesStore.setProfileCreated() }
 
         val state = repository.authState.first()
         assertTrue(state is AuthState.Authenticated)
-        assertEquals("access", (state as AuthState.Authenticated).token)
+        assertEquals("userid", (state as AuthState.Authenticated).userId)
     }
 
     @Test
     fun `register success saves token and updates state`() = runTest {
-        val authResponse = AuthTokenResponse("access", "refresh")
+        val authResponse = AuthTokenResponse("userid", "access", "refresh")
         coEvery {
             service.register(any(), any())
         } returns NetworkResult.Success(authResponse)
         every {
             tokenStore.storeAuthToken(
+                userId = authResponse.userId,
                 access = authResponse.accessToken,
                 refresh = authResponse.refreshToken
             )
@@ -134,6 +174,7 @@ class AuthRepositoryImplTest {
         coVerify(exactly = 1) { service.register(phoneNumber, pin) }
         verify(exactly = 1) {
             tokenStore.storeAuthToken(
+                userId = authResponse.userId,
                 access = authResponse.accessToken,
                 refresh = authResponse.refreshToken
             )
@@ -141,20 +182,20 @@ class AuthRepositoryImplTest {
 
         val state = repository.authState.first()
         assertTrue(state is AuthState.Authenticated)
-        assertEquals("access", (state as AuthState.Authenticated).token)
+        assertEquals("userid", (state as AuthState.Authenticated).userId)
     }
 
     @Test
     fun `login failure does not save token and keeps state logged out`() = runTest {
         coEvery {
-            service.login(phoneNumber = phoneNumber, pin = pin)
+            service.login(phoneNumber = phoneNumber, pin = pin, fcmToken = "fcm")
         } returns NetworkResult.Failure.OtherError(Exception("error"))
 
         val result = repository.login(phoneNumber = phoneNumber, pin = pin)
         assertTrue(result.isFailure)
 
-        coVerify { service.login(phoneNumber = phoneNumber, pin = pin) }
-        verify(exactly = 0) { tokenStore.storeAuthToken(any(), any()) }
+        coVerify { service.login(phoneNumber = phoneNumber, pin = pin, fcmToken = "fcm") }
+        verify(exactly = 0) { tokenStore.storeAuthToken(any(), any(), any()) }
 
         val state = repository.authState.first()
         assertFalse(state is AuthState.Authenticated)
@@ -188,26 +229,16 @@ class AuthRepositoryImplTest {
 
     @Test
     fun `logout clears token and sets state logged out`() = runTest {
-        // Pretend already logged in
-        coEvery {
-            service.login(phoneNumber = any(), pin = any())
-        } returns NetworkResult.Success(AuthTokenResponse("access", "refresh"))
-        every {
-            tokenStore.storeAuthToken(any(), any())
-        } returns Unit
-        repository.login(phoneNumber = phoneNumber, pin = pin)
-        var state = repository.authState.first()
-        assertTrue(state is AuthState.Authenticated)
-
+        coEvery { tokenStore.getToken(any()) } returns "token"
         coEvery { service.logoutUser(any()) } returns NetworkResult.Success(Unit)
-        coEvery { logoutManager.performLocalCleanup() } returns Unit
+        coEvery { logoutManager.performLocalCleanup() } returns Result.success(Unit)
 
         val result = repository.logout()
         assertTrue(result.isSuccess)
 
         coVerify { logoutManager.performLocalCleanup() }
 
-        state = repository.authState.first()
+        val state = repository.authState.first()
         assertTrue(state is AuthState.Unauthenticated)
     }
 }

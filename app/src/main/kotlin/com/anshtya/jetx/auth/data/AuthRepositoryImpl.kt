@@ -3,9 +3,14 @@ package com.anshtya.jetx.auth.data
 import android.util.Log
 import com.anshtya.jetx.auth.data.model.AuthState
 import com.anshtya.jetx.core.coroutine.DefaultScope
+import com.anshtya.jetx.core.database.dao.UserProfileDao
+import com.anshtya.jetx.core.database.entity.UserProfileEntity
 import com.anshtya.jetx.core.network.service.AuthService
+import com.anshtya.jetx.core.network.service.UserProfileService
 import com.anshtya.jetx.core.network.util.toResult
+import com.anshtya.jetx.core.preferences.PreferencesStore
 import com.anshtya.jetx.core.preferences.TokenStore
+import com.anshtya.jetx.fcm.FcmTokenManager
 import com.google.i18n.phonenumbers.PhoneNumberUtil
 import com.google.i18n.phonenumbers.Phonenumber
 import kotlinx.coroutines.CoroutineScope
@@ -13,13 +18,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val authService: AuthService,
+    private val userProfileService: UserProfileService,
+    private val fcmTokenManager: FcmTokenManager,
     private val tokenStore: TokenStore,
+    private val preferencesStore: PreferencesStore,
+    private val userProfileDao: UserProfileDao,
     private val logoutManager: LogoutManager,
     @DefaultScope scope: CoroutineScope
 ) : AuthRepository {
@@ -42,32 +52,58 @@ class AuthRepositoryImpl @Inject constructor(
         authService.refreshToken(authToken.refreshToken)
             .toResult()
             .onSuccess {
-                tokenStore.storeAuthToken(access = it.accessToken, refresh = it.refreshToken)
+                tokenStore.storeAuthToken(
+                    userId = it.userId,
+                    access = it.accessToken,
+                    refresh = it.refreshToken
+                )
             }.onFailure { throwable ->
                 Log.e(tag, throwable.message, throwable)
             }
-        val token = tokenStore.getAccessToken()!!
-        _authState.update { AuthState.Authenticated(token) }
+        val userId = tokenStore.getUserId()!!
+        _authState.update { AuthState.Authenticated(userId) }
     }
 
     override suspend fun login(
         phoneNumber: String,
         pin: String
-    ): Result<Unit> {
-        return authService.login(phoneNumber, pin)
-            .toResult()
-            .onSuccess { authResponse ->
-                tokenStore.storeAuthToken(
-                    access = authResponse.accessToken,
-                    refresh = authResponse.refreshToken
+    ): Result<Unit> =
+        runCatching {
+            val authResponse = authService.login(
+                phoneNumber = phoneNumber,
+                pin = pin,
+                fcmToken = fcmTokenManager.getToken()
+            )
+                .toResult()
+                .getOrElse {
+                    Log.e(tag, it.message, it)
+                    return Result.failure(it)
+                }
+
+            tokenStore.storeAuthToken(
+                userId = authResponse.userId,
+                access = authResponse.accessToken,
+                refresh = authResponse.refreshToken
+            )
+
+            val userProfile = userProfileService.getProfileById(authResponse.userId)
+                .toResult()
+                .getOrElse {
+                    Log.e(tag, it.message, it)
+                    return Result.failure(it)
+                }
+            userProfileDao.upsertUserProfile(
+                UserProfileEntity(
+                    id = UUID.fromString(authResponse.userId),
+                    name = userProfile.displayName,
+                    username = userProfile.username,
+                    profilePicture = null // TODO: manage profile picture at server
                 )
-                _authState.update { AuthState.Authenticated(authResponse.accessToken) }
-            }
-            .onFailure {
-                Log.e(tag, it.message, it)
-            }
-            .map {}
-    }
+            )
+            preferencesStore.setProfileCreated()
+
+            _authState.update { AuthState.Authenticated(authResponse.userId) }
+        }
 
     override suspend fun register(
         phoneNumber: String,
@@ -77,10 +113,11 @@ class AuthRepositoryImpl @Inject constructor(
             .toResult()
             .onSuccess { authResponse ->
                 tokenStore.storeAuthToken(
+                    userId = authResponse.userId,
                     access = authResponse.accessToken,
                     refresh = authResponse.refreshToken
                 )
-                _authState.update { AuthState.Authenticated(authResponse.accessToken) }
+                _authState.update { AuthState.Authenticated(authResponse.userId) }
             }
             .onFailure {
                 Log.e(tag, it.message, it)
@@ -118,26 +155,20 @@ class AuthRepositoryImpl @Inject constructor(
             }
     }
 
-    override suspend fun logout(): Result<Unit> {
-        return runCatching {
-            val currentState = _authState.value
-            val token = when (currentState) {
-                is AuthState.Authenticated -> currentState.token
-                else -> {
-                    // Already logged out, just ensure clean state
-                    return Result.success(Unit)
-                }
-            }
-
+    override suspend fun logout(): Result<Unit> =
+        runCatching {
+            val token = tokenStore.getToken(TokenStore.ACCESS_TOKEN)!!
             authService.logoutUser(token)
                 .toResult()
-                .recover {
+                .onFailure {
                     Log.e(tag, it.message, it)
-                    throw it
+                    return Result.failure(it)
                 }
 
-            logoutManager.performLocalCleanup()
+            logoutManager.performLocalCleanup().onFailure {
+                Log.e(tag, it.message, it)
+                return Result.failure(it)
+            }
             _authState.update { AuthState.Unauthenticated }
         }
-    }
 }

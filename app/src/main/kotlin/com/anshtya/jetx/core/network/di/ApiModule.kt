@@ -1,6 +1,8 @@
 package com.anshtya.jetx.core.network.di
 
 import com.anshtya.jetx.core.network.api.AuthApi
+import com.anshtya.jetx.core.network.api.UserProfileApi
+import com.anshtya.jetx.core.network.di.qualifiers.Authenticated
 import com.anshtya.jetx.core.network.di.qualifiers.Base
 import dagger.Module
 import dagger.Provides
@@ -19,5 +21,13 @@ object ApiModule {
         @Base retrofit: Retrofit
     ): AuthApi {
         return retrofit.create<AuthApi>()
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserApi(
+        @Authenticated retrofit: Retrofit
+    ): UserProfileApi {
+        return retrofit.create<UserProfileApi>()
     }
 }

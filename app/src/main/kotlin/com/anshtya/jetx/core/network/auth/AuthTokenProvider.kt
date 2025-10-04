@@ -21,7 +21,11 @@ class AuthTokenProvider @Inject constructor(
         return runBlocking {
             safeApiCall { authApi.refreshToken(RefreshTokenBody(refreshToken)) }.toResult()
         }.onSuccess {
-            tokenStore.storeAuthToken(it.accessToken, it.refreshToken)
+            tokenStore.storeAuthToken(
+                userId = it.userId,
+                access = it.accessToken,
+                refresh = it.refreshToken
+            )
         }.onFailure {
             Log.e(tag, it.message, it)
         }.map { it.accessToken }

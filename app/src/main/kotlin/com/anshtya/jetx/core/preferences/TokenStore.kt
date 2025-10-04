@@ -13,15 +13,18 @@ class TokenStore @Inject constructor(
     companion object {
         const val ACCESS_TOKEN = "access_token"
         const val REFRESH_TOKEN = "refresh_token"
+        const val USER_ID = "user_id"
     }
 
     fun storeAuthToken(
+        userId: String,
         access: String,
         refresh: String
     ) {
         encryptedSharedPreferences.edit {
             putString(ACCESS_TOKEN, access)
             putString(REFRESH_TOKEN, refresh)
+            putString(USER_ID, userId)
         }
     }
 
@@ -32,8 +35,8 @@ class TokenStore @Inject constructor(
         )
     }
 
-    fun getAccessToken(): String? {
-        return getToken(ACCESS_TOKEN)
+    fun getUserId(): String? {
+        return getToken(USER_ID)
     }
 
     fun getToken(key: String): String? {

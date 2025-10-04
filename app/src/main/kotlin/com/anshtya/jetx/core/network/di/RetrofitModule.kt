@@ -1,6 +1,9 @@
 package com.anshtya.jetx.core.network.di
 
 import com.anshtya.jetx.BuildConfig
+import com.anshtya.jetx.core.network.auth.AuthAuthenticator
+import com.anshtya.jetx.core.network.auth.AuthInterceptor
+import com.anshtya.jetx.core.network.di.qualifiers.Authenticated
 import com.anshtya.jetx.core.network.di.qualifiers.Base
 import dagger.Module
 import dagger.Provides
@@ -50,10 +53,39 @@ object RetrofitModule {
 
     @Provides
     @Singleton
+    @Authenticated
+    fun provideAuthenticatedClient(
+        loggingInterceptor: HttpLoggingInterceptor,
+        authInterceptor: AuthInterceptor,
+        authAuthenticator: AuthAuthenticator
+    ): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .addInterceptor(authInterceptor)
+            .authenticator(authAuthenticator)
+            .build()
+    }
+
+    @Provides
+    @Singleton
     @Base
     fun provideBaseRetrofit(
         converterFactory: Converter.Factory,
         @Base client: OkHttpClient
+    ): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(BuildConfig.BASE_URL)
+            .client(client)
+            .addConverterFactory(converterFactory)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    @Authenticated
+    fun provideAuthenticatedRetrofit(
+        converterFactory: Converter.Factory,
+        @Authenticated client: OkHttpClient
     ): Retrofit {
         return Retrofit.Builder()
             .baseUrl(BuildConfig.BASE_URL)

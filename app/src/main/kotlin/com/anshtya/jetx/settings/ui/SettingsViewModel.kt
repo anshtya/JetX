@@ -1,17 +1,16 @@
 package com.anshtya.jetx.settings.ui
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.auth.data.AuthRepository
 import com.anshtya.jetx.core.preferences.PreferencesStore
 import com.anshtya.jetx.core.preferences.model.ThemeOption
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,8 +20,8 @@ class SettingsViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val preferencesStore: PreferencesStore
 ) : ViewModel() {
-    var signedOut by mutableStateOf(false)
-        private set
+    private val _errorMessage = Channel<String>(Channel.BUFFERED)
+    val errorMessage = _errorMessage.receiveAsFlow()
 
     val userSettings: StateFlow<UserSettings?> = preferencesStore
         .appUiProperties
@@ -43,8 +42,9 @@ class SettingsViewModel @Inject constructor(
 
     fun onSignOutClick() {
         viewModelScope.launch {
-            authRepository.logout()
-            signedOut = true
+            authRepository.logout().onFailure {
+                _errorMessage.send("An error occurred")
+            }
         }
     }
 }

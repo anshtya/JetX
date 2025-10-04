@@ -1,9 +1,15 @@
 package com.anshtya.jetx.auth.data.model
 
-sealed interface AuthState {
-    data object Initializing : AuthState
+sealed class AuthState {
+    data object Initializing : AuthState()
+
     data class Authenticated(
-        val token: String
-    ) : AuthState
-    data object Unauthenticated: AuthState
+        val userId: String
+    ) : AuthState()
+
+    data object Unauthenticated : AuthState()
+
+    fun currentUserIdOrNull(): String? {
+        return if (this is Authenticated) userId else null
+    }
 }

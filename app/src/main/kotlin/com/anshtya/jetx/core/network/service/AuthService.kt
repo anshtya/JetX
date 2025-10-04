@@ -20,14 +20,30 @@ class AuthService @Inject constructor(
         phoneNumber: String,
         pin: String
     ): NetworkResult<AuthTokenResponse> {
-        return safeApiCall { authApi.register(UserCredentialsBody(phoneNumber, pin)) }
+        return safeApiCall {
+            authApi.register(
+                UserCredentialsBody(
+                    phoneNumber = phoneNumber,
+                    pin = pin
+                )
+            )
+        }
     }
 
     suspend fun login(
         phoneNumber: String,
-        pin: String
+        pin: String,
+        fcmToken: String
     ): NetworkResult<AuthTokenResponse> {
-        return safeApiCall { authApi.login(UserCredentialsBody(phoneNumber, pin)) }
+        return safeApiCall {
+            authApi.login(
+                UserCredentialsBody(
+                    phoneNumber = phoneNumber,
+                    pin = pin,
+                    fcmToken = fcmToken
+                )
+            )
+        }
     }
 
     suspend fun checkUser(
