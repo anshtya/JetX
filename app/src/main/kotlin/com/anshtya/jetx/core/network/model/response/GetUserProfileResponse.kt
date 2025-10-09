@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 class GetUserProfileResponse(
     val username: String,
     val displayName: String,
+    val phoneNumber: String,
     val profilePhotoUrl: String?,
 )

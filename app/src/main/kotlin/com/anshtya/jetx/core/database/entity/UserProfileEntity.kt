@@ -12,8 +12,13 @@ import java.util.UUID
 data class UserProfileEntity(
     @PrimaryKey
     val id: UUID,
+
     val name: String,
     val username: String,
+
+    @ColumnInfo(name = "phone_number")
+    val phoneNumber: String,
+
     @ColumnInfo(name = "profile_picture")
     val profilePicture: String?
 )
@@ -23,6 +28,7 @@ fun UserProfileEntity.toExternalModel(): UserProfile {
         id = id,
         name = name,
         username = username,
+        phoneNumber = phoneNumber,
         pictureUrl = profilePicture
     )
 }

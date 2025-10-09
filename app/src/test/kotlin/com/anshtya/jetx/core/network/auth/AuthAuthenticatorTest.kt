@@ -1,6 +1,7 @@
 package com.anshtya.jetx.core.network.auth
 
-import io.mockk.every
+import com.anshtya.jetx.auth.data.AuthManager
+import io.mockk.coEvery
 import io.mockk.mockk
 import junit.framework.TestCase.assertNull
 import okhttp3.Protocol
@@ -10,7 +11,7 @@ import org.junit.Before
 import org.junit.Test
 
 class AuthAuthenticatorTest {
-    private val authTokenProvider: AuthTokenProvider = mockk()
+    private val authManager: AuthManager = mockk()
     private lateinit var authAuthenticator: AuthAuthenticator
 
     private val response401 = Response.Builder()
@@ -26,21 +27,12 @@ class AuthAuthenticatorTest {
 
     @Before
     fun setup() {
-        authAuthenticator = AuthAuthenticator(authTokenProvider)
+        authAuthenticator = AuthAuthenticator(authManager)
     }
 
     @Test
-    fun `returns null if no refresh token present`() {
-        every { authTokenProvider.getStoredToken(any()) } returns null
-
-        assertNull(authAuthenticator.authenticate(null, response401))
-    }
-
-    @Test
-    fun `returns null if no refresh fails`() {
-        val refreshToken = "refresh"
-        every { authTokenProvider.getStoredToken(any()) } returns refreshToken
-        every { authTokenProvider.getNewToken(refreshToken) } returns Result.failure(Exception(""))
+    fun `returns null if refresh fails`() {
+        coEvery { authManager.refreshSession() } returns false
 
         assertNull(authAuthenticator.authenticate(null, response401))
     }

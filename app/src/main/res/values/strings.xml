@@ -33,6 +33,15 @@
     <string name="chatinputfield_placeholder">Message</string>
     <string name="ok">OK</string>
 
+    <!--Registration-->
+    <string name="next">Next</string>
+    <string name="phone_number">Phone number</string>
+    <string name="enter_phone_number">Enter your phone number to continue.</string>
+    <string name="create_pin">Create your PIN</string>
+    <string name="create_pin_text">PINs keep your account secure.</string>
+    <string name="enter_pin">Enter your PIN</string>
+    <string name="enter_pin_text">Enter your PIN to continue.</string>
+
     <!--Notification-->
     <string name="notification_chat_group">Chats</string>
     <string name="notification_other_group">Others</string>
@@ -57,6 +66,12 @@
     <!--Settings-->
     <string name="sign_out">Sign Out</string>
     <string name="theme">Theme</string>
+    <string name="profile">Profile</string>
+    <string name="edit_photo">Edit photo</string>
+    <string name="edit_username">Edit username</string>
+    <string name="save">Save</string>
+    <string name="edit_name">Edit name</string>
+    <string name="delete_photo">Delete photo</string>
 
     <string name="mark_as_read">Mark as read</string>
     <string name="reply">Reply</string>
@@ -85,14 +100,6 @@
     <string name="send_to">Send to</string>
     <string name="recent_chats">Recent chats</string>
     <string name="no_recent_chats">No recent chats</string>
-
     <string name="discard_media">Discard media?</string>
 
-    <string name="next">Next</string>
-    <string name="phone_number">Phone number</string>
-    <string name="enter_phone_number">Enter your phone number to continue.</string>
-    <string name="create_pin">Create your PIN</string>
-    <string name="create_pin_text">PINs keep your account secure.</string>
-    <string name="enter_pin">Enter your PIN</string>
-    <string name="enter_pin_text">Enter your PIN to continue.</string>
 </resources>

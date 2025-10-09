@@ -1,8 +1,7 @@
-package com.anshtya.jetx.settings.ui
+package com.anshtya.jetx.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.rounded.Brightness4
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SnackbarHost
@@ -32,35 +30,42 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
+import com.anshtya.jetx.core.model.UserProfile
+import com.anshtya.jetx.core.model.sampledata.sampleUsers
 import com.anshtya.jetx.core.preferences.model.ThemeOption
+import com.anshtya.jetx.core.ui.DayNightPreview
+import com.anshtya.jetx.core.ui.ProfilePicture
 import com.anshtya.jetx.core.ui.components.button.BackButton
 import com.anshtya.jetx.core.ui.components.scaffold.JetxScaffold
 import com.anshtya.jetx.core.ui.components.topappbar.JetxTopAppBar
+import com.anshtya.jetx.settings.components.SettingsItem
 import com.anshtya.jetx.ui.theme.JetXTheme
+import com.anshtya.jetx.util.horizontalPadding
+import com.anshtya.jetx.util.verticalPadding
 
 @Composable
 fun SettingsRoute(
     onBackClick: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel()
+    onProfileClick: () -> Unit,
+    viewModel: SettingsViewModel
 ) {
     val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
+    val userProfile by viewModel.userProfile.collectAsStateWithLifecycle()
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle(null)
 
     SettingsScreen(
         userSettings = userSettings,
+        userProfile = userProfile,
         errorMessage = errorMessage,
         onSignOutClick = viewModel::onSignOutClick,
         onThemeChange = viewModel::changeTheme,
+        onProfileClick = onProfileClick,
         onBackClick = onBackClick
     )
 }
@@ -68,8 +73,10 @@ fun SettingsRoute(
 @Composable
 private fun SettingsScreen(
     userSettings: UserSettings?,
+    userProfile: UserProfile?,
     errorMessage: String?,
     onThemeChange: (ThemeOption) -> Unit,
+    onProfileClick: () -> Unit,
     onSignOutClick: () -> Unit,
     onBackClick: () -> Unit,
 ) {
@@ -105,7 +112,17 @@ private fun SettingsScreen(
         }
     ) {
         if (userSettings != null) {
-            LazyColumn(Modifier.fillMaxWidth()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                userProfile?.let {
+                    item {
+                        ProfileItem(
+                            userProfile = it,
+                            onItemClick = onProfileClick
+                        )
+                    }
+                }
                 item {
                     SettingsItem(
                         text = stringResource(id = R.string.theme),
@@ -127,53 +144,42 @@ private fun SettingsScreen(
 }
 
 @Composable
-private fun SettingsItem(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    secondaryText: String = "",
-    icon: ImageVector? = null
+private fun ProfileItem(
+    userProfile: UserProfile,
+    onItemClick: () -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(8.dp)
+            .clickable { onItemClick() }
+            .padding(
+                horizontal = horizontalPadding,
+                vertical = verticalPadding
+            )
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.size(40.dp)
-        ) {
-            icon?.let {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
-
+        ProfilePicture(
+            model = userProfile.pictureUrl?.toUri(),
+            modifier = Modifier
+                .size(120.dp)
+                .padding(10.dp)
+        )
         Column(
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.fillMaxWidth()
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             Text(
-                text = text,
-                fontSize = 18.sp,
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 1,
+                text = userProfile.name,
+                style = MaterialTheme.typography.headlineSmall
             )
-            if (secondaryText.isNotBlank()) {
-                Text(
-                    text = secondaryText,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.Gray
-                )
-            }
+            Text(
+                text = userProfile.phoneNumber,
+                color = Color.Gray
+            )
+            Text(
+                text = userProfile.username,
+                color = Color.Gray
+            )
         }
     }
 }
@@ -256,13 +262,18 @@ private fun SettingsDialogChooserRow(
     }
 }
 
-@Preview(showBackground = true)
+@DayNightPreview
 @Composable
-private fun SettingsItemPreview() {
+private fun SettingsScreenPreview() {
     JetXTheme {
-        SettingsItem(
-            text = "Main",
-            onClick = {}
+        SettingsScreen(
+            userSettings = UserSettings(ThemeOption.SYSTEM_DEFAULT),
+            userProfile = sampleUsers[0],
+            errorMessage = null,
+            onThemeChange = {},
+            onProfileClick = {},
+            onSignOutClick = {},
+            onBackClick = {},
         )
     }
 }

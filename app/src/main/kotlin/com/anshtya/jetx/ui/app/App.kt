@@ -16,8 +16,8 @@ import com.anshtya.jetx.onboarding.navigation.onboardingGraph
 import com.anshtya.jetx.profile.ui.CreateProfileRoute
 import com.anshtya.jetx.registration.navigation.RegistrationGraph
 import com.anshtya.jetx.registration.navigation.registrationGraph
-import com.anshtya.jetx.settings.ui.navigation.navigateToSettingsGraph
-import com.anshtya.jetx.settings.ui.navigation.settingsGraph
+import com.anshtya.jetx.settings.navigation.navigateToSettingsGraph
+import com.anshtya.jetx.settings.navigation.settingsGraph
 import com.anshtya.jetx.ui.LoadingRoute
 import com.anshtya.jetx.ui.main.MainRoute
 import com.anshtya.jetx.ui.main.mainDestination

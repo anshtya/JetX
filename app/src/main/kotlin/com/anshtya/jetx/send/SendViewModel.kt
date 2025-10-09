@@ -2,7 +2,7 @@ package com.anshtya.jetx.send
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.auth.data.AuthRepository
+import com.anshtya.jetx.auth.data.AuthManager
 import com.anshtya.jetx.auth.data.model.AuthState
 import com.anshtya.jetx.chats.data.ChatsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,13 +17,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SendViewModel @Inject constructor(
-    authRepository: AuthRepository,
+    authManager: AuthManager,
     chatsRepository: ChatsRepository
 ) : ViewModel() {
     private val _selectedChatIds = MutableStateFlow<Set<Int>>(emptySet())
     val selectedChatIds = _selectedChatIds.asStateFlow()
 
-    val authState: StateFlow<AuthState> = authRepository.authState.stateIn(
+    val authState: StateFlow<AuthState> = authManager.authState.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = AuthState.Initializing

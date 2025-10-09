@@ -3,7 +3,7 @@ package com.anshtya.jetx.profile.data
 import android.graphics.Bitmap
 import android.util.Log
 import com.anshtya.jetx.attachments.ImageCompressor
-import com.anshtya.jetx.auth.data.AuthRepository
+import com.anshtya.jetx.auth.data.AuthManager
 import com.anshtya.jetx.core.database.dao.UserProfileDao
 import com.anshtya.jetx.core.database.entity.UserProfileEntity
 import com.anshtya.jetx.core.database.entity.toExternalModel
@@ -14,10 +14,9 @@ import com.anshtya.jetx.core.network.service.UserProfileService
 import com.anshtya.jetx.core.network.util.toResult
 import com.anshtya.jetx.core.preferences.PreferencesStore
 import com.anshtya.jetx.fcm.FcmTokenManager
-import com.anshtya.jetx.profile.data.model.NetworkProfile
-import com.anshtya.jetx.profile.data.model.toEntity
-import com.anshtya.jetx.profile.data.model.toExternalModel
-import kotlinx.coroutines.flow.first
+import com.anshtya.jetx.profile.util.toEntity
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.io.File
 import java.util.UUID
 import javax.inject.Inject
@@ -25,8 +24,8 @@ import javax.inject.Singleton
 
 @Singleton
 class ProfileRepositoryImpl @Inject constructor(
-    private val authRepository: AuthRepository,
     private val userProfileService: UserProfileService,
+    private val authManager: AuthManager,
     private val avatarManager: AvatarManager,
     private val fcmTokenManager: FcmTokenManager,
     private val preferencesStore: PreferencesStore,
@@ -40,19 +39,25 @@ class ProfileRepositoryImpl @Inject constructor(
         username: String,
         profilePicture: Bitmap?
     ): Result<Unit> = runCatching {
-        val userId = authRepository.authState.first().currentUserIdOrNull()!!
+        val userId = authManager.authState.value.currentUserIdOrNull()!!
 
         val profilePictureFile: File? = if (profilePicture != null) {
-            val imageByteArray = imageCompressor.compressImage(profilePicture).getOrThrow()
+            val imageByteArray = imageCompressor.compressImage(profilePicture).getOrElse {
+                Log.e(tag, "Failed to compress avatar of user id: $userId", it)
+                return Result.failure(it)
+            }
             avatarManager.saveAvatar(
-                userId = userId,
+                userId = userId.toString(),
                 byteArray = imageByteArray
-            ).getOrThrow()
+            ).getOrElse {
+                Log.e(tag, "Failed to save avatar of user id: $userId", it)
+                return Result.failure(it)
+            }
         } else {
             null
         }
 
-        userProfileService.createProfile(
+        val networkUserProfile = userProfileService.createProfile(
             CreateProfileBody(
                 displayName = name,
                 username = username,
@@ -61,16 +66,17 @@ class ProfileRepositoryImpl @Inject constructor(
             photo = profilePictureFile
         )
             .toResult()
-            .onFailure { throwable ->
+            .getOrElse { throwable ->
                 Log.e(tag, throwable.message, throwable)
                 return Result.failure(throwable)
             }
 
         userProfileDao.upsertUserProfile(
             UserProfileEntity(
-                id = UUID.fromString(userId),
+                id = userId,
                 name = name,
                 username = username,
+                phoneNumber = networkUserProfile.phoneNumber,
                 profilePicture = profilePictureFile?.absolutePath
             )
         )
@@ -83,26 +89,25 @@ class ProfileRepositoryImpl @Inject constructor(
         return userProfileService.checkUsername(username).toResult()
     }
 
-    override suspend fun saveProfile(userId: String): Boolean {
-        val networkProfile = fetchProfile(userId)
-        return networkProfile?.let {
-            userProfileDao.upsertUserProfile(it.toEntity())
-            true
-        } ?: false
+    override suspend fun fetchAndSaveProfile(
+        userId: UUID
+    ): Result<Unit> = runCatching {
+        val userProfile = userProfileService.getProfileById(userId)
+            .toResult()
+            .getOrThrow()
+        userProfileDao.upsertUserProfile(userProfile.toEntity(userId))
     }
 
-    override suspend fun getProfile(userId: UUID): UserProfile? {
-        val userProfile = userProfileDao.getUserProfile(userId)
-        return if (userProfile != null) {
-            userProfile.toExternalModel()
-        } else {
-            val networkProfile = fetchProfile(userId.toString())
+    override suspend fun getProfile(
+        userId: UUID
+    ): UserProfile {
+        return userProfileDao.getUserProfile(userId).toExternalModel()
+    }
 
-            networkProfile?.let {
-                userProfileDao.upsertUserProfile(it.toEntity())
-                return@let it.toExternalModel()
-            }
-        }
+    override fun getProfileFlow(
+        userId: UUID
+    ): Flow<UserProfile?> {
+        return userProfileDao.getUserProfileFlow(userId).map { it?.toExternalModel() }
     }
 
     override suspend fun searchProfiles(query: String): Result<List<UserProfile>> {
@@ -111,12 +116,92 @@ class ProfileRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deleteProfiles() {
-        userProfileDao.deleteAllProfiles()
-        preferencesStore.clearPreferences()
+    override suspend fun updateName(
+        name: String
+    ): Result<Unit> = runCatching {
+        userProfileService.updateName(name)
+            .toResult()
+            .onFailure {
+                Log.e(tag, it.message, it)
+                return Result.failure(it)
+            }
+
+        val userId = authManager.authState.value.currentUserIdOrNull()!!
+        userProfileDao.updateName(
+            id = userId,
+            name = name
+        )
     }
 
-    private suspend fun fetchProfile(userId: String): NetworkProfile? {
-        return null // TODO: implement
+    override suspend fun updateUsername(
+        username: String
+    ): Result<Unit> = runCatching {
+        userProfileService.updateUsername(username)
+            .toResult()
+            .onFailure {
+                Log.e(tag, it.message, it)
+                return Result.failure(it)
+            }
+
+        val userId = authManager.authState.value.currentUserIdOrNull()!!
+        userProfileDao.updateUsername(
+            id = userId,
+            username = username
+        )
+    }
+
+    override suspend fun updateProfilePhoto(
+        profilePhoto: Bitmap
+    ): Result<Unit> = runCatching {
+        val userId = authManager.authState.value.currentUserIdOrNull()!!
+
+        val photoByteArray = imageCompressor.compressImage(profilePhoto).getOrElse {
+            Log.e(tag, "Failed to compress avatar of user id: $userId", it)
+            return Result.failure(it)
+        }
+        val photoFile = avatarManager.saveTempAvatar(
+            userId = userId.toString(),
+            byteArray = photoByteArray
+        ).getOrElse {
+            Log.e(tag, "Failed to save temp avatar of user id: $userId", it)
+            return Result.failure(it)
+        }
+
+        userProfileService.updateProfilePhoto(photo = photoFile)
+            .toResult()
+            .getOrElse {
+                Log.e(tag, "Failed to upload avatar of user id: $userId", it)
+                return Result.failure(it)
+            }
+
+        val file = avatarManager.updateAvatar(
+            userId = userId.toString(),
+            newByteArray = photoByteArray
+        ).getOrElse {
+            Log.e(tag, "Failed to save avatar of user id: $userId", it)
+            return Result.failure(it)
+        }
+        userProfileDao.updateProfilePicture(
+            id = userId,
+            profilePicture = file.absolutePath
+        )
+    }
+
+    override suspend fun removeProfilePhoto(): Result<Unit> = runCatching {
+        val userId = authManager.authState.value.currentUserIdOrNull()!!
+
+        userProfileService.removeProfilePhoto()
+            .toResult()
+            .onFailure {
+                Log.e(tag, "Failed to remove avatar of user id: $userId", it)
+                return Result.failure(it)
+            }
+        avatarManager.deleteAvatar(userId.toString()).getOrElse {
+            Log.e(tag, "Failed to delete avatar of user id: $userId", it)
+        }
+        userProfileDao.updateProfilePicture(
+            id = userId,
+            profilePicture = null
+        )
     }
 }

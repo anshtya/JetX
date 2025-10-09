@@ -5,15 +5,17 @@ import java.util.UUID
 
 val sampleUsers = listOf(
     UserProfile(
-        id = UUID.fromString("1"),
+        id = UUID.randomUUID(),
         name = "Alice Johnson",
         username = "alice_j",
+        phoneNumber = "number1",
         pictureUrl = null
     ),
     UserProfile(
-        id = UUID.fromString("2"),
+        id = UUID.randomUUID(),
         name = "Bob Carter",
         username = "bobcat99",
+        phoneNumber = "number2",
         pictureUrl = null
     )
 )

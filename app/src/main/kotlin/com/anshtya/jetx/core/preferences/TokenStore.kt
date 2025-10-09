@@ -39,11 +39,15 @@ class TokenStore @Inject constructor(
         return getToken(USER_ID)
     }
 
-    fun getToken(key: String): String? {
-        return encryptedSharedPreferences.getString(key, null)
+    fun getAccessToken(): String? {
+        return getToken(ACCESS_TOKEN)
     }
 
     fun clearTokenStore() {
         encryptedSharedPreferences.edit { clear() }
+    }
+
+    private fun getToken(key: String): String? {
+        return encryptedSharedPreferences.getString(key, null)
     }
 }

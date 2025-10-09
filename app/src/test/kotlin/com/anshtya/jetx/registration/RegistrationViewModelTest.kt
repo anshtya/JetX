@@ -1,8 +1,14 @@
 package com.anshtya.jetx.registration
 
 import com.anshtya.jetx.MainDispatcherRule
-import com.anshtya.jetx.auth.data.FakeAuthRepository
-import junit.framework.TestCase
+import com.anshtya.jetx.auth.data.AuthRepository
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
+import junit.framework.TestCase.assertFalse
+import junit.framework.TestCase.assertNotNull
+import junit.framework.TestCase.assertNull
+import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -13,7 +19,11 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RegistrationViewModelTest {
-    private lateinit var fakeAuthRepository: FakeAuthRepository
+    private val authRepository: AuthRepository = mockk {
+        coEvery { checkUser(any(), any()) } returns Result.success(true)
+        coEvery { register(any(), any()) } returns Result.success(Unit)
+        coEvery { login(any(), any()) } returns Result.success(Unit)
+    }
     private lateinit var viewModel: RegistrationViewModel
 
     @get:Rule
@@ -21,8 +31,7 @@ class RegistrationViewModelTest {
 
     @Before
     fun setUp() {
-        fakeAuthRepository = FakeAuthRepository()
-        viewModel = RegistrationViewModel(fakeAuthRepository)
+        viewModel = RegistrationViewModel(authRepository)
         setStateWithNumber()
     }
 
@@ -31,61 +40,78 @@ class RegistrationViewModelTest {
         viewModel.onPhoneNumberConfirm()
         advanceUntilIdle()
 
-        TestCase.assertFalse(viewModel.uiState.value.isLoading)
+        assertFalse(viewModel.uiState.value.isLoading)
 
         val shouldNavigate = viewModel.navigationEvent.first()
-        TestCase.assertTrue(shouldNavigate)
+        assertTrue(shouldNavigate)
     }
 
     @Test
     fun `onPhoneNumberConfirm handles repository error`() = runTest {
-        fakeAuthRepository.shouldFailCheckUser = true
+        coEvery { authRepository.checkUser(any(), any()) } returns Result.failure(Exception(""))
 
         viewModel.onPhoneNumberConfirm()
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
-        TestCase.assertFalse(state.isLoading)
-        TestCase.assertNotNull(state.errorMessage)
+        assertFalse(state.isLoading)
+        assertNotNull(state.errorMessage)
     }
 
     @Test
     fun `onErrorShown clears error message`() = runTest {
-        fakeAuthRepository.shouldFailCheckUser = true
+        coEvery { authRepository.checkUser(any(), any()) } returns Result.failure(Exception(""))
+
         viewModel.onPhoneNumberConfirm()
         advanceUntilIdle()
 
-        TestCase.assertNotNull(viewModel.uiState.value.errorMessage)
+        assertNotNull(viewModel.uiState.value.errorMessage)
 
         viewModel.onErrorShown()
 
-        TestCase.assertNull(viewModel.uiState.value.errorMessage)
+        assertNull(viewModel.uiState.value.errorMessage)
+    }
+
+    @Test
+    fun `authUser calls login when user exists`() = runTest {
+        assertFalse(viewModel.userExists)
+        viewModel.onPhoneNumberConfirm()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.userExists)
+
+        viewModel.authUser("1234")
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { authRepository.register(any(), any()) }
+        coVerify(exactly = 1) { authRepository.login(any(), any()) }
     }
 
     @Test
     fun `authUser calls register when user exists`() = runTest {
-        TestCase.assertFalse(viewModel.userExists)
-        fakeAuthRepository.shouldUserExist = true
+        coEvery { authRepository.checkUser(any(), any()) } returns Result.success(false)
+
+        assertFalse(viewModel.userExists)
         viewModel.onPhoneNumberConfirm()
         advanceUntilIdle()
 
-        TestCase.assertTrue(viewModel.userExists)
+        assertFalse(viewModel.userExists)
 
         viewModel.authUser("1234")
         advanceUntilIdle()
 
-        val shouldNavigate = viewModel.navigationEvent.first()
-        TestCase.assertTrue(shouldNavigate)
+        coVerify(exactly = 1) { authRepository.register(any(), any()) }
+        coVerify(exactly = 0) { authRepository.login(any(), any()) }
     }
 
     @Test
     fun `authUser handles error`() = runTest {
-        fakeAuthRepository.shouldFailLogin = true
+        coEvery { authRepository.register(any(), any()) } returns Result.failure(Exception(""))
 
         viewModel.authUser("1234")
         advanceUntilIdle()
 
-        TestCase.assertNotNull(viewModel.uiState.value.errorMessage)
+        assertNotNull(viewModel.uiState.value.errorMessage)
     }
 
     private fun setStateWithNumber() {

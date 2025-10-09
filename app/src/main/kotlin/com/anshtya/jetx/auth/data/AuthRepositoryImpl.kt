@@ -1,109 +1,54 @@
 package com.anshtya.jetx.auth.data
 
 import android.util.Log
-import com.anshtya.jetx.auth.data.model.AuthState
-import com.anshtya.jetx.core.coroutine.DefaultScope
-import com.anshtya.jetx.core.database.dao.UserProfileDao
-import com.anshtya.jetx.core.database.entity.UserProfileEntity
 import com.anshtya.jetx.core.network.service.AuthService
-import com.anshtya.jetx.core.network.service.UserProfileService
 import com.anshtya.jetx.core.network.util.toResult
 import com.anshtya.jetx.core.preferences.PreferencesStore
-import com.anshtya.jetx.core.preferences.TokenStore
 import com.anshtya.jetx.fcm.FcmTokenManager
+import com.anshtya.jetx.profile.data.ProfileRepository
 import com.google.i18n.phonenumbers.PhoneNumberUtil
 import com.google.i18n.phonenumbers.Phonenumber
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
+    private val profileRepository: ProfileRepository,
     private val authService: AuthService,
-    private val userProfileService: UserProfileService,
     private val fcmTokenManager: FcmTokenManager,
-    private val tokenStore: TokenStore,
+    private val authManager: AuthManager,
     private val preferencesStore: PreferencesStore,
-    private val userProfileDao: UserProfileDao,
     private val logoutManager: LogoutManager,
-    @DefaultScope scope: CoroutineScope
 ) : AuthRepository {
     private val tag = this::class.simpleName
-
-    private val _authState = MutableStateFlow<AuthState>(AuthState.Initializing)
-    override val authState = _authState.asStateFlow()
-
-    init {
-        scope.launch { initialAuth() }
-    }
-
-    private suspend fun initialAuth() {
-        val authToken = tokenStore.getAuthToken()
-        if (authToken.accessToken == null || authToken.refreshToken == null) {
-            _authState.update { AuthState.Unauthenticated }
-            return
-        }
-
-        authService.refreshToken(authToken.refreshToken)
-            .toResult()
-            .onSuccess {
-                tokenStore.storeAuthToken(
-                    userId = it.userId,
-                    access = it.accessToken,
-                    refresh = it.refreshToken
-                )
-            }.onFailure { throwable ->
-                Log.e(tag, throwable.message, throwable)
-            }
-        val userId = tokenStore.getUserId()!!
-        _authState.update { AuthState.Authenticated(userId) }
-    }
 
     override suspend fun login(
         phoneNumber: String,
         pin: String
-    ): Result<Unit> =
-        runCatching {
-            val authResponse = authService.login(
-                phoneNumber = phoneNumber,
-                pin = pin,
-                fcmToken = fcmTokenManager.getToken()
-            )
-                .toResult()
-                .getOrElse {
-                    Log.e(tag, it.message, it)
-                    return Result.failure(it)
-                }
+    ): Result<Unit> = runCatching {
+        val authResponse = authService.login(
+            phoneNumber = phoneNumber,
+            pin = pin,
+            fcmToken = fcmTokenManager.getToken()
+        )
+            .toResult()
+            .getOrElse {
+                Log.e(tag, it.message, it)
+                return Result.failure(it)
+            }
 
-            tokenStore.storeAuthToken(
-                userId = authResponse.userId,
-                access = authResponse.accessToken,
-                refresh = authResponse.refreshToken
-            )
+        authManager.storeSession(
+            userId = authResponse.userId,
+            accessToken = authResponse.accessToken,
+            refreshToken = authResponse.refreshToken,
+        )
 
-            val userProfile = userProfileService.getProfileById(authResponse.userId)
-                .toResult()
-                .getOrElse {
-                    Log.e(tag, it.message, it)
-                    return Result.failure(it)
-                }
-            userProfileDao.upsertUserProfile(
-                UserProfileEntity(
-                    id = UUID.fromString(authResponse.userId),
-                    name = userProfile.displayName,
-                    username = userProfile.username,
-                    profilePicture = null // TODO: manage profile picture at server
-                )
-            )
-            preferencesStore.setProfileCreated()
-
-            _authState.update { AuthState.Authenticated(authResponse.userId) }
+        profileRepository.fetchAndSaveProfile(authResponse.userId).onFailure {
+            Log.e(tag, "Failed to fetch profile: ${authResponse.userId}", it)
+            return Result.failure(it)
         }
+        preferencesStore.setProfileCreated()
+    }
 
     override suspend fun register(
         phoneNumber: String,
@@ -112,17 +57,14 @@ class AuthRepositoryImpl @Inject constructor(
         return authService.register(phoneNumber, pin)
             .toResult()
             .onSuccess { authResponse ->
-                tokenStore.storeAuthToken(
+                authManager.storeSession(
                     userId = authResponse.userId,
-                    access = authResponse.accessToken,
-                    refresh = authResponse.refreshToken
+                    accessToken = authResponse.accessToken,
+                    refreshToken = authResponse.refreshToken
                 )
-                _authState.update { AuthState.Authenticated(authResponse.userId) }
-            }
-            .onFailure {
+            }.onFailure {
                 Log.e(tag, it.message, it)
-            }
-            .map {}
+            }.map {}
     }
 
     /**
@@ -157,7 +99,7 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun logout(): Result<Unit> =
         runCatching {
-            val token = tokenStore.getToken(TokenStore.ACCESS_TOKEN)!!
+            val token = authManager.authState.value.currentAccessTokenOrNull()!!
             authService.logoutUser(token)
                 .toResult()
                 .onFailure {
@@ -166,9 +108,10 @@ class AuthRepositoryImpl @Inject constructor(
                 }
 
             logoutManager.performLocalCleanup().onFailure {
-                Log.e(tag, it.message, it)
+                Log.e(tag, "Failed to clear local user data", it)
                 return Result.failure(it)
             }
-            _authState.update { AuthState.Unauthenticated }
+
+            authManager.deleteSession()
         }
 }

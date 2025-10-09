@@ -169,7 +169,7 @@ data class CreateProfileUiState(
     val profilePicture: Bitmap? = null,
     val nameError: String? = null,
     val usernameError: String? = null,
-    val usernameValid: Boolean? = null,
+    val usernameValid: Boolean = false,
     val errorMessage: String? = null,
     val profileCreated: Boolean = false
 )

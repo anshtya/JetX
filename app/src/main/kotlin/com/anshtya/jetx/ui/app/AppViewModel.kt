@@ -2,7 +2,7 @@ package com.anshtya.jetx.ui.app
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.auth.data.AuthRepository
+import com.anshtya.jetx.auth.data.AuthManager
 import com.anshtya.jetx.auth.data.model.AuthState
 import com.anshtya.jetx.core.preferences.PreferencesStore
 import com.anshtya.jetx.core.preferences.model.UserState
@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AppViewModel @Inject constructor(
-    authRepository: AuthRepository,
+    authManager: AuthManager,
     preferencesStore: PreferencesStore
 ) : ViewModel() {
     private val _navState = MutableStateFlow<AppNavState>(AppNavState.Initialising)
@@ -24,7 +24,7 @@ class AppViewModel @Inject constructor(
 
     init {
         combine(
-            authRepository.authState,
+            authManager.authState,
             preferencesStore.userState
         ) { authState, userState ->
             handleUserData(authState, userState)

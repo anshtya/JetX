@@ -1,8 +1,5 @@
 package com.anshtya.jetx.auth.data
 
-import com.anshtya.jetx.auth.data.model.AuthState
-import kotlinx.coroutines.flow.Flow
-
 /**
  * Repository interface for handling authentication-related operations.
  *
@@ -10,14 +7,6 @@ import kotlinx.coroutines.flow.Flow
  * and logout flows in the application.
  */
 interface AuthRepository {
-
-    /**
-     * A [Flow] representing the current authentication state of the user.
-     *
-     * Collectors can observe this flow to react to login, logout, or session changes.
-     */
-    val authState: Flow<AuthState>
-
     /**
      * Attempts to log the user in with the provided phone number and PIN.
      *

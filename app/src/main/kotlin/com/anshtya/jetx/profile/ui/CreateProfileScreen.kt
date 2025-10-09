@@ -11,11 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -23,16 +20,19 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,6 +40,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
 import com.anshtya.jetx.core.ui.components.scaffold.JetxScaffold
+import com.anshtya.jetx.core.ui.components.textfield.UsernameTextField
 import com.anshtya.jetx.core.ui.components.topappbar.JetxTopAppBar
 import com.anshtya.jetx.core.ui.rememberMediaPicker
 import com.anshtya.jetx.profile.ui.component.EditProfilePicture
@@ -145,27 +146,28 @@ private fun CreateProfileScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(10.dp))
-                TextField(
-                    value = uiState.username,
-                    onValueChange = onUsernameChange,
-                    enabled = !uiState.isLoading,
-                    placeholder = {
-                        Text(text = stringResource(id = R.string.username))
-                    },
-                    singleLine = true,
-                    isError = uiState.usernameError != null,
-                    supportingText = {
-                        Text(text = uiState.usernameError ?: "")
-                    },
-                    trailingIcon = {
-                        if (uiState.usernameValid == true) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                tint = Color.Green,
-                                contentDescription = null
-                            )
+
+                var textFieldValueState by remember {
+                    mutableStateOf(
+                        TextFieldValue(
+                            text = uiState.username,
+                            selection = TextRange(uiState.username.length)
+                        )
+                    )
+                }
+                UsernameTextField(
+                    username = textFieldValueState,
+                    usernameError = uiState.usernameError,
+                    usernameValid = uiState.usernameValid,
+                    onUsernameChange = { value ->
+                        textFieldValueState = value
+
+                        if (value.text != uiState.username) {
+                            onUsernameChange(value.text)
                         }
                     },
+                    enabled = !uiState.isLoading,
+                    isError = uiState.usernameError != null,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     modifier = Modifier.fillMaxWidth()
                 )

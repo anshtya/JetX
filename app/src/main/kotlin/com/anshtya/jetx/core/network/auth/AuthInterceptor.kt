@@ -17,7 +17,7 @@ class AuthInterceptor @Inject constructor(
 
     override fun intercept(chain: Interceptor.Chain): Response {
         Log.i(tag, "Invoking interceptor for ${chain.request().url}")
-        val token = tokenStore.getToken(TokenStore.ACCESS_TOKEN)
+        val token = tokenStore.getAccessToken()
         val request = chain.request().newBuilder()
         request.addHeader(HEADER_AUTHORIZATION_KEY, "${HEADER_BEARER_PREFIX}$token")
         return chain.proceed(request.build())
