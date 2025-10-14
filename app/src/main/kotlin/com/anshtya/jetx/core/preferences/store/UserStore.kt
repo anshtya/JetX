@@ -1,4 +1,4 @@
-package com.anshtya.jetx.core.preferences
+package com.anshtya.jetx.core.preferences.store
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -11,14 +11,11 @@ import com.anshtya.jetx.core.preferences.model.UserState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class PreferencesStore @Inject constructor(
+class UserStore(
     private val dataStore: DataStore<Preferences>
 ) {
-    companion object {
+    private companion object {
         val PROFILE_CREATED = booleanPreferencesKey("profile_created")
         val ONBOARDED = booleanPreferencesKey("onboarded")
         val THEME = stringPreferencesKey("theme")
@@ -38,15 +35,15 @@ class PreferencesStore @Inject constructor(
         )
     }.distinctUntilChanged()
 
-    suspend fun setProfileCreated() {
-        dataStore.edit {
-            it[PROFILE_CREATED] = true
-        }
-    }
-
     suspend fun setOnboarded() {
         dataStore.edit {
             it[ONBOARDED] = true
+        }
+    }
+
+    suspend fun setProfileCreated() {
+        dataStore.edit {
+            it[PROFILE_CREATED] = true
         }
     }
 
@@ -56,7 +53,10 @@ class PreferencesStore @Inject constructor(
         }
     }
 
-    suspend fun clearPreferences() {
-        dataStore.edit { it.clear() }
+    suspend fun clear() {
+        dataStore.edit {
+            it.remove(ONBOARDED)
+            it.remove(PROFILE_CREATED)
+        }
     }
 }

@@ -12,7 +12,7 @@ import com.anshtya.jetx.core.network.model.body.CreateProfileBody
 import com.anshtya.jetx.core.network.model.response.CheckUsernameResponse
 import com.anshtya.jetx.core.network.service.UserProfileService
 import com.anshtya.jetx.core.network.util.toResult
-import com.anshtya.jetx.core.preferences.PreferencesStore
+import com.anshtya.jetx.core.preferences.JetxPreferencesStore
 import com.anshtya.jetx.fcm.FcmTokenManager
 import com.anshtya.jetx.profile.util.toEntity
 import kotlinx.coroutines.flow.Flow
@@ -28,7 +28,7 @@ class ProfileRepositoryImpl @Inject constructor(
     private val authManager: AuthManager,
     private val avatarManager: AvatarManager,
     private val fcmTokenManager: FcmTokenManager,
-    private val preferencesStore: PreferencesStore,
+    private val store: JetxPreferencesStore,
     private val userProfileDao: UserProfileDao,
     private val imageCompressor: ImageCompressor
 ) : ProfileRepository {
@@ -80,7 +80,8 @@ class ProfileRepositoryImpl @Inject constructor(
                 profilePicture = profilePictureFile?.absolutePath
             )
         )
-        preferencesStore.setProfileCreated()
+
+        store.user.setProfileCreated()
     }
 
     override suspend fun checkUsername(

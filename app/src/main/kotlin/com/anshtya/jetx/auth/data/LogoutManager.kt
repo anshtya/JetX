@@ -3,8 +3,8 @@ package com.anshtya.jetx.auth.data
 import com.anshtya.jetx.chats.data.MessageUpdatesListener
 import com.anshtya.jetx.core.coroutine.IoDispatcher
 import com.anshtya.jetx.core.database.JetXDatabase
-import com.anshtya.jetx.core.preferences.PreferencesStore
 import com.anshtya.jetx.work.WorkManagerHelper
+import com.anshtya.jetx.core.preferences.JetxPreferencesStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -19,14 +19,12 @@ import javax.inject.Singleton
  */
 @Singleton
 class LogoutManager @Inject constructor(
-    private val preferencesStore: PreferencesStore,
+    private val store: JetxPreferencesStore,
     private val db: JetXDatabase,
     private val messageUpdatesListener: MessageUpdatesListener,
     private val workManagerHelper: WorkManagerHelper,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
-    private val tag = this::class.simpleName
-
     suspend fun performLocalCleanup(): Result<Unit> =
         runCatching {
             workManagerHelper.cancelAllWork()
@@ -34,7 +32,7 @@ class LogoutManager @Inject constructor(
                 db.clearAllTables()
             }
 
-            preferencesStore.clearPreferences()
+            store.user.clear()
             messageUpdatesListener.unsubscribe()
         }
 }

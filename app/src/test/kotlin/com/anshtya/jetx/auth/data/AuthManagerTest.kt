@@ -5,9 +5,12 @@ import com.anshtya.jetx.auth.data.model.AuthState
 import com.anshtya.jetx.core.network.model.NetworkResult
 import com.anshtya.jetx.core.network.model.response.AuthTokenResponse
 import com.anshtya.jetx.core.network.service.AuthService
-import com.anshtya.jetx.core.preferences.TokenStore
+import com.anshtya.jetx.core.preferences.JetxPreferencesStore
 import com.anshtya.jetx.core.preferences.model.AuthToken
+import com.anshtya.jetx.core.preferences.store.AccountStore
+import com.anshtya.jetx.core.preferences.store.TokenStore
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -33,10 +36,21 @@ class AuthManagerTest {
             refreshToken(any())
         } returns NetworkResult.Success(AuthTokenResponse(uuid, "access", "refresh"))
     }
+
+    private val accountStore: AccountStore = mockk {
+        coEvery { getUserId() } returns uuid.toString()
+        coEvery { storeUserId(uuid.toString()) } just runs
+        coEvery { clear() } just runs
+    }
+
     private val tokenStore: TokenStore = mockk {
-        every { getUserId() } returns uuid.toString()
-        every { storeAuthToken(any(), any(), any()) } just runs
-        every { clearTokenStore() } just runs
+        coEvery { storeAuthToken(any(), any()) } just runs
+        coEvery { clear() } just runs
+    }
+
+    private val store: JetxPreferencesStore = mockk {
+        every { account } returns accountStore
+        every { token } returns tokenStore
     }
     private lateinit var authManager: AuthManager
 
@@ -47,7 +61,7 @@ class AuthManagerTest {
     fun setUp() {
         authManager = AuthManager(
             authService = service,
-            tokenStore = tokenStore,
+            store = store,
             scope = TestScope()
         )
     }
@@ -57,7 +71,7 @@ class AuthManagerTest {
         coEvery { tokenStore.getAuthToken() } returns AuthToken("access", "refresh")
         authManager = AuthManager(
             authService = service,
-            tokenStore = tokenStore,
+            store = store,
             scope = TestScope()
         )
 
@@ -67,6 +81,9 @@ class AuthManagerTest {
         assertTrue(authState is AuthState.Authenticated)
         assertEquals(uuid, (authState as AuthState.Authenticated).userId)
         assertEquals("access", authState.accessToken)
+
+        coVerify { accountStore.storeUserId(uuid.toString()) }
+        coVerify { tokenStore.storeAuthToken(any(), any()) }
     }
 
     @Test
@@ -74,7 +91,7 @@ class AuthManagerTest {
         coEvery { tokenStore.getAuthToken() } returns AuthToken(null, null)
         authManager = AuthManager(
             authService = service,
-            tokenStore = tokenStore,
+            store = store,
             scope = TestScope()
         )
 
@@ -90,5 +107,8 @@ class AuthManagerTest {
 
         val state = authManager.authState.first()
         assertTrue(state is AuthState.Unauthenticated)
+
+        coVerify(exactly = 1) { accountStore.clear() }
+        coVerify(exactly = 1) { tokenStore.clear() }
     }
 }

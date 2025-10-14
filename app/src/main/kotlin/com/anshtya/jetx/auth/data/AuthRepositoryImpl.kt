@@ -3,7 +3,7 @@ package com.anshtya.jetx.auth.data
 import android.util.Log
 import com.anshtya.jetx.core.network.service.AuthService
 import com.anshtya.jetx.core.network.util.toResult
-import com.anshtya.jetx.core.preferences.PreferencesStore
+import com.anshtya.jetx.core.preferences.JetxPreferencesStore
 import com.anshtya.jetx.fcm.FcmTokenManager
 import com.anshtya.jetx.profile.data.ProfileRepository
 import com.google.i18n.phonenumbers.PhoneNumberUtil
@@ -17,7 +17,7 @@ class AuthRepositoryImpl @Inject constructor(
     private val authService: AuthService,
     private val fcmTokenManager: FcmTokenManager,
     private val authManager: AuthManager,
-    private val preferencesStore: PreferencesStore,
+    private val store: JetxPreferencesStore,
     private val logoutManager: LogoutManager,
 ) : AuthRepository {
     private val tag = this::class.simpleName
@@ -47,7 +47,8 @@ class AuthRepositoryImpl @Inject constructor(
             Log.e(tag, "Failed to fetch profile: ${authResponse.userId}", it)
             return Result.failure(it)
         }
-        preferencesStore.setProfileCreated()
+
+        store.user.setProfileCreated()
     }
 
     override suspend fun register(

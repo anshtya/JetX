@@ -5,7 +5,7 @@ import com.anshtya.jetx.auth.data.model.AuthState
 import com.anshtya.jetx.core.coroutine.DefaultScope
 import com.anshtya.jetx.core.network.service.AuthService
 import com.anshtya.jetx.core.network.util.toResult
-import com.anshtya.jetx.core.preferences.TokenStore
+import com.anshtya.jetx.core.preferences.JetxPreferencesStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +26,7 @@ import javax.inject.Singleton
 @Singleton
 class AuthManager @Inject constructor(
     private val authService: AuthService,
-    private val tokenStore: TokenStore,
+    private val store: JetxPreferencesStore,
     @DefaultScope private val scope: CoroutineScope
 ) {
     private val tag = this::class.simpleName
@@ -39,7 +39,7 @@ class AuthManager @Inject constructor(
     }
 
     private suspend fun initialAuth() {
-        val authToken = tokenStore.getAuthToken()
+        val authToken = store.token.getAuthToken()
         if (authToken.accessToken == null || authToken.refreshToken == null) {
             _authState.update { AuthState.Unauthenticated }
             return
@@ -56,7 +56,7 @@ class AuthManager @Inject constructor(
             }.onFailure { throwable ->
                 Log.e(tag, "Failed to refresh session, reusing old session", throwable)
 
-                val userId = tokenStore.getUserId()!!
+                val userId = store.account.getUserId()!!
                 _authState.update {
                     AuthState.Authenticated(
                         userId = UUID.fromString(userId),
@@ -67,7 +67,7 @@ class AuthManager @Inject constructor(
     }
 
     suspend fun refreshSession(): Boolean {
-        val refreshToken = tokenStore.getAuthToken().refreshToken ?: return false
+        val refreshToken = store.token.getAuthToken().refreshToken ?: return false
         return authService.refreshToken(refreshToken)
             .toResult()
             .fold(
@@ -86,13 +86,13 @@ class AuthManager @Inject constructor(
             )
     }
 
-    fun storeSession(
+    suspend fun storeSession(
         userId: UUID,
         accessToken: String,
         refreshToken: String,
     ) {
-        tokenStore.storeAuthToken(
-            userId = userId.toString(),
+        store.account.storeUserId(userId.toString())
+        store.token.storeAuthToken(
             access = accessToken,
             refresh = refreshToken
         )
@@ -105,8 +105,9 @@ class AuthManager @Inject constructor(
         }
     }
 
-    fun deleteSession() {
-        tokenStore.clearTokenStore()
+    suspend fun deleteSession() {
+        store.token.clear()
+        store.account.clear()
         _authState.update { AuthState.Unauthenticated }
     }
 }

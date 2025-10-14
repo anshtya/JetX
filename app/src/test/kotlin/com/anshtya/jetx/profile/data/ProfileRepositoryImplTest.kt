@@ -37,8 +37,14 @@ class ProfileRepositoryImplTest {
             GetUserProfileResponse("", "", "", "")
         )
     }
-    private val preferencesStore: PreferencesStore = mockk {
+    private val accountStore: AccountStore = mockk {
+    }
+    private val userStore: UserStore = mockk {
         coEvery { setProfileCreated() } just runs
+    }
+    private val store: JetxPreferencesStore = mockk {
+        every { account } returns accountStore
+        every { user } returns userStore
     }
     private val userProfileDao: UserProfileDao = mockk {
         coEvery { upsertUserProfile(any()) } just runs
@@ -57,7 +63,7 @@ class ProfileRepositoryImplTest {
             userProfileService = userProfileService,
             avatarManager = mockk(),
             fcmTokenManager = fcmTokenManager,
-            preferencesStore = preferencesStore,
+            store = store,
             userProfileDao = userProfileDao,
             imageCompressor = mockk()
         )
@@ -68,7 +74,7 @@ class ProfileRepositoryImplTest {
         val result = repository.createProfile("name", "username", null)
         assertTrue(result.isSuccess)
 
-        coVerify(exactly = 1) { preferencesStore.setProfileCreated() }
+        coVerify(exactly = 1) { userStore.setProfileCreated() }
         coVerify(exactly = 1) { userProfileDao.upsertUserProfile(any()) }
     }
 
@@ -81,7 +87,7 @@ class ProfileRepositoryImplTest {
         val result = repository.createProfile("name", "username", null)
         assertTrue(result.isFailure)
 
-        coVerify(exactly = 0) { preferencesStore.setProfileCreated() }
+        coVerify(exactly = 0) { userStore.setProfileCreated() }
         coVerify(exactly = 0) { userProfileDao.upsertUserProfile(any()) }
     }
 }

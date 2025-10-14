@@ -6,7 +6,7 @@ import com.anshtya.jetx.auth.data.AuthManager
 import com.anshtya.jetx.auth.data.AuthRepository
 import com.anshtya.jetx.auth.data.model.AuthState
 import com.anshtya.jetx.core.model.UserProfile
-import com.anshtya.jetx.core.preferences.PreferencesStore
+import com.anshtya.jetx.core.preferences.JetxPreferencesStore
 import com.anshtya.jetx.core.preferences.model.ThemeOption
 import com.anshtya.jetx.profile.data.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,7 +29,7 @@ class SettingsViewModel @Inject constructor(
     authManager: AuthManager,
     private val authRepository: AuthRepository,
     private val profileRepository: ProfileRepository,
-    private val preferencesStore: PreferencesStore
+    private val store: JetxPreferencesStore
 ) : ViewModel() {
     private val _errorMessage = Channel<String>(Channel.BUFFERED)
     val errorMessage = _errorMessage.receiveAsFlow()
@@ -46,7 +46,7 @@ class SettingsViewModel @Inject constructor(
             initialValue = null
         )
 
-    val userSettings: StateFlow<UserSettings?> = preferencesStore
+    val userSettings: StateFlow<UserSettings?> = store.user
         .appUiProperties
         .map {
             UserSettings(theme = it.theme)
@@ -59,7 +59,7 @@ class SettingsViewModel @Inject constructor(
 
     fun changeTheme(option: ThemeOption) {
         viewModelScope.launch {
-            preferencesStore.setTheme(option.name)
+            store.user.setTheme(option.name)
         }
     }
 

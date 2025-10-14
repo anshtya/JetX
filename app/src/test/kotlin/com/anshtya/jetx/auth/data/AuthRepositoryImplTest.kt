@@ -3,9 +3,12 @@ package com.anshtya.jetx.auth.data
 import com.anshtya.jetx.MainDispatcherRule
 import com.anshtya.jetx.auth.data.model.AuthState
 import com.anshtya.jetx.core.network.model.NetworkResult
+import com.anshtya.jetx.core.network.model.response.AuthTokenResponse
 import com.anshtya.jetx.core.network.model.response.CheckUserResponse
 import com.anshtya.jetx.core.network.service.AuthService
-import com.anshtya.jetx.core.preferences.PreferencesStore
+import com.anshtya.jetx.core.preferences.JetxPreferencesStore
+import com.anshtya.jetx.core.preferences.store.AccountStore
+import com.anshtya.jetx.core.preferences.store.UserStore
 import com.anshtya.jetx.fcm.FcmTokenManager
 import com.anshtya.jetx.profile.data.ProfileRepository
 import io.mockk.coEvery
@@ -27,24 +30,37 @@ import java.util.UUID
 class AuthRepositoryImplTest {
     private var phoneNumber = "+12234567891"
     private val uuid = UUID.randomUUID()
+    private val fcm = "fcm"
 
     private val authService: AuthService = mockk {
+        coEvery {
+            login(phoneNumber, any(), fcmToken = fcm)
+        } returns NetworkResult.Success(AuthTokenResponse(uuid, "access", "refresh"))
         coEvery { checkUser(phoneNumber) } returns NetworkResult.Success(CheckUserResponse(true))
         coEvery { logoutUser(any()) } returns NetworkResult.Success(Unit)
     }
     private val logoutManager: LogoutManager = mockk {
         coEvery { performLocalCleanup() } returns Result.success(Unit)
     }
-    private val profileRepository: ProfileRepository = mockk()
+    private val profileRepository: ProfileRepository = mockk {
+        coEvery { fetchAndSaveProfile(any()) } returns Result.success(Unit)
+    }
     private val authManager: AuthManager = mockk {
         every { authState } returns MutableStateFlow(AuthState.Authenticated(uuid, "access"))
-        every { deleteSession() } just runs
+        coEvery { storeSession(any(), any(), any()) } just runs
+        coEvery { deleteSession() } just runs
     }
-    private val preferencesStore: PreferencesStore = mockk {
+    private val accountStore: AccountStore = mockk {
+    }
+    private val userStore: UserStore = mockk {
         coEvery { setProfileCreated() } just runs
     }
+    private val store: JetxPreferencesStore = mockk {
+        every { account } returns accountStore
+        every { user } returns userStore
+    }
     private val fcmTokenManager: FcmTokenManager = mockk {
-        coEvery { getToken() } returns "fcm"
+        coEvery { getToken() } returns fcm
     }
     private lateinit var repository: AuthRepositoryImpl
 
@@ -59,8 +75,15 @@ class AuthRepositoryImplTest {
             logoutManager = logoutManager,
             fcmTokenManager = fcmTokenManager,
             authManager = authManager,
-            preferencesStore = preferencesStore,
+            store = store,
         )
+    }
+
+    @Test
+    fun `login saves data in preferences store`() = runTest {
+        repository.login(phoneNumber, "1234")
+
+        coVerify(exactly = 1) { userStore.setProfileCreated() }
     }
 
     @Test
