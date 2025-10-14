@@ -57,11 +57,12 @@ class ProfileRepositoryImpl @Inject constructor(
             null
         }
 
+        val fcmToken = fcmTokenManager.getToken()
         val networkUserProfile = userProfileService.createProfile(
             CreateProfileBody(
                 displayName = name,
                 username = username,
-                fcmToken = fcmTokenManager.getToken()
+                fcmToken = fcmToken
             ),
             photo = profilePictureFile
         )
@@ -81,6 +82,7 @@ class ProfileRepositoryImpl @Inject constructor(
             )
         )
 
+        store.account.storeFcmToken(fcmToken)
         store.user.setProfileCreated()
     }
 

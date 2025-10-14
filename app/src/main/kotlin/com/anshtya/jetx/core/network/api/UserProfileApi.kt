@@ -1,5 +1,6 @@
 package com.anshtya.jetx.core.network.api
 
+import com.anshtya.jetx.core.network.model.body.FcmBody
 import com.anshtya.jetx.core.network.model.body.GetUserProfileBody
 import com.anshtya.jetx.core.network.model.body.NameBody
 import com.anshtya.jetx.core.network.model.body.UsernameBody
@@ -48,5 +49,10 @@ interface UserProfileApi {
     @PATCH("user/username/update")
     suspend fun updateUsername(
         @Body body: UsernameBody
+    ): Response<Unit>
+
+    @PATCH("user/fcm/update")
+    suspend fun updateFcmToken(
+        @Body body: FcmBody
     ): Response<Unit>
 }

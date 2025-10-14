@@ -26,10 +26,12 @@ class AuthRepositoryImpl @Inject constructor(
         phoneNumber: String,
         pin: String
     ): Result<Unit> = runCatching {
+        val fcmToken = fcmTokenManager.getToken()
+
         val authResponse = authService.login(
             phoneNumber = phoneNumber,
             pin = pin,
-            fcmToken = fcmTokenManager.getToken()
+            fcmToken = fcmToken
         )
             .toResult()
             .getOrElse {
@@ -48,6 +50,7 @@ class AuthRepositoryImpl @Inject constructor(
             return Result.failure(it)
         }
 
+        store.account.storeFcmToken(fcmToken)
         store.user.setProfileCreated()
     }
 

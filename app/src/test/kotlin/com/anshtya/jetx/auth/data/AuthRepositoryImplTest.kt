@@ -51,6 +51,7 @@ class AuthRepositoryImplTest {
         coEvery { deleteSession() } just runs
     }
     private val accountStore: AccountStore = mockk {
+        coEvery { storeFcmToken(fcm) } just runs
     }
     private val userStore: UserStore = mockk {
         coEvery { setProfileCreated() } just runs
@@ -84,6 +85,7 @@ class AuthRepositoryImplTest {
         repository.login(phoneNumber, "1234")
 
         coVerify(exactly = 1) { userStore.setProfileCreated() }
+        coVerify(exactly = 1) { accountStore.storeFcmToken(fcm) }
     }
 
     @Test

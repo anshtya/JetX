@@ -7,7 +7,9 @@ import com.anshtya.jetx.core.database.dao.UserProfileDao
 import com.anshtya.jetx.core.network.model.NetworkResult
 import com.anshtya.jetx.core.network.model.response.GetUserProfileResponse
 import com.anshtya.jetx.core.network.service.UserProfileService
-import com.anshtya.jetx.core.preferences.PreferencesStore
+import com.anshtya.jetx.core.preferences.JetxPreferencesStore
+import com.anshtya.jetx.core.preferences.store.AccountStore
+import com.anshtya.jetx.core.preferences.store.UserStore
 import com.anshtya.jetx.fcm.FcmTokenManager
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -30,7 +32,7 @@ class ProfileRepositoryImplTest {
         every { authState } returns MutableStateFlow(AuthState.Authenticated(uuid, "access"))
     }
     private val fcmTokenManager: FcmTokenManager = mockk {
-        coEvery { getToken() } returns "token"
+        coEvery { getToken() } returns "fcm"
     }
     private val userProfileService: UserProfileService = mockk {
         coEvery { createProfile(any(), any()) } returns NetworkResult.Success(
@@ -38,6 +40,7 @@ class ProfileRepositoryImplTest {
         )
     }
     private val accountStore: AccountStore = mockk {
+        coEvery { storeFcmToken("fcm") } just runs
     }
     private val userStore: UserStore = mockk {
         coEvery { setProfileCreated() } just runs
@@ -75,6 +78,7 @@ class ProfileRepositoryImplTest {
         assertTrue(result.isSuccess)
 
         coVerify(exactly = 1) { userStore.setProfileCreated() }
+        coVerify(exactly = 1) { accountStore.storeFcmToken("fcm") }
         coVerify(exactly = 1) { userProfileDao.upsertUserProfile(any()) }
     }
 
@@ -88,6 +92,7 @@ class ProfileRepositoryImplTest {
         assertTrue(result.isFailure)
 
         coVerify(exactly = 0) { userStore.setProfileCreated() }
+        coVerify(exactly = 0) { accountStore.storeFcmToken(any()) }
         coVerify(exactly = 0) { userProfileDao.upsertUserProfile(any()) }
     }
 }

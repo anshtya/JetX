@@ -3,6 +3,7 @@ package com.anshtya.jetx.core.network.service
 import com.anshtya.jetx.core.network.api.UserProfileApi
 import com.anshtya.jetx.core.network.model.NetworkResult
 import com.anshtya.jetx.core.network.model.body.CreateProfileBody
+import com.anshtya.jetx.core.network.model.body.FcmBody
 import com.anshtya.jetx.core.network.model.body.GetUserProfileBody
 import com.anshtya.jetx.core.network.model.body.NameBody
 import com.anshtya.jetx.core.network.model.body.UsernameBody
@@ -88,6 +89,14 @@ class UserProfileService @Inject constructor(
     ): NetworkResult<Unit> {
         return safeApiCall {
             userProfileApi.updateUsername(UsernameBody(username))
+        }
+    }
+
+    suspend fun updateFcmToken(
+        token: String
+    ): NetworkResult<Unit> {
+        return safeApiCall {
+            userProfileApi.updateFcmToken(FcmBody(token))
         }
     }
 
