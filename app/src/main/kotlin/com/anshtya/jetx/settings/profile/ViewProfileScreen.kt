@@ -1,6 +1,6 @@
 package com.anshtya.jetx.settings.profile
 
-import android.graphics.Bitmap
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -43,7 +42,6 @@ import com.anshtya.jetx.core.ui.rememberMediaPicker
 import com.anshtya.jetx.settings.SettingsViewModel
 import com.anshtya.jetx.settings.components.SettingsItem
 import com.anshtya.jetx.ui.theme.JetXTheme
-import com.anshtya.jetx.util.UriUtil.toBitmap
 import kotlinx.coroutines.launch
 
 @Composable
@@ -72,7 +70,7 @@ fun ViewProfileRoute(
 private fun ViewProfileScreen(
     uiState: ViewProfileUiState,
     userProfile: UserProfile?,
-    onEditProfilePhoto: (Bitmap?) -> Unit,
+    onEditProfilePhoto: (Uri?) -> Unit,
     onEditNameClick: (String) -> Unit,
     onEditUsernameClick: (String) -> Unit,
     onErrorShown: () -> Unit,
@@ -80,11 +78,10 @@ private fun ViewProfileScreen(
 ) {
     val scope = rememberCoroutineScope()
 
-    val context = LocalContext.current
     val pickMedia = rememberMediaPicker { uri ->
         if (uri != null) {
             scope.launch {
-                onEditProfilePhoto(uri.toBitmap(context))
+                onEditProfilePhoto(uri)
             }
         }
     }

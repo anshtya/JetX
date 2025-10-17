@@ -1,6 +1,6 @@
 package com.anshtya.jetx.profile.ui
 
-import android.graphics.Bitmap
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.profile.data.ProfileRepository
@@ -77,7 +77,7 @@ class CreateProfileViewModel @Inject constructor(
         }
     }
 
-    fun setProfilePicture(profilePicture: Bitmap?) {
+    fun setProfilePicture(profilePicture: Uri?) {
         _uiState.update {
             it.copy(profilePicture = profilePicture)
         }
@@ -108,7 +108,7 @@ class CreateProfileViewModel @Inject constructor(
             profileRepository.createProfile(
                 name = state.name,
                 username = state.username,
-                profilePicture = state.profilePicture
+                photo = state.profilePicture
             ).fold(
                 onSuccess = {
                     _uiState.update {
@@ -166,7 +166,7 @@ data class CreateProfileUiState(
     val isLoading: Boolean = false,
     val name: String = "",
     val username: String = "",
-    val profilePicture: Bitmap? = null,
+    val profilePicture: Uri? = null,
     val nameError: String? = null,
     val usernameError: String? = null,
     val usernameValid: Boolean = false,

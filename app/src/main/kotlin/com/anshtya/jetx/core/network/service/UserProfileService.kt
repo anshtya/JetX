@@ -8,15 +8,9 @@ import com.anshtya.jetx.core.network.model.body.GetUserProfileBody
 import com.anshtya.jetx.core.network.model.body.NameBody
 import com.anshtya.jetx.core.network.model.body.UsernameBody
 import com.anshtya.jetx.core.network.model.response.CheckUsernameResponse
+import com.anshtya.jetx.core.network.model.response.FileResponse
 import com.anshtya.jetx.core.network.model.response.GetUserProfileResponse
 import com.anshtya.jetx.core.network.util.safeApiCall
-import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,19 +28,19 @@ class UserProfileService @Inject constructor(
     }
 
     suspend fun createProfile(
-        profileBody: CreateProfileBody,
-        photo: File?
+        displayName: String,
+        username: String,
+        fcmToken: String,
+        photoExists: Boolean
     ): NetworkResult<GetUserProfileResponse> {
         return safeApiCall {
-            val profileRequestBody = Json.encodeToString(profileBody)
-                .toRequestBody("application/json".toMediaType())
-            val dataPart = MultipartBody.Part.createFormData("data", null, profileRequestBody)
-
-            val photoPart = getPartForPhoto(photo)
-
             userProfileApi.createProfile(
-                profile = dataPart,
-                photo = photoPart
+                CreateProfileBody(
+                    displayName = displayName,
+                    username = username,
+                    fcmToken = fcmToken,
+                    photoExists = photoExists
+                )
             )
         }
     }
@@ -69,12 +63,17 @@ class UserProfileService @Inject constructor(
         }
     }
 
-    suspend fun updateProfilePhoto(
-        photo: File
-    ): NetworkResult<Unit> {
+    suspend fun getDownloadProfilePhotoUrl(): NetworkResult<FileResponse> {
         return safeApiCall {
-            val photoPart = getPartForPhoto(photo)
-            userProfileApi.updateProfilePhoto(photoPart!!)
+            userProfileApi.getDownloadProfilePhotoUrl()
+        }
+    }
+
+    suspend fun getUploadProfilePhotoUrl(
+        contentType: String
+    ): NetworkResult<FileResponse> {
+        return safeApiCall {
+            userProfileApi.getUploadProfilePhotoUrl(contentType)
         }
     }
 
@@ -97,15 +96,6 @@ class UserProfileService @Inject constructor(
     ): NetworkResult<Unit> {
         return safeApiCall {
             userProfileApi.updateFcmToken(FcmBody(token))
-        }
-    }
-
-    private fun getPartForPhoto(
-        photo: File?
-    ): MultipartBody.Part? {
-        val photoRequestBody = photo?.asRequestBody("image/jpeg".toMediaTypeOrNull())
-        return photoRequestBody?.let {
-            MultipartBody.Part.createFormData("photo", photo.name, body = it)
         }
     }
 }

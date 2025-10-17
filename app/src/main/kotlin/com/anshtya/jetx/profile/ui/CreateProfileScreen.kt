@@ -1,6 +1,6 @@
 package com.anshtya.jetx.profile.ui
 
-import android.graphics.Bitmap
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,7 +26,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -45,7 +44,6 @@ import com.anshtya.jetx.core.ui.components.topappbar.JetxTopAppBar
 import com.anshtya.jetx.core.ui.rememberMediaPicker
 import com.anshtya.jetx.profile.ui.component.EditProfilePicture
 import com.anshtya.jetx.ui.theme.JetXTheme
-import com.anshtya.jetx.util.UriUtil.toBitmap
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -74,17 +72,14 @@ private fun CreateProfileScreen(
     onNameChange: (String) -> Unit,
     onUsernameChange: (String) -> Unit,
     onContinueClick: () -> Unit,
-    setProfilePicture: (Bitmap?) -> Unit,
+    setProfilePicture: (Uri?) -> Unit,
     onErrorShown: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
 
-    val context = LocalContext.current
     val pickMedia = rememberMediaPicker { uri ->
         if (uri != null) {
-            scope.launch {
-                setProfilePicture(uri.toBitmap(context))
-            }
+            scope.launch { setProfilePicture(uri) }
         }
     }
 
@@ -105,7 +100,7 @@ private fun CreateProfileScreen(
             SnackbarHost(snackbarHostState)
         }
     ) {
-        LazyColumn (
+        LazyColumn(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(30.dp),
             modifier = Modifier

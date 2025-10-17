@@ -1,8 +1,6 @@
 package com.anshtya.jetx.profile.data
 
 import android.content.Context
-import android.net.Uri
-import androidx.core.net.toUri
 import com.anshtya.jetx.core.coroutine.IoDispatcher
 import com.anshtya.jetx.util.FileUtil
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -26,24 +24,16 @@ class AvatarManager @Inject constructor(
     @ApplicationContext private val context: Context,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
-    suspend fun getAvatar(
-        userId: String,
-    ): Uri? {
-        return withContext(ioDispatcher) {
-            val avatarFile = File(FileUtil.getAvatarDirectory(context), userId)
-            if (avatarFile.exists()) avatarFile.toUri() else null
-        }
-    }
-
     suspend fun saveAvatar(
         userId: String,
-        byteArray: ByteArray
+        byteArray: ByteArray,
+        ext: String,
     ): Result<File> = runCatching {
         withContext(ioDispatcher) {
             val file = FileUtil.createFile(
                 filePath = FileUtil.getAvatarDirectory(context),
                 name = userId,
-                ext = "jpg"
+                ext = ext
             )
             ensureActive()
             FileOutputStream(file, false).use { outputStream ->
@@ -54,24 +44,17 @@ class AvatarManager @Inject constructor(
         }
     }
 
-    suspend fun saveTempAvatar(
-        userId: String,
-        byteArray: ByteArray
-    ): Result<File> = runCatching {
-        withContext(ioDispatcher) {
-            val tempFile = File.createTempFile(userId, ".jpg", context.cacheDir)
-            tempFile.writeBytes(byteArray)
-            tempFile
-        }
-    }
-
     suspend fun updateAvatar(
         userId: String,
-        newByteArray: ByteArray
+        newByteArray: ByteArray,
+        ext: String
     ): Result<File> = runCatching {
         withContext(ioDispatcher) {
-            val avatarDirectory = FileUtil.getAvatarDirectory(context)
-            val avatarFile = File(avatarDirectory, userId)
+            val avatarFile = FileUtil.createFile(
+                filePath = FileUtil.getAvatarDirectory(context),
+                name = userId,
+                ext = ext
+            )
             ensureActive()
             FileOutputStream(avatarFile, false).use { outputStream ->
                 outputStream.write(newByteArray)
@@ -82,14 +65,18 @@ class AvatarManager @Inject constructor(
     }
 
     suspend fun deleteAvatar(
-        userId: String
+        path: String
     ): Result<Unit> = runCatching {
         withContext(ioDispatcher) {
-            val avatarDirectory = FileUtil.getAvatarDirectory(context)
-            val avatarFile = File(avatarDirectory, userId)
-            ensureActive()
-            if (avatarFile.exists()){
-                avatarFile.delete()
+            File(path).delete()
+        }
+    }
+
+    suspend fun clearAll(): Result<Unit> = runCatching {
+        withContext(ioDispatcher) {
+            val directory = FileUtil.getAvatarDirectory(context)
+            if (directory.exists()) {
+                directory.deleteRecursively()
             }
         }
     }

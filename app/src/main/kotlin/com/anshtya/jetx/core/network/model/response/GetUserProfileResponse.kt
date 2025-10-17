@@ -7,5 +7,5 @@ class GetUserProfileResponse(
     val username: String,
     val displayName: String,
     val phoneNumber: String,
-    val profilePhotoUrl: String?,
+    val photoExists: Boolean
 )

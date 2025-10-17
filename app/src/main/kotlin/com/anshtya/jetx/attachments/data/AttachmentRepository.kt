@@ -52,6 +52,12 @@ class AttachmentRepository @Inject constructor(
     private val mediaBucket = client.storage.from(Constants.MEDIA_STORAGE)
     private val attachmentTable = client.from(Constants.ATTACHMENT_TABLE)
 
+    fun getMimeType(
+        uri: Uri
+    ): String? {
+        return uri.getMimeType(context)
+    }
+
     suspend fun getAttachmentMetadata(
         uri: Uri
     ): Result<AttachmentMetadata> = try {

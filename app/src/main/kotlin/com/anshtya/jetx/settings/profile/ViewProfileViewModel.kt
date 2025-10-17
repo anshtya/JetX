@@ -1,6 +1,6 @@
 package com.anshtya.jetx.settings.profile
 
-import android.graphics.Bitmap
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.profile.data.ProfileRepository
@@ -18,7 +18,7 @@ class ViewProfileViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ViewProfileUiState())
     val uiState = _uiState.asStateFlow()
 
-    fun onEditProfilePhoto(image: Bitmap?) {
+    fun onEditProfilePhoto(image: Uri?) {
         viewModelScope.launch {
             _uiState.update {
                 it.copy(isLoading = true)

@@ -1,6 +1,6 @@
 package com.anshtya.jetx.profile.data
 
-import android.graphics.Bitmap
+import android.net.Uri
 import com.anshtya.jetx.core.model.UserProfile
 import com.anshtya.jetx.core.network.model.response.CheckUsernameResponse
 import kotlinx.coroutines.flow.Flow
@@ -22,14 +22,14 @@ interface ProfileRepository {
      *
      * @param name The display name of the user.
      * @param username The unique username chosen by the user.
-     * @param profilePicture An optional [Bitmap] representing the user's profile photo.
+     * @param photo An optional [Uri] representing the user's profile photo.
      * @return A [Result] containing [Unit] if the profile creation succeeded,
      * or an error if the operation failed.
      */
     suspend fun createProfile(
         name: String,
         username: String,
-        profilePicture: Bitmap?
+        photo: Uri?
     ): Result<Unit>
 
     /**
@@ -119,12 +119,12 @@ interface ProfileRepository {
     /**
      * Updates the user's profile photo.
      *
-     * @param profilePhoto A [Bitmap] representing the new profile picture.
+     * @param photo A [Uri] representing the new profile picture.
      * @return A [Result] containing [Unit] if the update succeeded,
      * or an error if the operation failed.
      */
     suspend fun updateProfilePhoto(
-        profilePhoto: Bitmap
+        photo: Uri
     ): Result<Unit>
 
     /**

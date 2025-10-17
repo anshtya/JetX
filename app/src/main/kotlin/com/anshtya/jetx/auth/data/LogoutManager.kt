@@ -5,6 +5,7 @@ import com.anshtya.jetx.core.coroutine.IoDispatcher
 import com.anshtya.jetx.core.database.JetXDatabase
 import com.anshtya.jetx.work.WorkManagerHelper
 import com.anshtya.jetx.core.preferences.JetxPreferencesStore
+import com.anshtya.jetx.profile.data.AvatarManager
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -23,6 +24,7 @@ class LogoutManager @Inject constructor(
     private val db: JetXDatabase,
     private val messageUpdatesListener: MessageUpdatesListener,
     private val workManagerHelper: WorkManagerHelper,
+    private val avatarManager: AvatarManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
     suspend fun performLocalCleanup(): Result<Unit> =
@@ -33,6 +35,7 @@ class LogoutManager @Inject constructor(
             }
 
             store.user.clear()
+            avatarManager.clearAll()
             messageUpdatesListener.unsubscribe()
         }
 }

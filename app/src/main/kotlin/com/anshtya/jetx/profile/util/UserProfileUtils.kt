@@ -5,13 +5,14 @@ import com.anshtya.jetx.core.network.model.response.GetUserProfileResponse
 import java.util.UUID
 
 fun GetUserProfileResponse.toEntity(
-    userId: UUID
+    userId: UUID,
+    profilePhoto: String?,
 ): UserProfileEntity {
     return UserProfileEntity(
         id = userId,
         name = displayName,
         username = username,
         phoneNumber = phoneNumber,
-        profilePicture = null // TODO: manage profile picture at server
+        profilePicture = profilePhoto
     )
 }

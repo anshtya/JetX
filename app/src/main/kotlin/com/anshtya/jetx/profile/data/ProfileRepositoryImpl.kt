@@ -1,20 +1,22 @@
 package com.anshtya.jetx.profile.data
 
-import android.graphics.Bitmap
+import android.net.Uri
 import android.util.Log
+import android.webkit.MimeTypeMap
 import com.anshtya.jetx.attachments.ImageCompressor
+import com.anshtya.jetx.attachments.data.AttachmentRepository
 import com.anshtya.jetx.auth.data.AuthManager
 import com.anshtya.jetx.core.database.dao.UserProfileDao
 import com.anshtya.jetx.core.database.entity.UserProfileEntity
 import com.anshtya.jetx.core.database.entity.toExternalModel
 import com.anshtya.jetx.core.model.UserProfile
-import com.anshtya.jetx.core.network.model.body.CreateProfileBody
 import com.anshtya.jetx.core.network.model.response.CheckUsernameResponse
 import com.anshtya.jetx.core.network.service.UserProfileService
 import com.anshtya.jetx.core.network.util.toResult
 import com.anshtya.jetx.core.preferences.JetxPreferencesStore
 import com.anshtya.jetx.fcm.FcmTokenManager
 import com.anshtya.jetx.profile.util.toEntity
+import com.anshtya.jetx.s3.S3
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.io.File
@@ -25,6 +27,8 @@ import javax.inject.Singleton
 @Singleton
 class ProfileRepositoryImpl @Inject constructor(
     private val userProfileService: UserProfileService,
+    private val s3: S3,
+    private val attachmentRepository: AttachmentRepository,
     private val authManager: AuthManager,
     private val avatarManager: AvatarManager,
     private val fcmTokenManager: FcmTokenManager,
@@ -37,18 +41,44 @@ class ProfileRepositoryImpl @Inject constructor(
     override suspend fun createProfile(
         name: String,
         username: String,
-        profilePicture: Bitmap?
+        photo: Uri?
     ): Result<Unit> = runCatching {
         val userId = authManager.authState.value.currentUserIdOrNull()!!
 
-        val profilePictureFile: File? = if (profilePicture != null) {
-            val imageByteArray = imageCompressor.compressImage(profilePicture).getOrElse {
+        val profilePhoto: File? = if (photo != null) {
+            val mimeType = attachmentRepository.getMimeType(photo)
+                ?: return Result.failure(Exception("Invalid photo type"))
+
+            val imageByteArray = imageCompressor.compressImage(
+                uri = photo,
+                mimeType = mimeType
+            ).getOrElse {
                 Log.e(tag, "Failed to compress avatar of user id: $userId", it)
                 return Result.failure(it)
             }
+
+            val uploadUrl = userProfileService.getUploadProfilePhotoUrl(
+                contentType = mimeType
+            )
+                .toResult()
+                .getOrElse {
+                    Log.e(tag, it.message, it)
+                    return Result.failure(it)
+                }
+                .url
+            s3.upload(
+                url = uploadUrl,
+                byteArray = imageByteArray,
+                contentType = mimeType
+            ).getOrElse {
+                Log.e(tag, "Failed to upload avatar of user id: $userId", it)
+                return Result.failure(it)
+            }
+
             avatarManager.saveAvatar(
                 userId = userId.toString(),
-                byteArray = imageByteArray
+                byteArray = imageByteArray,
+                ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)!!
             ).getOrElse {
                 Log.e(tag, "Failed to save avatar of user id: $userId", it)
                 return Result.failure(it)
@@ -59,12 +89,10 @@ class ProfileRepositoryImpl @Inject constructor(
 
         val fcmToken = fcmTokenManager.getToken()
         val networkUserProfile = userProfileService.createProfile(
-            CreateProfileBody(
-                displayName = name,
-                username = username,
-                fcmToken = fcmToken
-            ),
-            photo = profilePictureFile
+            displayName = name,
+            username = username,
+            fcmToken = fcmToken,
+            photoExists = profilePhoto != null
         )
             .toResult()
             .getOrElse { throwable ->
@@ -78,7 +106,7 @@ class ProfileRepositoryImpl @Inject constructor(
                 name = name,
                 username = username,
                 phoneNumber = networkUserProfile.phoneNumber,
-                profilePicture = profilePictureFile?.absolutePath
+                profilePicture = profilePhoto?.absolutePath
             )
         )
 
@@ -98,7 +126,36 @@ class ProfileRepositoryImpl @Inject constructor(
         val userProfile = userProfileService.getProfileById(userId)
             .toResult()
             .getOrThrow()
-        userProfileDao.upsertUserProfile(userProfile.toEntity(userId))
+
+        val profilePhoto: String? = if (userProfile.photoExists) {
+            val downloadUrl = userProfileService.getDownloadProfilePhotoUrl()
+                .toResult()
+                .getOrElse {
+                    Log.e(tag, it.message, it)
+                    return Result.failure(it)
+                }
+                .url
+            val downloadedFile = s3.download(downloadUrl)
+                .getOrElse {
+                    Log.e(tag, "Failed to download avatar of user id: $userId", it)
+                    return Result.failure(it)
+                }
+
+            avatarManager.saveAvatar(
+                userId = userId.toString(),
+                byteArray = downloadedFile.bytes.readBytes(),
+                ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(downloadedFile.mimeType)!!
+            ).getOrElse {
+                Log.e(tag, "Failed to save avatar of user id: $userId", it)
+                return Result.failure(it)
+            }.absolutePath
+        } else {
+            null
+        }
+
+        userProfileDao.upsertUserProfile(
+            userProfile.toEntity(userId, profilePhoto = profilePhoto)
+        )
     }
 
     override suspend fun getProfile(
@@ -154,32 +211,42 @@ class ProfileRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateProfilePhoto(
-        profilePhoto: Bitmap
+        photo: Uri
     ): Result<Unit> = runCatching {
         val userId = authManager.authState.value.currentUserIdOrNull()!!
 
-        val photoByteArray = imageCompressor.compressImage(profilePhoto).getOrElse {
+        val mimeType = attachmentRepository.getMimeType(photo)
+            ?: return Result.failure(Exception("Invalid photo type"))
+
+        val photoByteArray = imageCompressor.compressImage(
+            uri = photo,
+            mimeType = mimeType
+        ).getOrElse {
             Log.e(tag, "Failed to compress avatar of user id: $userId", it)
             return Result.failure(it)
         }
-        val photoFile = avatarManager.saveTempAvatar(
-            userId = userId.toString(),
-            byteArray = photoByteArray
-        ).getOrElse {
-            Log.e(tag, "Failed to save temp avatar of user id: $userId", it)
-            return Result.failure(it)
-        }
 
-        userProfileService.updateProfilePhoto(photo = photoFile)
+        val uploadUrl = userProfileService.getUploadProfilePhotoUrl(
+            contentType = mimeType
+        )
             .toResult()
             .getOrElse {
                 Log.e(tag, "Failed to upload avatar of user id: $userId", it)
                 return Result.failure(it)
-            }
+            }.url
+        s3.upload(
+            url = uploadUrl,
+            byteArray = photoByteArray,
+            contentType = mimeType,
+        ).getOrElse {
+            Log.e(tag, "Failed to upload avatar of user id: $userId", it)
+            return Result.failure(it)
+        }
 
         val file = avatarManager.updateAvatar(
             userId = userId.toString(),
-            newByteArray = photoByteArray
+            newByteArray = photoByteArray,
+            ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)!!
         ).getOrElse {
             Log.e(tag, "Failed to save avatar of user id: $userId", it)
             return Result.failure(it)
@@ -192,6 +259,8 @@ class ProfileRepositoryImpl @Inject constructor(
 
     override suspend fun removeProfilePhoto(): Result<Unit> = runCatching {
         val userId = authManager.authState.value.currentUserIdOrNull()!!
+        val photoPath = userProfileDao.getUserProfile(userId).profilePicture
+            ?: return Result.success(Unit)
 
         userProfileService.removeProfilePhoto()
             .toResult()
@@ -199,7 +268,8 @@ class ProfileRepositoryImpl @Inject constructor(
                 Log.e(tag, "Failed to remove avatar of user id: $userId", it)
                 return Result.failure(it)
             }
-        avatarManager.deleteAvatar(userId.toString()).getOrElse {
+
+        avatarManager.deleteAvatar(photoPath).getOrElse {
             Log.e(tag, "Failed to delete avatar of user id: $userId", it)
         }
         userProfileDao.updateProfilePicture(

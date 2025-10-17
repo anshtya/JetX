@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class CreateProfileBody(
     val displayName: String,
     val username: String,
-    val fcmToken: String
+    val fcmToken: String,
+    val photoExists: Boolean
 )

@@ -35,8 +35,8 @@ class ProfileRepositoryImplTest {
         coEvery { getToken() } returns "fcm"
     }
     private val userProfileService: UserProfileService = mockk {
-        coEvery { createProfile(any(), any()) } returns NetworkResult.Success(
-            GetUserProfileResponse("", "", "", "")
+        coEvery { createProfile(any(), any(), any(), any()) } returns NetworkResult.Success(
+            GetUserProfileResponse("", "", "", true)
         )
     }
     private val accountStore: AccountStore = mockk {
@@ -68,7 +68,9 @@ class ProfileRepositoryImplTest {
             fcmTokenManager = fcmTokenManager,
             store = store,
             userProfileDao = userProfileDao,
-            imageCompressor = mockk()
+            imageCompressor = mockk(),
+            s3 = mockk(),
+            attachmentRepository = mockk()
         )
     }
 
@@ -85,7 +87,7 @@ class ProfileRepositoryImplTest {
     @Test
     fun `createProfile failure doesn't creates profile`() = runTest {
         coEvery {
-            userProfileService.createProfile(any(), any())
+            userProfileService.createProfile(any(), any(), any(), false)
         } returns NetworkResult.Failure.OtherError(Exception(""))
 
         val result = repository.createProfile("name", "username", null)
