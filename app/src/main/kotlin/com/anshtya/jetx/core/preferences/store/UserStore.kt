@@ -55,7 +55,6 @@ class UserStore(
 
     suspend fun clear() {
         dataStore.edit {
-            it.remove(ONBOARDED)
             it.remove(PROFILE_CREATED)
         }
     }

@@ -8,6 +8,8 @@ import com.anshtya.jetx.fcm.FcmTokenManager
 import com.anshtya.jetx.profile.data.ProfileRepository
 import com.google.i18n.phonenumbers.PhoneNumberUtil
 import com.google.i18n.phonenumbers.Phonenumber
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -43,6 +45,7 @@ class AuthRepositoryImpl @Inject constructor(
             userId = authResponse.userId,
             accessToken = authResponse.accessToken,
             refreshToken = authResponse.refreshToken,
+            autoUpdate = false
         )
 
         profileRepository.fetchAndSaveProfile(authResponse.userId).onFailure {
@@ -52,6 +55,8 @@ class AuthRepositoryImpl @Inject constructor(
 
         store.account.storeFcmToken(fcmToken)
         store.user.setProfileCreated()
+
+        authManager.setSessionFromStorage()
     }
 
     override suspend fun register(
@@ -111,11 +116,12 @@ class AuthRepositoryImpl @Inject constructor(
                     return Result.failure(it)
                 }
 
-            logoutManager.performLocalCleanup().onFailure {
-                Log.e(tag, "Failed to clear local user data", it)
-                return Result.failure(it)
-            }
-
             authManager.deleteSession()
+
+            withContext(NonCancellable) {
+                logoutManager.performLocalCleanup().onFailure {
+                    Log.e(tag, "Failed to clear local user data", it)
+                }
+            }
         }
 }

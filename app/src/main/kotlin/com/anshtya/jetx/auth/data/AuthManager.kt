@@ -86,10 +86,27 @@ class AuthManager @Inject constructor(
             )
     }
 
+    suspend fun setSessionFromStorage() {
+        val userId = store.account.getUserId()
+        val accessToken = store.token.getAccessToken()
+
+        if (userId != null && accessToken != null) {
+            _authState.update {
+                AuthState.Authenticated(
+                    userId = UUID.fromString(userId),
+                    accessToken = accessToken
+                )
+            }
+        } else {
+            _authState.update { AuthState.Unauthenticated }
+        }
+    }
+
     suspend fun storeSession(
         userId: UUID,
         accessToken: String,
         refreshToken: String,
+        autoUpdate: Boolean = true
     ) {
         store.account.storeUserId(userId.toString())
         store.token.storeAuthToken(
@@ -97,11 +114,13 @@ class AuthManager @Inject constructor(
             refresh = refreshToken
         )
 
-        _authState.update {
-            AuthState.Authenticated(
-                userId = userId,
-                accessToken = accessToken
-            )
+        if (autoUpdate) {
+            _authState.update {
+                AuthState.Authenticated(
+                    userId = userId,
+                    accessToken = accessToken
+                )
+            }
         }
     }
 

@@ -47,7 +47,7 @@ class AuthRepositoryImplTest {
     }
     private val authManager: AuthManager = mockk {
         every { authState } returns MutableStateFlow(AuthState.Authenticated(uuid, "access"))
-        coEvery { storeSession(any(), any(), any()) } just runs
+        coEvery { storeSession(any(), any(), any(), false) } just runs
         coEvery { deleteSession() } just runs
     }
     private val accountStore: AccountStore = mockk {
@@ -84,6 +84,7 @@ class AuthRepositoryImplTest {
     fun `login saves data in preferences store`() = runTest {
         repository.login(phoneNumber, "1234")
 
+        coVerify(exactly = 1) { authManager.setSessionFromStorage() }
         coVerify(exactly = 1) { userStore.setProfileCreated() }
         coVerify(exactly = 1) { accountStore.storeFcmToken(fcm) }
     }
