@@ -51,6 +51,7 @@ android {
     kotlin {
         compilerOptions {
             jvmToolchain(21)
+            freeCompilerArgs.add("-Xannotation-default-target=first-only")
         }
     }
     buildFeatures {
