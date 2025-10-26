@@ -21,6 +21,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.JetX"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
             android:name=".send.SendActivity"
@@ -44,7 +45,7 @@
         <activity
             android:name=".attachments.ui.preview.MediaPreviewActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize"/>
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".camera.CameraActivity"
             android:exported="false" />
@@ -82,15 +83,7 @@
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
-            android:exported="false"
-            tools:node="merge">
-
-            <!-- If you are using androidx.startup to initialize other components (Used by Supabase KMP)-->
-            <meta-data
-                android:name="androidx.work.WorkManagerInitializer"
-                android:value="androidx.startup"
-                tools:node="remove" />
-        </provider>
+            tools:node="remove" />
 
         <receiver android:name=".notifications.MarkAsReadReceiver" />
         <receiver android:name=".notifications.ReplyReceiver" />

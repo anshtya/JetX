@@ -2,20 +2,18 @@ package com.anshtya.jetx.chats.data
 
 import android.net.Uri
 import android.util.Log
+import androidx.work.WorkManager
 import com.anshtya.jetx.attachments.data.AttachmentFormat
 import com.anshtya.jetx.attachments.data.AttachmentRepository
-import com.anshtya.jetx.attachments.data.NetworkAttachment
+import com.anshtya.jetx.auth.data.AuthManager
 import com.anshtya.jetx.core.database.dao.ChatDao
 import com.anshtya.jetx.core.database.datasource.LocalMessagesDataSource
-import com.anshtya.jetx.core.database.entity.MessageEntity
 import com.anshtya.jetx.core.database.model.MessageWithAttachment
+import com.anshtya.jetx.core.network.service.AttachmentService
+import com.anshtya.jetx.core.network.service.MessageService
+import com.anshtya.jetx.core.network.util.toResult
 import com.anshtya.jetx.profile.data.ProfileRepository
-import com.anshtya.jetx.util.Constants
-import com.anshtya.jetx.util.Constants.MESSAGE_TABLE
-import com.anshtya.jetx.work.WorkScheduler
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.postgrest.from
+import com.anshtya.jetx.work.worker.MessageSendWorker
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 import javax.inject.Inject
@@ -23,17 +21,16 @@ import javax.inject.Singleton
 
 @Singleton
 class MessagesRepositoryImpl @Inject constructor(
-    client: SupabaseClient,
     private val chatDao: ChatDao,
     private val localMessagesDataSource: LocalMessagesDataSource,
     private val profileRepository: ProfileRepository,
     private val attachmentRepository: AttachmentRepository,
-    private val workScheduler: WorkScheduler
+    private val messageService: MessageService,
+    private val attachmentService: AttachmentService,
+    private val authManager: AuthManager,
+    private val workManager: WorkManager
 ) : MessagesRepository {
     private val tag = this::class.simpleName
-    private val supabaseAuth = client.auth
-    private val networkMessagesTable = client.from(MESSAGE_TABLE)
-    private val attachmentTable = client.from(Constants.ATTACHMENT_TABLE)
 
     override fun getChatMessages(chatId: Int): Flow<List<MessageWithAttachment>> =
         localMessagesDataSource.getChatMessages(chatId)
@@ -43,31 +40,30 @@ class MessagesRepositoryImpl @Inject constructor(
         senderId: UUID,
         recipientId: UUID,
         text: String?,
-        attachmentId: String
+        attachmentId: UUID?
     ): Result<Int> = try {
-        val networkAttachment = if (attachmentId.isNotBlank()) {
-            attachmentTable.select {
-                filter { eq("id", attachmentId.toInt()) }
-            }.decodeSingle<NetworkAttachment>()
-        } else null
+        val networkAttachment = attachmentId?.let {
+            attachmentService.getAttachment(it)
+                .toResult()
+                .getOrElse { throwable ->
+                    Log.e(tag, "Failed to get attachment - ${throwable.message}", throwable)
+                    return Result.failure(throwable)
+                }
+        }
 
-        val message = saveChatMessage(
+        val messageId = saveChatMessage(
             id = id,
             senderId = senderId,
             recipientId = recipientId,
             text = text,
             attachmentFormat = if (networkAttachment != null) {
-                AttachmentFormat.UrlAttachment(networkAttachment)
+                AttachmentFormat.ServerAttachment(networkAttachment)
             } else AttachmentFormat.None,
             currentUser = false
         ).getOrThrow()
-        networkMessagesTable.update(
-            update = { set("has_received", true) },
-            request = {
-                filter { eq("id", message.uid) }
-            }
-        )
-        Result.success(message.chatId)
+        messageService.markMessageReceived(id).toResult().getOrThrow()
+
+        Result.success(messageId)
     } catch (e: Exception) {
         Log.e(tag, "Error receiving chat message - ${e.message}")
         Result.failure(e)
@@ -91,9 +87,9 @@ class MessagesRepositoryImpl @Inject constructor(
         val attachmentStorageUri = attachmentUri?.let {
             attachmentRepository.migrateToStorage(it).getOrNull()
         }
-        val message = saveChatMessage(
+        val messageId = saveChatMessage(
             id = UUID.randomUUID(),
-            senderId = UUID.fromString(supabaseAuth.currentUserOrNull()?.id),
+            senderId = authManager.authState.value.currentUserIdOrNull()!!,
             recipientId = recipientId,
             text = text,
             attachmentFormat = if (attachmentStorageUri != null) {
@@ -106,24 +102,21 @@ class MessagesRepositoryImpl @Inject constructor(
             } else AttachmentFormat.None,
             currentUser = true
         ).getOrThrow()
-        workScheduler.createMessageSendWork(message.uid)
+        MessageSendWorker.scheduleWork(workManager, messageId)
         Result.success(Unit)
     } catch (e: Exception) {
-        Log.e(tag, "Error sending chat message - ${e.message}")
+        Log.e(tag, "Error sending chat message - ${e.message}", e)
         Result.failure(e)
     }
 
     override suspend fun markChatMessagesAsSeen(chatId: Int) {
         val unreadMessageIds = localMessagesDataSource.markChatMessagesAsSeen(chatId)
         Log.i("message", "unread ids - $unreadMessageIds")
-        unreadMessageIds.forEach { messageId ->
-            networkMessagesTable.update(
-                update = { set("has_seen", true) },
-                request = {
-                    filter { eq("id", messageId) }
-                }
-            )
-        }
+        messageService.markMessagesSeen(unreadMessageIds)
+            .toResult()
+            .getOrElse {
+                Log.w(tag, "Failed to mark messages as seen - ${it.message}", it)
+            }
     }
 
     private suspend fun saveChatMessage(
@@ -133,21 +126,22 @@ class MessagesRepositoryImpl @Inject constructor(
         text: String?,
         attachmentFormat: AttachmentFormat,
         currentUser: Boolean
-    ): Result<MessageEntity> = try {
+    ): Result<Int> = try {
         val profileId = if (currentUser) recipientId else senderId
-        profileRepository.getProfile(profileId)
-        Result.success(
-            localMessagesDataSource.insertMessage(
-                id = id,
-                senderId = senderId,
-                recipientId = recipientId,
-                text = text,
-                attachmentFormat = attachmentFormat,
-                currentUser = currentUser
-            )
+        profileRepository.fetchAndSaveProfile(profileId)
+
+        val messageId = localMessagesDataSource.insertMessage(
+            id = id,
+            senderId = senderId,
+            recipientId = recipientId,
+            text = text,
+            attachmentFormat = attachmentFormat,
+            currentUser = currentUser
         )
+
+        Result.success(messageId)
     } catch (e: Exception) {
-        Log.e(tag, "Error saving chat message - ${e.message}")
+        Log.e(tag, "Error saving chat message - ${e.message}", e)
         Result.failure(e)
     }
 

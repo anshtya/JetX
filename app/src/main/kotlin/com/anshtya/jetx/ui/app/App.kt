@@ -11,11 +11,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
-import com.anshtya.jetx.auth.ui.navigation.AuthGraph
-import com.anshtya.jetx.auth.ui.navigation.authGraph
+import com.anshtya.jetx.onboarding.navigation.OnboardingGraph
+import com.anshtya.jetx.onboarding.navigation.onboardingGraph
 import com.anshtya.jetx.profile.ui.CreateProfileRoute
-import com.anshtya.jetx.settings.ui.navigation.navigateToSettingsGraph
-import com.anshtya.jetx.settings.ui.navigation.settingsGraph
+import com.anshtya.jetx.registration.navigation.RegistrationGraph
+import com.anshtya.jetx.registration.navigation.registrationGraph
+import com.anshtya.jetx.settings.navigation.navigateToSettingsGraph
+import com.anshtya.jetx.settings.navigation.settingsGraph
 import com.anshtya.jetx.ui.LoadingRoute
 import com.anshtya.jetx.ui.main.MainRoute
 import com.anshtya.jetx.ui.main.mainDestination
@@ -44,12 +46,12 @@ fun App(
             LoadingRoute()
         }
 
-        authGraph(navController = navController)
+        onboardingGraph(navController = navController)
+
+        registrationGraph(navController = navController)
 
         composable<CreateProfileRoute> {
-            CreateProfileRoute(
-                onNavigateUp = navController::navigateUp
-            )
+            CreateProfileRoute()
         }
 
         mainDestination(
@@ -63,26 +65,28 @@ fun App(
 
     LaunchedEffect(navState) {
         val appNavOptions = navOptions {
-            popUpTo(navController.graph.id) {
-                inclusive = true
-            }
+            popUpTo(navController.graph.id)
             launchSingleTop = true
         }
 
         when (navState) {
-            AppNavState.Authenticated -> {
-                navController.navigate(MainRoute, appNavOptions)
+            AppNavState.Initialising -> {}
+
+            AppNavState.Onboarding -> {
+                navController.navigate(OnboardingGraph, appNavOptions)
             }
 
             AppNavState.CreateProfile -> {
                 navController.navigate(CreateProfileRoute, appNavOptions)
             }
 
-            AppNavState.Unauthenticated -> {
-                navController.navigate(AuthGraph, appNavOptions)
+            AppNavState.Authenticated -> {
+                navController.navigate(MainRoute, appNavOptions)
             }
 
-            AppNavState.Initialising -> {}
+            AppNavState.Unauthenticated -> {
+                navController.navigate(RegistrationGraph, appNavOptions)
+            }
         }
     }
 }

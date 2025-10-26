@@ -1,45 +1,34 @@
 package com.anshtya.jetx.fcm
 
-import com.anshtya.jetx.core.coroutine.DefaultScope
-import com.anshtya.jetx.work.WorkScheduler
+import android.util.Log
+import androidx.work.WorkManager
+import com.anshtya.jetx.work.worker.FcmRefreshWorker
+import com.anshtya.jetx.work.worker.MessageReceiveWorker
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class JetXMessagingService : FirebaseMessagingService() {
     @Inject
-    lateinit var workScheduler: WorkScheduler
+    lateinit var workManager: WorkManager
 
-    @Inject
-    lateinit var fcmTokenManager: FcmTokenManager
-
-    @Inject
-    @DefaultScope
-    lateinit var coroutineScope: CoroutineScope
-
-    private var job: Job? = null
+    private val tag = this::class.simpleName
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        job = coroutineScope.launch {
-            fcmTokenManager.addTokenToServer(token)
-        }
+        Log.i(tag, "New token received")
+        FcmRefreshWorker.scheduleWork(workManager)
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        Log.i(tag, "Message received")
         val messageData = remoteMessage.data
-        workScheduler.createMessageReceiveWork(Json.encodeToString(messageData))
+        MessageReceiveWorker.scheduleWork(workManager, messageData)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        job?.cancel()
     }
 }

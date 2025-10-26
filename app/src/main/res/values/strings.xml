@@ -1,10 +1,12 @@
 <resources>
     <string name="app_name">JetX</string>
     <string name="app_title">JetX</string>
+    <string name="app_tagline">Connect and share</string>
+
     <string name="chats">Chats</string>
     <string name="Camera">Camera</string>
     <string name="Calls">Calls</string>
-    <string name="create_account">Create an account</string>
+    <string name="get_started">Get Started</string>
     <string name="sign_in">Sign in</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
@@ -31,6 +33,15 @@
     <string name="chatinputfield_placeholder">Message</string>
     <string name="ok">OK</string>
 
+    <!--Registration-->
+    <string name="next">Next</string>
+    <string name="phone_number">Phone number</string>
+    <string name="enter_phone_number">Enter your phone number to continue.</string>
+    <string name="create_pin">Create your PIN</string>
+    <string name="create_pin_text">PINs keep your account secure.</string>
+    <string name="enter_pin">Enter your PIN</string>
+    <string name="enter_pin_text">Enter your PIN to continue.</string>
+
     <!--Notification-->
     <string name="notification_chat_group">Chats</string>
     <string name="notification_other_group">Others</string>
@@ -55,6 +66,12 @@
     <!--Settings-->
     <string name="sign_out">Sign Out</string>
     <string name="theme">Theme</string>
+    <string name="profile">Profile</string>
+    <string name="edit_photo">Edit photo</string>
+    <string name="edit_username">Edit username</string>
+    <string name="save">Save</string>
+    <string name="edit_name">Edit name</string>
+    <string name="delete_photo">Delete photo</string>
 
     <string name="mark_as_read">Mark as read</string>
     <string name="reply">Reply</string>
@@ -83,6 +100,6 @@
     <string name="send_to">Send to</string>
     <string name="recent_chats">Recent chats</string>
     <string name="no_recent_chats">No recent chats</string>
-
     <string name="discard_media">Discard media?</string>
+
 </resources>

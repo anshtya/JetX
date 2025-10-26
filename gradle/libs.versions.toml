@@ -1,30 +1,33 @@
 [versions]
-activityCompose = "1.9.3"
-agp = "8.11.0"
-androidxCamera = "1.4.1"
+activityCompose = "1.10.1"
+agp = "8.12.2"
+androidxCamera = "1.4.2"
 androidxCoreSplashScreen = "1.0.1"
-androidxDatastore = "1.1.1"
+androidxDatastore = "1.1.7"
 androidxHilt = "1.2.0"
-androidxLifecycle = "2.8.7"
-androidxMedia3 = "1.7.1"
-androidxNavigation = "2.8.5"
-androidxWork = "2.10.0"
-coil = "3.0.4"
-composeBom = "2024.12.01"
-coreKtx = "1.15.0"
-espressoCore = "3.6.1"
-firebase-bom = "33.8.0"
-google-services = "4.4.2"
-hilt = "2.55"
+androidxLifecycle = "2.9.3"
+androidxMedia3 = "1.8.0"
+androidxNavigation = "2.9.3"
+androidxWork = "2.10.3"
+coil = "3.3.0"
+composeBom = "2025.08.01"
+coreKtx = "1.17.0"
+espressoCore = "3.7.0"
+firebase-bom = "34.4.0"
+google-services = "4.4.3"
+libphonenumber = "9.0.13"
+hilt = "2.57.1"
 junit = "4.13.2"
-junitVersion = "1.2.1"
-kotlin = "2.0.20"
-kotlinxSerializationJson = "1.7.3"
-ktor-client = "3.0.2"
-ksp = "2.0.20-1.0.25"
-okhttp3 = "4.12.0"
-room = "2.6.1"
-supabase = "3.0.3"
+junitVersion = "1.3.0"
+kotlin = "2.2.0"
+kotlinxCoroutinesTest = "1.10.2"
+kotlinxSerializationJson = "1.9.0"
+ksp = "2.2.0-2.0.2"
+mockk = "1.14.5"
+okhttp = "5.1.0"
+retrofitBom = "3.0.0"
+room = "2.7.2"
+securityCrypto = "1.1.0"
 
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
@@ -51,6 +54,7 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
@@ -65,16 +69,19 @@ coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp"
 coil-video = { group = "io.coil-kt.coil3", name = "coil-video" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase-bom" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
+googlecode-libphonenumber = { group = "com.googlecode.libphonenumber", name = "libphonenumber", version.ref = "libphonenumber" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
+io-mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor-client" }
-okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp3" }
-supabase-bom = { group = "io.github.jan-tennert.supabase", name = "bom", version.ref = "supabase" }
-supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt" }
-supabase-realtime = { group = "io.github.jan-tennert.supabase", name = "realtime-kt" }
-supabase-storage = { group = "io.github.jan-tennert.supabase", name = "storage-kt" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp" }
+okhttp-bom = { group = "com.squareup.okhttp3", name = "okhttp-bom", version.ref = "okhttp" }
+okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit" }
+retrofit-bom = { group = "com.squareup.retrofit2", name = "retrofit-bom", version.ref = "retrofitBom" }
+retrofit-kotlinx-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

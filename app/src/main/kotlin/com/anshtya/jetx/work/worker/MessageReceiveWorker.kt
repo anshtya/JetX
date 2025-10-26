@@ -10,22 +10,29 @@ import androidx.core.app.RemoteInput
 import androidx.core.content.ContextCompat.getString
 import androidx.core.net.toUri
 import androidx.hilt.work.HiltWorker
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.anshtya.jetx.MainActivity
 import com.anshtya.jetx.R
 import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
 import com.anshtya.jetx.core.database.dao.MessageDao
+import com.anshtya.jetx.core.model.MessageType
+import com.anshtya.jetx.core.network.model.NetworkMessage
 import com.anshtya.jetx.notifications.MarkAsReadReceiver
 import com.anshtya.jetx.notifications.NotificationChannels
 import com.anshtya.jetx.notifications.ReplyReceiver
 import com.anshtya.jetx.profile.data.ProfileRepository
 import com.anshtya.jetx.util.Constants
-import com.anshtya.jetx.work.model.NetworkIncomingMessage
+import com.anshtya.jetx.work.util.createInputData
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import kotlinx.serialization.json.Json
+import java.util.UUID
 
 @HiltWorker
 class MessageReceiveWorker @AssistedInject constructor(
@@ -37,32 +44,40 @@ class MessageReceiveWorker @AssistedInject constructor(
     private val messageDao: MessageDao,
     private val notificationManager: NotificationManager
 ) : CoroutineWorker(appContext, workerParams) {
+    private val tag = this::class.simpleName
+
     override suspend fun doWork(): Result {
         return try {
-            val message =
-                Json.decodeFromString<NetworkIncomingMessage>(inputData.getString(MESSAGE_KEY)!!)
-            val messageUid = message.id
+            val incomingMessage = NetworkMessage(
+                id = UUID.fromString(inputData.getString("id")),
+                senderId = UUID.fromString(inputData.getString("senderId")),
+                targetId = UUID.fromString(inputData.getString("targetId")),
+                type = MessageType.INDIVIDUAL,
+                content = inputData.getString("content"),
+                attachmentId = inputData.getString("attachmentId").takeIf { it != "null" }
+                    ?.let { UUID.fromString(it) }
+            )
 
             val chatId = messagesRepository.receiveChatMessage(
-                id = messageUid,
-                senderId = message.senderId,
-                recipientId = message.recipientId,
-                text = message.text.takeIf { it.isNotBlank() },
-                attachmentId = message.attachmentId
+                id = incomingMessage.id,
+                senderId = incomingMessage.senderId,
+                recipientId = incomingMessage.targetId,
+                text = incomingMessage.content,
+                attachmentId = incomingMessage.attachmentId
             ).getOrThrow()
 
             if (chatsRepository.currentChatId != chatId) {
-                val senderProfile = profileRepository.getProfile(message.senderId)!!
+                val senderProfile = profileRepository.getProfile(incomingMessage.senderId)
                 postMessageNotification(
                     senderName = senderProfile.username,
-                    message = messageDao.getMessage(messageUid).text!!,
+                    message = messageDao.getMessage(incomingMessage.id).text!!,
                     chatId = chatId
                 )
             }
 
             Result.success()
         } catch (e: Exception) {
-            Log.e("MessageReceiveWorker", "${e.message}")
+            Log.w(tag, e.message, e)
             postMayHaveNewMessages()
             Result.retry()
         }
@@ -149,7 +164,25 @@ class MessageReceiveWorker @AssistedInject constructor(
     }
 
     companion object {
-        const val WORKER_NAME = "message_receive"
-        const val MESSAGE_KEY = "message_key"
+        fun scheduleWork(
+            workManager: WorkManager,
+            data: Map<String, String>
+        ) {
+            val messageId = data["id"]!!
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val workRequest = OneTimeWorkRequest.Builder(MessageReceiveWorker::class)
+                .setInputData(createInputData(data))
+                .setConstraints(constraints)
+                .build()
+
+            workManager.enqueueUniqueWork(
+                "message_receive_$messageId",
+                ExistingWorkPolicy.APPEND_OR_REPLACE,
+                workRequest
+            )
+        }
     }
 }

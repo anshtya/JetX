@@ -1,16 +1,25 @@
 package com.anshtya.jetx.profile.ui
 
-import android.graphics.Bitmap
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.profile.data.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class CreateProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository
@@ -18,19 +27,57 @@ class CreateProfileViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CreateProfileUiState())
     val uiState = _uiState.asStateFlow()
 
+    init {
+        checkUsername()
+    }
+
+    private fun checkUsername() {
+        _uiState
+            .map { it.username }
+            .distinctUntilChanged()
+            .debounce(350L)
+            .filter { it.isNotEmpty() }
+            .onEach { username ->
+                profileRepository.checkUsername(username).fold(
+                    onSuccess = { result ->
+                        _uiState.update {
+                            it.copy(
+                                usernameValid = result.valid,
+                                usernameError = result.message
+                            )
+                        }
+                    },
+                    onFailure = { throwable ->
+                        _uiState.update {
+                            it.copy(
+                                usernameValid = false,
+                                usernameError = throwable.message
+                            )
+                        }
+                    }
+                )
+            }.launchIn(viewModelScope)
+    }
+
     fun onNameChange(name: String) {
         _uiState.update {
-            it.copy(name = name)
+            it.copy(
+                nameError = null,
+                name = name
+            )
         }
     }
 
     fun onUsernameChange(username: String) {
         _uiState.update {
-            it.copy(username = username)
+            it.copy(
+                usernameError = null,
+                username = username
+            )
         }
     }
 
-    fun setProfilePicture(profilePicture: Bitmap) {
+    fun setProfilePicture(profilePicture: Uri?) {
         _uiState.update {
             it.copy(profilePicture = profilePicture)
         }
@@ -40,7 +87,7 @@ class CreateProfileViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
-                    continueButtonEnabled = false,
+                    isLoading = true,
                     usernameError = null,
                     nameError = null
                 )
@@ -53,29 +100,30 @@ class CreateProfileViewModel @Inject constructor(
             )
             if (!inputsValid) {
                 _uiState.update {
-                    it.copy(continueButtonEnabled = true)
+                    it.copy(isLoading = false)
                 }
                 return@launch
             }
 
-            val result = profileRepository.createProfile(
+            profileRepository.createProfile(
                 name = state.name,
                 username = state.username,
-                profilePicture = state.profilePicture
+                photo = state.profilePicture
+            ).fold(
+                onSuccess = {
+                    _uiState.update {
+                        it.copy(profileCreated = true)
+                    }
+                },
+                onFailure = { throwable ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = throwable.message
+                        )
+                    }
+                }
             )
-
-            if (result.isSuccess) {
-                _uiState.update {
-                    it.copy(profileCreated = true)
-                }
-            } else {
-                _uiState.update {
-                    it.copy(
-                        continueButtonEnabled = true,
-                        errorMessage = result.exceptionOrNull()?.message
-                    )
-                }
-            }
         }
     }
 
@@ -84,14 +132,14 @@ class CreateProfileViewModel @Inject constructor(
 
         if (name.isEmpty()) {
             errors["nameError"] = "Name should not be empty"
-        } else if (name.length > 50) {
-            errors["nameError"] = "Name should be less than 50 characters"
+        } else if (name.length > 30) {
+            errors["nameError"] = "Name should be less than 30 characters"
         }
 
         if (username.isEmpty()) {
             errors["usernameError"] = "Username should not be empty"
-        } else if (username.length > 50) {
-            errors["usernameError"] = "Username should be less than 50 characters"
+        } else if (username.length > 30) {
+            errors["usernameError"] = "Username should be less than 30 characters"
         }
 
         return if (errors.isNotEmpty()) {
@@ -115,12 +163,13 @@ class CreateProfileViewModel @Inject constructor(
 }
 
 data class CreateProfileUiState(
+    val isLoading: Boolean = false,
     val name: String = "",
     val username: String = "",
-    val profilePicture: Bitmap? = null,
+    val profilePicture: Uri? = null,
     val nameError: String? = null,
     val usernameError: String? = null,
+    val usernameValid: Boolean = false,
     val errorMessage: String? = null,
-    val continueButtonEnabled: Boolean = true,
     val profileCreated: Boolean = false
 )

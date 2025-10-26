@@ -3,6 +3,7 @@ package com.anshtya.jetx
 import android.app.Application
 import android.app.NotificationManager
 import android.content.Context
+import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import coil3.ImageLoader
@@ -22,6 +23,7 @@ class JetXApplication : Application(), Configuration.Provider, SingletonImageLoa
 
     override val workManagerConfiguration
         get() = Configuration.Builder()
+            .setMinimumLoggingLevel(if (BuildConfig.DEBUG) Log.INFO else Log.ERROR)
             .setWorkerFactory(workerFactory)
             .build()
 

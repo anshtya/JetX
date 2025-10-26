@@ -11,8 +11,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
-import kotlinx.io.IOException
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -14,8 +14,11 @@ interface MessageDao {
     @Query("SELECT chat_id FROM message WHERE uid = :messageId")
     suspend fun getMessageChatId(messageId: UUID): Int
 
-    @Query("SELECT * FROM message WHERE uid = :messageId")
-    suspend fun getMessage(messageId: UUID): MessageEntity
+    @Query("SELECT * FROM message WHERE id = :id")
+    suspend fun getMessage(id: Int): MessageEntity
+
+    @Query("SELECT * FROM message WHERE uid = :uuid")
+    suspend fun getMessage(uuid: UUID): MessageEntity
 
     @Query("""
         SELECT uid FROM message 

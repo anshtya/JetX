@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "2a83dacf24d16dea6a9ccbb623cc3505",
+    "identityHash": "9c92d35d5a7f38dacee78466e84da553",
     "entities": [
       {
         "tableName": "attachment",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `message_id` INTEGER NOT NULL, `file_name` TEXT, `storage_location` TEXT, `remote_location` TEXT, `thumbnail_location` TEXT, `size` TEXT, `type` TEXT NOT NULL, `transfer_state` TEXT, `download_progress` REAL NOT NULL, `width` INTEGER, `height` INTEGER, FOREIGN KEY(`message_id`) REFERENCES `message`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `message_id` INTEGER NOT NULL, `storage_location` TEXT, `remote_location` TEXT, `thumbnail_location` TEXT, `size` TEXT, `type` TEXT NOT NULL, `transfer_state` TEXT, `download_progress` REAL NOT NULL, `width` INTEGER, `height` INTEGER, FOREIGN KEY(`message_id`) REFERENCES `message`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -21,34 +21,24 @@
             "notNull": true
           },
           {
-            "fieldPath": "fileName",
-            "columnName": "file_name",
-            "affinity": "TEXT",
-            "notNull": false
-          },
-          {
             "fieldPath": "storageLocation",
             "columnName": "storage_location",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "remoteLocation",
             "columnName": "remote_location",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "thumbnailLocation",
             "columnName": "thumbnail_location",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "size",
             "columnName": "size",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "type",
@@ -59,8 +49,7 @@
           {
             "fieldPath": "transferState",
             "columnName": "transfer_state",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "downloadProgress",
@@ -71,14 +60,12 @@
           {
             "fieldPath": "width",
             "columnName": "width",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "height",
             "columnName": "height",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           }
         ],
         "primaryKey": {
@@ -219,8 +206,7 @@
           {
             "fieldPath": "text",
             "columnName": "text",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           },
           {
             "fieldPath": "isStarred",
@@ -248,6 +234,16 @@
           ]
         },
         "indices": [
+          {
+            "name": "index_message_id_uid",
+            "unique": true,
+            "columnNames": [
+              "id",
+              "uid"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_message_id_uid` ON `${TABLE_NAME}` (`id`, `uid`)"
+          },
           {
             "name": "index_message_chat_id_created_at_status",
             "unique": false,
@@ -327,8 +323,7 @@
           {
             "fieldPath": "messageId",
             "columnName": "message_id",
-            "affinity": "INTEGER",
-            "notNull": false
+            "affinity": "INTEGER"
           }
         ],
         "primaryKey": {
@@ -375,7 +370,7 @@
       },
       {
         "tableName": "user_profile",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `username` TEXT NOT NULL, `profile_picture` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `username` TEXT NOT NULL, `phone_number` TEXT NOT NULL, `profile_picture` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -396,10 +391,15 @@
             "notNull": true
           },
           {
+            "fieldPath": "phoneNumber",
+            "columnName": "phone_number",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
             "fieldPath": "profilePicture",
             "columnName": "profile_picture",
-            "affinity": "TEXT",
-            "notNull": false
+            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -407,15 +407,12 @@
           "columnNames": [
             "id"
           ]
-        },
-        "indices": [],
-        "foreignKeys": []
+        }
       }
     ],
-    "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2a83dacf24d16dea6a9ccbb623cc3505')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9c92d35d5a7f38dacee78466e84da553')"
     ]
   }
 }

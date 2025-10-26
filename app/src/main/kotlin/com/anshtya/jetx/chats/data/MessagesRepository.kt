@@ -25,7 +25,7 @@ interface MessagesRepository {
         senderId: UUID,
         recipientId: UUID,
         text: String?,
-        attachmentId: String
+        attachmentId: UUID?
     ): Result<Int>
 
     suspend fun markChatMessagesAsSeen(chatId: Int)

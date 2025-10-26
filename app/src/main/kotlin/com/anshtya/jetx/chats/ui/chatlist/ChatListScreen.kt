@@ -44,13 +44,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
 import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
-import com.anshtya.jetx.chats.ui.chat.toChatUserArgs
 import com.anshtya.jetx.chats.ui.components.ChatList
 import com.anshtya.jetx.chats.ui.components.DeleteChatDialog
 import com.anshtya.jetx.chats.ui.components.SearchTextField
 import com.anshtya.jetx.chats.ui.permissions.NotificationPermissionHandler
-import com.anshtya.jetx.core.model.UserProfile
 import com.anshtya.jetx.core.model.sampledata.sampleChats
+import com.anshtya.jetx.core.network.model.response.UserProfileSearchItem
 import com.anshtya.jetx.core.ui.UserListItem
 import com.anshtya.jetx.core.ui.components.button.BackButton
 import com.anshtya.jetx.core.ui.components.button.IconButtonDropdownMenu
@@ -108,7 +107,7 @@ private fun ChatListScreen(
     archivedChatEmpty: Boolean,
     selectedFilter: FilterOption,
     searchQuery: String,
-    searchResults: List<UserProfile>,
+    searchResults: List<UserProfileSearchItem>,
     onChatClick: (ChatUserArgs) -> Unit,
     onSelectChat: (Int) -> Unit,
     onUnselectChat: (Int) -> Unit,
@@ -200,12 +199,18 @@ private fun ChatListScreen(
                         key = { it.id }
                     ) {
                         UserListItem(
-                            profilePictureUrl = it.pictureUrl,
+                            profilePictureUrl = null,
                             username = it.username,
-                            supportingText = it.name,
+                            supportingText = it.displayName,
                             modifier = Modifier.noRippleClickable {
                                 focusManager.clearFocus()
-                                onProfileClick(it.toChatUserArgs())
+                                onProfileClick(
+                                    ChatUserArgs(
+                                        recipientId = it.id,
+                                        username = it.username,
+                                        pictureUrl = null
+                                    )
+                                )
                                 onClearSearch()
                             }
                         )
