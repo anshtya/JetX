@@ -1,5 +1,5 @@
 # JetX
-A real-time chat application built using [Supabase](https://supabase.com/), utilizing [supabase-kt](https://github.com/supabase-community/supabase-kt) client.
+A real-time chat application powered by [custom Spring Boot server](https://github.com/anshtya/JetX-Server).
 
 ## Core Functionalities
 - Realtime message updates.
