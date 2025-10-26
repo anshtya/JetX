@@ -1,9 +1,9 @@
 package com.anshtya.jetx.auth.data
 
-import com.anshtya.jetx.chats.data.MessageUpdatesListener
+import androidx.work.WorkManager
 import com.anshtya.jetx.core.coroutine.IoDispatcher
 import com.anshtya.jetx.core.database.JetXDatabase
-import com.anshtya.jetx.work.WorkManagerHelper
+import com.anshtya.jetx.core.network.websocket.WebSocketManager
 import com.anshtya.jetx.core.preferences.JetxPreferencesStore
 import com.anshtya.jetx.profile.data.AvatarManager
 import kotlinx.coroutines.CoroutineDispatcher
@@ -22,20 +22,20 @@ import javax.inject.Singleton
 class LogoutManager @Inject constructor(
     private val store: JetxPreferencesStore,
     private val db: JetXDatabase,
-    private val messageUpdatesListener: MessageUpdatesListener,
-    private val workManagerHelper: WorkManagerHelper,
+    private val webSocketManager: WebSocketManager,
     private val avatarManager: AvatarManager,
+    private val workManager: WorkManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
     suspend fun performLocalCleanup(): Result<Unit> =
         runCatching {
-            workManagerHelper.cancelAllWork()
+            workManager.cancelAllWork()
             withContext(ioDispatcher) {
                 db.clearAllTables()
             }
 
             store.user.clear()
             avatarManager.clearAll()
-            messageUpdatesListener.unsubscribe()
+            webSocketManager.disconnect()
         }
 }

@@ -33,6 +33,7 @@ import java.util.UUID
         )
     ],
     indices = [
+        Index(value = ["id", "uid"], unique = true),
         Index(value = ["chat_id", "created_at", "status"])
     ]
 )

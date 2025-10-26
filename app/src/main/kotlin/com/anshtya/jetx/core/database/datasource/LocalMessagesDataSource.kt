@@ -36,7 +36,7 @@ class LocalMessagesDataSource @Inject constructor(
     fun getChatMessages(chatId: Int): Flow<List<MessageWithAttachment>> =
         messageAttachmentsDao.getMessageWithAttachments(chatId)
 
-    suspend fun getMessage(messageId: UUID): MessageEntity = messageDao.getMessage(messageId)
+    suspend fun getMessage(id: Int): MessageEntity = messageDao.getMessage(id)
 
     suspend fun insertMessage(
         id: UUID,
@@ -45,7 +45,7 @@ class LocalMessagesDataSource @Inject constructor(
         text: String?,
         attachmentFormat: AttachmentFormat,
         currentUser: Boolean
-    ): MessageEntity {
+    ): Int {
         return db.withTransaction {
             val chatId = if (currentUser) {
                 chatDao.getChatId(recipientId)
@@ -74,9 +74,8 @@ class LocalMessagesDataSource @Inject constructor(
                     val file = attachmentFormat.uri.toFile()
                     val entity = AttachmentEntity(
                         messageId = messageId,
-                        fileName = file.name,
-                        storageLocation = file.absolutePath,
                         remoteLocation = null,
+                        storageLocation = file.absolutePath,
                         thumbnailLocation = null,
                         type = attachmentFormat.attachmentMetadata.type,
                         width = attachmentFormat.attachmentMetadata.width,
@@ -87,18 +86,16 @@ class LocalMessagesDataSource @Inject constructor(
                     entity
                 }
 
-                is AttachmentFormat.UrlAttachment -> {
+                is AttachmentFormat.ServerAttachment -> {
                     val networkAttachment = attachmentFormat.networkAttachment
                     val entity = AttachmentEntity(
                         messageId = messageId,
-                        fileName = null,
+                        remoteLocation = networkAttachment.name,
                         storageLocation = null,
-                        remoteLocation = networkAttachment.url,
                         thumbnailLocation = null,
-                        type = networkAttachment.type,
+                        type = AttachmentType.fromMimeType(networkAttachment.type)!!,
                         width = networkAttachment.width,
-                        height = networkAttachment.height,
-                        size = networkAttachment.size
+                        height = networkAttachment.height
                     )
                     attachmentDao.insertAttachment(entity)
 
@@ -116,7 +113,7 @@ class LocalMessagesDataSource @Inject constructor(
                 messageDao.updateMessageText(messageId, messageText)
             }
 
-            return@withTransaction messageEntity
+            return@withTransaction messageId
         }
     }
 

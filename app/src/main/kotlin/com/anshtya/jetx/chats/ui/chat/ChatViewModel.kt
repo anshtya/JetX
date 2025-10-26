@@ -5,13 +5,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import androidx.work.WorkManager
 import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
 import com.anshtya.jetx.chats.ui.navigation.ChatsDestination
 import com.anshtya.jetx.core.database.model.MessageWithAttachment
 import com.anshtya.jetx.profile.data.ProfileRepository
-import com.anshtya.jetx.work.WorkManagerHelper
-import com.anshtya.jetx.work.WorkScheduler
 import com.anshtya.jetx.work.worker.AttachmentDownloadWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -34,8 +33,7 @@ class ChatViewModel @Inject constructor(
     private val chatsRepository: ChatsRepository,
     private val messagesRepository: MessagesRepository,
     private val profileRepository: ProfileRepository,
-    private val workScheduler: WorkScheduler,
-    private val workManagerHelper: WorkManagerHelper
+    private val workManager: WorkManager
 ) : ViewModel() {
     private val chatArgs = savedStateHandle.toRoute<ChatsDestination.Chat>()
 
@@ -70,11 +68,6 @@ class ChatViewModel @Inject constructor(
                     chatId.update { chatArgs.chatId }
                     val userId = chatsRepository.getChatRecipientId(chatArgs.chatId)
                     val user = profileRepository.getProfile(userId)
-
-                    if (user == null) {
-                        _errorMessage.update { "User not found" }
-                        return@launch
-                    }
 
                     _recipientUser.update {
                         RecipientUser(
@@ -124,13 +117,11 @@ class ChatViewModel @Inject constructor(
     }
 
     fun downloadAttachment(attachmentId: Int, messageId: Int) {
-        workScheduler.createAttachmentDownloadWork(attachmentId, messageId)
+        AttachmentDownloadWorker.scheduleWork(workManager, attachmentId, messageId)
     }
 
     fun cancelAttachmentDownload(attachmentId: Int, messageId: Int) {
-        workManagerHelper.cancelWorkByUniqueName(
-            AttachmentDownloadWorker.generateWorkerName(attachmentId, messageId)
-        )
+        AttachmentDownloadWorker.cancelWork(workManager, attachmentId, messageId)
     }
 
     fun markChatMessagesAsSeen() {

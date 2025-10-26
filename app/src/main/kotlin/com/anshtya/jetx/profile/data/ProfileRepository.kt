@@ -3,6 +3,7 @@ package com.anshtya.jetx.profile.data
 import android.net.Uri
 import com.anshtya.jetx.core.model.UserProfile
 import com.anshtya.jetx.core.network.model.response.CheckUsernameResponse
+import com.anshtya.jetx.core.network.model.response.UserProfileSearchItem
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
@@ -11,9 +12,6 @@ import java.util.UUID
  *
  * Provides methods for creating, updating, and retrieving user profile data,
  * as well as checking username availability and managing profile photos.
- *
- * Implementations of this interface handle communication with the data layer,
- * including network and local database operations.
  */
 interface ProfileRepository {
 
@@ -92,7 +90,7 @@ interface ProfileRepository {
      */
     suspend fun searchProfiles(
         query: String
-    ): Result<List<UserProfile>>
+    ): Result<List<UserProfileSearchItem>>
 
     /**
      * Updates the display name of the current user.

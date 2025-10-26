@@ -8,11 +8,13 @@ import com.anshtya.jetx.core.network.model.body.UsernameBody
 import com.anshtya.jetx.core.network.model.response.CheckUsernameResponse
 import com.anshtya.jetx.core.network.model.response.FileResponse
 import com.anshtya.jetx.core.network.model.response.GetUserProfileResponse
+import com.anshtya.jetx.core.network.model.response.UserProfileSearchResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface UserProfileApi {
@@ -56,4 +58,9 @@ interface UserProfileApi {
     suspend fun updateFcmToken(
         @Body body: FcmBody
     ): Response<Unit>
+
+    @GET("user/search/{query}")
+    suspend fun searchUserProfiles(
+        @Path("query") query: String
+    ): Response<UserProfileSearchResponse>
 }

@@ -4,9 +4,9 @@ import android.app.NotificationManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.chats.data.ChatsRepository
-import com.anshtya.jetx.chats.data.MessageUpdatesListener
 import com.anshtya.jetx.core.model.Chat
-import com.anshtya.jetx.core.model.UserProfile
+import com.anshtya.jetx.core.network.model.response.UserProfileSearchItem
+import com.anshtya.jetx.core.network.websocket.WebSocketManager
 import com.anshtya.jetx.profile.data.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -29,7 +29,7 @@ class ChatListViewModel @Inject constructor(
     private val chatsRepository: ChatsRepository,
     private val profileRepository: ProfileRepository,
     private val notificationManager: NotificationManager,
-    private val messageUpdatesListener: MessageUpdatesListener
+    private val webSocketManager: WebSocketManager
 ) : ViewModel() {
     private var searchProfileJob: Job? = null
 
@@ -42,7 +42,7 @@ class ChatListViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
-    private val _searchSuggestions = MutableStateFlow<List<UserProfile>>(emptyList())
+    private val _searchSuggestions = MutableStateFlow<List<UserProfileSearchItem>>(emptyList())
     val searchSuggestions = _searchSuggestions.asStateFlow()
 
     val chatList: StateFlow<ChatListState> = _selectedFilter
@@ -81,7 +81,7 @@ class ChatListViewModel @Inject constructor(
 
     private fun subscribeToMessageUpdates() {
         viewModelScope.launch {
-            messageUpdatesListener.subscribe()
+            webSocketManager.connect()
         }
     }
 

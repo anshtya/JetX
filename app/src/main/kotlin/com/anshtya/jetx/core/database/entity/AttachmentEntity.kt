@@ -27,8 +27,6 @@ data class AttachmentEntity(
     val id: Int = 0,
     @ColumnInfo(name = "message_id", index = true)
     val messageId: Int,
-    @ColumnInfo(name = "file_name")
-    val fileName: String?,
     @ColumnInfo(name = "storage_location")
     val storageLocation: String?,
     @ColumnInfo(name = "remote_location")

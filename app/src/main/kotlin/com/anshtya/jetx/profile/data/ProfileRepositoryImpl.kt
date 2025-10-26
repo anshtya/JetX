@@ -6,19 +6,23 @@ import android.webkit.MimeTypeMap
 import com.anshtya.jetx.attachments.ImageCompressor
 import com.anshtya.jetx.attachments.data.AttachmentRepository
 import com.anshtya.jetx.auth.data.AuthManager
+import com.anshtya.jetx.core.coroutine.IoDispatcher
 import com.anshtya.jetx.core.database.dao.UserProfileDao
 import com.anshtya.jetx.core.database.entity.UserProfileEntity
 import com.anshtya.jetx.core.database.entity.toExternalModel
 import com.anshtya.jetx.core.model.UserProfile
 import com.anshtya.jetx.core.network.model.response.CheckUsernameResponse
+import com.anshtya.jetx.core.network.model.response.UserProfileSearchItem
 import com.anshtya.jetx.core.network.service.UserProfileService
 import com.anshtya.jetx.core.network.util.toResult
 import com.anshtya.jetx.core.preferences.JetxPreferencesStore
 import com.anshtya.jetx.fcm.FcmTokenManager
 import com.anshtya.jetx.profile.util.toEntity
 import com.anshtya.jetx.s3.S3
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 import javax.inject.Inject
@@ -34,7 +38,8 @@ class ProfileRepositoryImpl @Inject constructor(
     private val fcmTokenManager: FcmTokenManager,
     private val store: JetxPreferencesStore,
     private val userProfileDao: UserProfileDao,
-    private val imageCompressor: ImageCompressor
+    private val imageCompressor: ImageCompressor,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ProfileRepository {
     private val tag = this::class.simpleName
 
@@ -123,6 +128,9 @@ class ProfileRepositoryImpl @Inject constructor(
     override suspend fun fetchAndSaveProfile(
         userId: UUID
     ): Result<Unit> = runCatching {
+        val userProfileExists = userProfileDao.userProfileExists(userId)
+        if (userProfileExists) return Result.success(Unit)
+
         val userProfile = userProfileService.getProfileById(userId)
             .toResult()
             .getOrThrow()
@@ -143,7 +151,9 @@ class ProfileRepositoryImpl @Inject constructor(
 
             avatarManager.saveAvatar(
                 userId = userId.toString(),
-                byteArray = downloadedFile.bytes.readBytes(),
+                byteArray = withContext(ioDispatcher) {
+                    downloadedFile.bytes.use { it.readBytes() }
+                },
                 ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(downloadedFile.mimeType)!!
             ).getOrElse {
                 Log.e(tag, "Failed to save avatar of user id: $userId", it)
@@ -170,9 +180,11 @@ class ProfileRepositoryImpl @Inject constructor(
         return userProfileDao.getUserProfileFlow(userId).map { it?.toExternalModel() }
     }
 
-    override suspend fun searchProfiles(query: String): Result<List<UserProfile>> {
+    override suspend fun searchProfiles(
+        query: String
+    ): Result<List<UserProfileSearchItem>> {
         return runCatching {
-            emptyList() // TODO: implement
+            userProfileService.searchUserProfile(query).toResult().getOrThrow().users
         }
     }
 

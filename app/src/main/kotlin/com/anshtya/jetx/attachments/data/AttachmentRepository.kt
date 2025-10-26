@@ -21,36 +21,34 @@ import androidx.media3.transformer.ExportResult
 import androidx.media3.transformer.Transformer
 import com.anshtya.jetx.attachments.ImageCompressor
 import com.anshtya.jetx.core.coroutine.IoDispatcher
-import com.anshtya.jetx.util.Constants
+import com.anshtya.jetx.core.network.service.AttachmentService
+import com.anshtya.jetx.core.network.util.toResult
+import com.anshtya.jetx.s3.S3
 import com.anshtya.jetx.util.FileUtil
 import com.anshtya.jetx.util.UriUtil.getImageDimensions
 import com.anshtya.jetx.util.UriUtil.getMimeType
-import com.anshtya.jetx.util.UriUtil.getReadableFileSize
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Columns
-import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resumeWithException
 
 @Singleton
 class AttachmentRepository @Inject constructor(
-    client: SupabaseClient,
-    @ApplicationContext private val context: Context,
+    private val attachmentService: AttachmentService,
     private val imageCompressor: ImageCompressor,
+    private val s3: S3,
+    @ApplicationContext private val context: Context,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
     private val tag = this::class.simpleName
-    private val mediaBucket = client.storage.from(Constants.MEDIA_STORAGE)
-    private val attachmentTable = client.from(Constants.ATTACHMENT_TABLE)
 
     fun getMimeType(
         uri: Uri
@@ -127,11 +125,11 @@ class AttachmentRepository @Inject constructor(
 
     suspend fun uploadMediaAttachment(
         attachmentPath: String
-    ): Result<Int> = try {
+    ): Result<UUID> = try {
         val attachmentFile = File(attachmentPath)
 
         val attachmentUri = attachmentFile.toUri()
-        val mimeType = attachmentUri.getMimeType(context)
+        val mimeType = getMimeType(attachmentUri)
         if (mimeType == null) {
             throw IllegalArgumentException("Unsupported attachment type")
         }
@@ -140,22 +138,40 @@ class AttachmentRepository @Inject constructor(
 
         val inputByteArray = withContext(ioDispatcher) {
             ensureActive()
-            attachmentFile.readBytes()
+            FileInputStream(attachmentFile).use { it.readBytes() }
         }
-        val name = attachmentFile.name
 
-        mediaBucket.upload(path = name, data = inputByteArray)
-        val attachmentUploadResponse = attachmentTable.insert(
-            NetworkAttachment(
-                url = mediaBucket.publicUrl(name),
-                type = attachmentMetadata.type,
-                height = attachmentMetadata.height,
-                width = attachmentMetadata.width,
-                size = attachmentUri.getReadableFileSize()
-            )
-        ) { select(Columns.list("id")) }.decodeSingle<AttachmentUploadResponse>()
+        val uploadUrl = attachmentService.getAttachmentUploadUrl(
+            name = attachmentFile.name,
+            contentType = mimeType
+        )
+            .toResult()
+            .getOrElse {
+                Log.e(tag, "Failed to get upload url - ${it.message}", it)
+                return Result.failure(it)
+            }.url
+        s3.upload(
+            url = uploadUrl,
+            byteArray = inputByteArray,
+            contentType = mimeType,
+        ).getOrElse {
+            Log.e(tag, "Failed to upload attachment - ${it.message}", it)
+            return Result.failure(it)
+        }
 
-        Result.success(attachmentUploadResponse.id)
+        val id = attachmentService.createAttachment(
+            name = attachmentFile.name,
+            type = mimeType,
+            height = attachmentMetadata.height!!,
+            width = attachmentMetadata.width!!,
+        )
+            .toResult()
+            .getOrElse {
+                Log.e(tag, "Failed to upload attachment - ${it.message}", it)
+                return Result.failure(it)
+            }.id
+
+        Result.success(id)
     } catch (e: Exception) {
         Log.e(tag, "Error uploading attachment - ${e.message}")
         Result.failure(e)

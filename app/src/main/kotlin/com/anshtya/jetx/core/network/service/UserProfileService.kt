@@ -10,6 +10,7 @@ import com.anshtya.jetx.core.network.model.body.UsernameBody
 import com.anshtya.jetx.core.network.model.response.CheckUsernameResponse
 import com.anshtya.jetx.core.network.model.response.FileResponse
 import com.anshtya.jetx.core.network.model.response.GetUserProfileResponse
+import com.anshtya.jetx.core.network.model.response.UserProfileSearchResponse
 import com.anshtya.jetx.core.network.util.safeApiCall
 import java.util.UUID
 import javax.inject.Inject
@@ -96,6 +97,14 @@ class UserProfileService @Inject constructor(
     ): NetworkResult<Unit> {
         return safeApiCall {
             userProfileApi.updateFcmToken(FcmBody(token))
+        }
+    }
+
+    suspend fun searchUserProfile(
+        query: String
+    ): NetworkResult<UserProfileSearchResponse> {
+        return safeApiCall {
+            userProfileApi.searchUserProfiles(query)
         }
     }
 }

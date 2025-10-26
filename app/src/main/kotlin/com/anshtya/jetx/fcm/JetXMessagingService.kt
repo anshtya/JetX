@@ -2,21 +2,15 @@ package com.anshtya.jetx.fcm
 
 import android.util.Log
 import androidx.work.WorkManager
-import com.anshtya.jetx.work.WorkScheduler
 import com.anshtya.jetx.work.worker.FcmRefreshWorker
 import com.anshtya.jetx.work.worker.MessageReceiveWorker
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class JetXMessagingService : FirebaseMessagingService() {
-    // TODO: remove this
-    @Inject
-    lateinit var workScheduler: WorkScheduler
-
     @Inject
     lateinit var workManager: WorkManager
 
@@ -31,7 +25,7 @@ class JetXMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.i(tag, "Message received")
         val messageData = remoteMessage.data
-        workScheduler.createMessageReceiveWork(Json.encodeToString(messageData))
+        MessageReceiveWorker.scheduleWork(workManager, messageData)
     }
 
     override fun onDestroy() {

@@ -13,6 +13,9 @@ interface UserProfileDao {
     @Query("SELECT * FROM user_profile WHERE id = :id")
     suspend fun getUserProfile(id: UUID): UserProfileEntity
 
+    @Query("SELECT EXISTS(SELECT 1 FROM user_profile WHERE id = :id)")
+    suspend fun userProfileExists(id: UUID): Boolean
+
     @Query("SELECT * FROM user_profile WHERE id = :id")
     fun getUserProfileFlow(id: UUID): Flow<UserProfileEntity?>
 

@@ -1,6 +1,9 @@
 package com.anshtya.jetx.core.network.di
 
+import com.anshtya.jetx.core.network.api.AttachmentApi
 import com.anshtya.jetx.core.network.api.AuthApi
+import com.anshtya.jetx.core.network.api.MessageApi
+import com.anshtya.jetx.core.network.api.StorageApi
 import com.anshtya.jetx.core.network.api.UserProfileApi
 import com.anshtya.jetx.core.network.di.qualifiers.Authenticated
 import com.anshtya.jetx.core.network.di.qualifiers.Base
@@ -29,5 +32,29 @@ object ApiModule {
         @Authenticated retrofit: Retrofit
     ): UserProfileApi {
         return retrofit.create<UserProfileApi>()
+    }
+
+    @Provides
+    @Singleton
+    fun provideStorageApi(
+        @Authenticated retrofit: Retrofit
+    ): StorageApi {
+        return retrofit.create<StorageApi>()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAttachmentApi(
+        @Authenticated retrofit: Retrofit
+    ): AttachmentApi {
+        return retrofit.create<AttachmentApi>()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMessageApi(
+        @Authenticated retrofit: Retrofit
+    ): MessageApi {
+        return retrofit.create<MessageApi>()
     }
 }

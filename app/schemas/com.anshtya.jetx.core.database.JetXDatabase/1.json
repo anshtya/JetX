@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "69b4027587246b6f550e29a40843e9a8",
+    "identityHash": "9c92d35d5a7f38dacee78466e84da553",
     "entities": [
       {
         "tableName": "attachment",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `message_id` INTEGER NOT NULL, `file_name` TEXT, `storage_location` TEXT, `remote_location` TEXT, `thumbnail_location` TEXT, `size` TEXT, `type` TEXT NOT NULL, `transfer_state` TEXT, `download_progress` REAL NOT NULL, `width` INTEGER, `height` INTEGER, FOREIGN KEY(`message_id`) REFERENCES `message`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `message_id` INTEGER NOT NULL, `storage_location` TEXT, `remote_location` TEXT, `thumbnail_location` TEXT, `size` TEXT, `type` TEXT NOT NULL, `transfer_state` TEXT, `download_progress` REAL NOT NULL, `width` INTEGER, `height` INTEGER, FOREIGN KEY(`message_id`) REFERENCES `message`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -19,11 +19,6 @@
             "columnName": "message_id",
             "affinity": "INTEGER",
             "notNull": true
-          },
-          {
-            "fieldPath": "fileName",
-            "columnName": "file_name",
-            "affinity": "TEXT"
           },
           {
             "fieldPath": "storageLocation",
@@ -240,6 +235,16 @@
         },
         "indices": [
           {
+            "name": "index_message_id_uid",
+            "unique": true,
+            "columnNames": [
+              "id",
+              "uid"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_message_id_uid` ON `${TABLE_NAME}` (`id`, `uid`)"
+          },
+          {
             "name": "index_message_chat_id_created_at_status",
             "unique": false,
             "columnNames": [
@@ -407,7 +412,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '69b4027587246b6f550e29a40843e9a8')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9c92d35d5a7f38dacee78466e84da553')"
     ]
   }
 }

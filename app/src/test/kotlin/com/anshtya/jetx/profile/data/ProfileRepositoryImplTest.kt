@@ -19,6 +19,7 @@ import io.mockk.mockk
 import io.mockk.runs
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -70,7 +71,8 @@ class ProfileRepositoryImplTest {
             userProfileDao = userProfileDao,
             imageCompressor = mockk(),
             s3 = mockk(),
-            attachmentRepository = mockk()
+            attachmentRepository = mockk(),
+            ioDispatcher = StandardTestDispatcher()
         )
     }
 
