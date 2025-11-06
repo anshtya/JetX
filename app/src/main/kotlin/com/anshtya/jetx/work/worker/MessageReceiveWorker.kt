@@ -7,7 +7,6 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.RemoteInput
-import androidx.core.content.ContextCompat.getString
 import androidx.core.net.toUri
 import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
@@ -22,22 +21,21 @@ import com.anshtya.jetx.R
 import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
 import com.anshtya.jetx.core.database.dao.MessageDao
-import com.anshtya.jetx.core.model.MessageType
-import com.anshtya.jetx.core.network.model.NetworkMessage
+import com.anshtya.jetx.core.network.service.MessageService
+import com.anshtya.jetx.core.network.util.toResult
 import com.anshtya.jetx.notifications.MarkAsReadReceiver
 import com.anshtya.jetx.notifications.NotificationChannels
 import com.anshtya.jetx.notifications.ReplyReceiver
 import com.anshtya.jetx.profile.data.ProfileRepository
 import com.anshtya.jetx.util.Constants
-import com.anshtya.jetx.work.util.createInputData
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import java.util.UUID
 
 @HiltWorker
 class MessageReceiveWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
+    private val messageService: MessageService,
     private val chatsRepository: ChatsRepository,
     private val profileRepository: ProfileRepository,
     private val messagesRepository: MessagesRepository,
@@ -48,38 +46,46 @@ class MessageReceiveWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         return try {
-            val incomingMessage = NetworkMessage(
-                id = UUID.fromString(inputData.getString("id")),
-                senderId = UUID.fromString(inputData.getString("senderId")),
-                targetId = UUID.fromString(inputData.getString("targetId")),
-                type = MessageType.INDIVIDUAL,
-                content = inputData.getString("content"),
-                attachmentId = inputData.getString("attachmentId").takeIf { it != "null" }
-                    ?.let { UUID.fromString(it) }
-            )
+            val pendingMessages = messageService.getPendingMessages()
+                .toResult()
+                .getOrElse {
+                    Log.e(tag, "Failed to retrieve messages", it)
+                    return Result.retry()
+                }
 
-            val chatId = messagesRepository.receiveChatMessage(
-                id = incomingMessage.id,
-                senderId = incomingMessage.senderId,
-                recipientId = incomingMessage.targetId,
-                text = incomingMessage.content,
-                attachmentId = incomingMessage.attachmentId
-            ).getOrThrow()
+            pendingMessages.forEach { message ->
+                val messageExists = messageDao.messageExists(message.id)
+                if (messageExists) {
+                    val savedMessage = messageDao.getMessage(message.id)
+                        .copy(
+                            text = message.content,
+                            status = message.status!!
+                        )
+                    messageDao.insertMessage(savedMessage)
+                } else {
+                    val chatId = messagesRepository.receiveChatMessage(
+                        id = message.id,
+                        senderId = message.senderId,
+                        recipientId = message.targetId,
+                        text = message.content,
+                        attachmentId = message.attachmentId
+                    ).getOrThrow()
 
-            if (chatsRepository.currentChatId != chatId) {
-                val senderProfile = profileRepository.getProfile(incomingMessage.senderId)
-                postMessageNotification(
-                    senderName = senderProfile.username,
-                    message = messageDao.getMessage(incomingMessage.id).text!!,
-                    chatId = chatId
-                )
+                    if (chatsRepository.currentChatId != chatId) {
+                        val senderProfile = profileRepository.getProfile(message.senderId)
+                        postMessageNotification(
+                            senderName = senderProfile.username,
+                            message = messageDao.getMessage(message.id).text!!,
+                            chatId = chatId
+                        )
+                    }
+                }
             }
 
             Result.success()
         } catch (e: Exception) {
             Log.w(tag, e.message, e)
-            postMayHaveNewMessages()
-            Result.retry()
+            Result.failure()
         }
     }
 
@@ -151,36 +157,21 @@ class MessageReceiveWorker @AssistedInject constructor(
         }
     }
 
-    private fun postMayHaveNewMessages() {
-        val builder = NotificationCompat.Builder(
-            applicationContext,
-            NotificationChannels.MESSAGE_CHANNEL
-        )
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle(getString(applicationContext, R.string.app_name))
-            .setContentText(getString(applicationContext, R.string.may_have_new_messages))
-
-        notificationManager.notify(0, builder.build())
-    }
-
     companion object {
         fun scheduleWork(
             workManager: WorkManager,
-            data: Map<String, String>
         ) {
-            val messageId = data["id"]!!
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
 
             val workRequest = OneTimeWorkRequest.Builder(MessageReceiveWorker::class)
-                .setInputData(createInputData(data))
                 .setConstraints(constraints)
                 .build()
 
             workManager.enqueueUniqueWork(
-                "message_receive_$messageId",
-                ExistingWorkPolicy.APPEND_OR_REPLACE,
+                "message_receive",
+                ExistingWorkPolicy.KEEP,
                 workRequest
             )
         }

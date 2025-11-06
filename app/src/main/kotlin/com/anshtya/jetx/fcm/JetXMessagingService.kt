@@ -24,8 +24,9 @@ class JetXMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.i(tag, "Message received")
-        val messageData = remoteMessage.data
-        MessageReceiveWorker.scheduleWork(workManager, messageData)
+        if (remoteMessage.priority == RemoteMessage.PRIORITY_HIGH) {
+            MessageReceiveWorker.scheduleWork(workManager)
+        }
     }
 
     override fun onDestroy() {

@@ -1,5 +1,6 @@
 package com.anshtya.jetx.core.network.model
 
+import com.anshtya.jetx.core.database.model.MessageStatus
 import com.anshtya.jetx.core.model.MessageType
 import com.anshtya.jetx.util.UUIDSerializer
 import kotlinx.serialization.Serializable
@@ -21,5 +22,7 @@ data class NetworkMessage(
     val content: String?,
 
     @Serializable(UUIDSerializer::class)
-    val attachmentId: UUID?
+    val attachmentId: UUID?,
+
+    val status: MessageStatus? = null
 )

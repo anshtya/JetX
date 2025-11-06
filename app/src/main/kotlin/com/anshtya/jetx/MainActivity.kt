@@ -13,13 +13,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.anshtya.jetx.core.network.websocket.WebSocketManager
 import com.anshtya.jetx.core.preferences.model.ThemeOption
 import com.anshtya.jetx.ui.app.App
 import com.anshtya.jetx.ui.theme.JetXTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var webSocketManager: WebSocketManager
 
     private val viewModel: MainActivityViewModel by viewModels()
 
@@ -41,6 +46,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        webSocketManager.disconnect()
     }
 }
 

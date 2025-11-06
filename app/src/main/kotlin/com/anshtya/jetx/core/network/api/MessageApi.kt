@@ -35,4 +35,7 @@ interface MessageApi {
     suspend fun markMessagesSeen(
         @Body dto: MessageUpdateBody
     ): Response<Unit>
+
+    @GET("queue/pending")
+    suspend fun getPendingMessages(): Response<List<NetworkMessage>>
 }

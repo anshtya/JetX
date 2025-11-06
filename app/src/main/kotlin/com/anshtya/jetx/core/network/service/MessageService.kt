@@ -61,4 +61,10 @@ class MessageService @Inject constructor(
             )
         }
     }
+
+    suspend fun getPendingMessages(): NetworkResult<List<NetworkMessage>> {
+        return safeApiCall {
+            messageApi.getPendingMessages()
+        }
+    }
 }

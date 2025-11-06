@@ -20,6 +20,9 @@ interface MessageDao {
     @Query("SELECT * FROM message WHERE uid = :uuid")
     suspend fun getMessage(uuid: UUID): MessageEntity
 
+    @Query("SELECT EXISTS(SELECT id FROM message WHERE uid = :uuid)")
+    suspend fun messageExists(uuid: UUID): Boolean
+
     @Query("""
         SELECT uid FROM message 
         WHERE chat_id = :chatId AND status = :receivedStatus
