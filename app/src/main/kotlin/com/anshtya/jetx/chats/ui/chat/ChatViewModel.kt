@@ -10,6 +10,7 @@ import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
 import com.anshtya.jetx.chats.ui.navigation.ChatsDestination
 import com.anshtya.jetx.core.database.model.MessageWithAttachment
+import com.anshtya.jetx.notifications.DefaultNotificationManager
 import com.anshtya.jetx.profile.data.ProfileRepository
 import com.anshtya.jetx.work.worker.AttachmentDownloadWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,7 +34,8 @@ class ChatViewModel @Inject constructor(
     private val chatsRepository: ChatsRepository,
     private val messagesRepository: MessagesRepository,
     private val profileRepository: ProfileRepository,
-    private val workManager: WorkManager
+    private val workManager: WorkManager,
+    private val defaultNotificationManager: DefaultNotificationManager
 ) : ViewModel() {
     private val chatArgs = savedStateHandle.toRoute<ChatsDestination.Chat>()
 
@@ -91,7 +93,7 @@ class ChatViewModel @Inject constructor(
                     }
                 }
             }
-            chatId.value?.let { chatsRepository.setCurrentChatId(it) }
+            chatId.value?.let { defaultNotificationManager.setCurrentChat(it) }
         }
     }
 
@@ -110,8 +112,9 @@ class ChatViewModel @Inject constructor(
                 return@launch
             }
             if (chatId.value == null) {
-                chatId.update { chatsRepository.getChatId(recipientUser.id) }
-                chatsRepository.setCurrentChatId(chatId.value)
+                val id = chatsRepository.getChatId(recipientUser.id)!!
+                chatId.update { id }
+                defaultNotificationManager.setCurrentChat(id)
             }
         }
     }
@@ -162,6 +165,6 @@ class ChatViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        chatsRepository.setCurrentChatId(null)
+        defaultNotificationManager.clearCurrentChat()
     }
 }

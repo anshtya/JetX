@@ -102,4 +102,7 @@
     <string name="no_recent_chats">No recent chats</string>
     <string name="discard_media">Discard media?</string>
 
+    <!--Notification-->
+    <string name="multiple_chat_messages">%s messages from %s chats</string>
+
 </resources>

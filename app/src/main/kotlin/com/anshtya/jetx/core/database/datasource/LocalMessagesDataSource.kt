@@ -38,6 +38,14 @@ class LocalMessagesDataSource @Inject constructor(
 
     suspend fun getMessage(id: Int): MessageEntity = messageDao.getMessage(id)
 
+    suspend fun getUnreadMessagesCount(): Int = messageDao.getUnreadMessagesCount()
+
+    suspend fun getUnreadChatsCount(): Int = messageDao.getUnreadChatsCount()
+
+    suspend fun getUnreadRecentMessages(chatId: Int): List<String> {
+        return messageDao.getUnreadRecentMessages(chatId)
+    }
+
     suspend fun insertMessage(
         id: UUID,
         senderId: UUID,
@@ -118,7 +126,7 @@ class LocalMessagesDataSource @Inject constructor(
     }
 
     suspend fun markChatMessagesAsSeen(chatId: Int): List<UUID> {
-        val unreadMessageIds = messageDao.getUnreadMessagesId(chatId)
+        val unreadMessageIds = messageDao.getUnreadMessagesFromChat(chatId)
         messageDao.markMessagesAsRead(chatId)
         return unreadMessageIds
     }

@@ -1,12 +1,12 @@
 package com.anshtya.jetx.chats.ui.chatlist
 
-import android.app.NotificationManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.core.model.Chat
 import com.anshtya.jetx.core.network.model.response.UserProfileSearchItem
 import com.anshtya.jetx.core.network.websocket.WebSocketManager
+import com.anshtya.jetx.notifications.DefaultNotificationManager
 import com.anshtya.jetx.profile.data.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,7 +28,7 @@ import javax.inject.Inject
 class ChatListViewModel @Inject constructor(
     private val chatsRepository: ChatsRepository,
     private val profileRepository: ProfileRepository,
-    private val notificationManager: NotificationManager,
+    private val defaultNotificationManager: DefaultNotificationManager,
     private val webSocketManager: WebSocketManager
 ) : ViewModel() {
     private var searchProfileJob: Job? = null
@@ -153,7 +153,7 @@ class ChatListViewModel @Inject constructor(
     }
 
     fun clearNotification(chatId: Int) {
-        notificationManager.cancel(chatId)
+        defaultNotificationManager.cancelNotification(chatId)
     }
 }
 

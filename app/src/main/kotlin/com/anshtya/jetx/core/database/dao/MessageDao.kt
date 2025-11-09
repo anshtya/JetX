@@ -23,14 +23,29 @@ interface MessageDao {
     @Query("SELECT EXISTS(SELECT id FROM message WHERE uid = :uuid)")
     suspend fun messageExists(uuid: UUID): Boolean
 
+    @Query("SELECT COUNT(*) FROM message WHERE status = :receivedStatus")
+    suspend fun getUnreadMessagesCount(
+        receivedStatus: MessageStatus = MessageStatus.RECEIVED
+    ): Int
+
+    @Query("SELECT COUNT(DISTINCT chat_id) FROM message WHERE status = :receivedStatus")
+    suspend fun getUnreadChatsCount(
+        receivedStatus: MessageStatus = MessageStatus.RECEIVED
+    ): Int
+
     @Query("""
         SELECT uid FROM message 
         WHERE chat_id = :chatId AND status = :receivedStatus
     """)
-    suspend fun getUnreadMessagesId(
+    suspend fun getUnreadMessagesFromChat(
         chatId: Int,
         receivedStatus: MessageStatus = MessageStatus.RECEIVED
     ): List<UUID>
+
+    @Query("SELECT text FROM message WHERE chat_id = :chatId LIMIT 2")
+    suspend fun getUnreadRecentMessages(
+        chatId: Int
+    ): List<String>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMessage(message: MessageEntity): Long
@@ -53,7 +68,7 @@ interface MessageDao {
     @Query("""
         UPDATE message 
         SET status = :seenStatus 
-        WHERE chat_id = :chatId AND status = :receivedStatus AND created_at <= :time
+        WHERE chat_id = :chatId AND created_at <= :time AND status = :receivedStatus
     """)
     suspend fun markMessagesAsRead(
         chatId: Int,

@@ -2,10 +2,10 @@ package com.anshtya.jetx.notifications
 
 import android.app.NotificationChannel
 import android.app.NotificationChannelGroup
-import android.app.NotificationManager
 import android.app.NotificationManager.IMPORTANCE_DEFAULT
 import android.app.NotificationManager.IMPORTANCE_HIGH
 import android.content.Context
+import androidx.core.app.NotificationManagerCompat
 import com.anshtya.jetx.R
 
 object NotificationChannels {
@@ -16,11 +16,7 @@ object NotificationChannels {
     const val OTHER_CHANNEL = "other"
 
 
-    fun create(
-        context: Context,
-        notificationManager: NotificationManager
-    ) {
-
+    fun create(context: Context) {
         val chatNotificationGroup = NotificationChannelGroup(
             CHAT_GROUP,
             context.getString(R.string.notification_chat_group)
@@ -29,7 +25,7 @@ object NotificationChannels {
             OTHER_GROUP,
             context.getString(R.string.notification_other_group)
         )
-        notificationManager.createNotificationChannelGroups(
+        NotificationManagerCompat.from(context).createNotificationChannelGroups(
             listOf(chatNotificationGroup, otherNotificationGroup)
         )
 
@@ -47,7 +43,7 @@ object NotificationChannels {
         ).apply {
             group = otherNotificationGroup.id
         }
-        notificationManager.createNotificationChannels(
+        NotificationManagerCompat.from(context).createNotificationChannels(
             listOf(messageNotificationChannel, otherNotificationChannel)
         )
     }

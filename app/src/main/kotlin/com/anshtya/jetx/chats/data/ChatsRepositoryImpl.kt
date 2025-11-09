@@ -13,13 +13,6 @@ import javax.inject.Inject
 class ChatsRepositoryImpl @Inject constructor(
     private val chatDao: ChatDao
 ) : ChatsRepository {
-    override var currentChatId: Int? = null
-        private set
-
-    override fun setCurrentChatId(id: Int?) {
-        currentChatId = id
-    }
-
     override fun getChats(
         showFavoriteChats: Boolean,
         showUnreadChats: Boolean

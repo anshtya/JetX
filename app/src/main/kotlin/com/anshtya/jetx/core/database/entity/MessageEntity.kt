@@ -34,6 +34,7 @@ import java.util.UUID
     ],
     indices = [
         Index(value = ["id", "uid"], unique = true),
+        Index(value = ["chat_id", "status"]),
         Index(value = ["chat_id", "created_at", "status"])
     ]
 )
@@ -45,7 +46,7 @@ data class MessageEntity(
     val senderId: UUID,
     @ColumnInfo(name = "recipient_id", index = true)
     val recipientId: UUID,
-    @ColumnInfo(name = "chat_id")
+    @ColumnInfo(name = "chat_id", index = true)
     val chatId: Int,
     val text: String?,
     @ColumnInfo(name = "is_starred")

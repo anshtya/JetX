@@ -1,7 +1,6 @@
 package com.anshtya.jetx
 
 import android.app.Application
-import android.app.NotificationManager
 import android.content.Context
 import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
@@ -18,9 +17,6 @@ class JetXApplication : Application(), Configuration.Provider, SingletonImageLoa
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
-    @Inject
-    lateinit var notificationManager: NotificationManager
-
     override val workManagerConfiguration
         get() = Configuration.Builder()
             .setMinimumLoggingLevel(if (BuildConfig.DEBUG) Log.INFO else Log.ERROR)
@@ -29,7 +25,7 @@ class JetXApplication : Application(), Configuration.Provider, SingletonImageLoa
 
     override fun onCreate() {
         super.onCreate()
-        NotificationChannels.create(this, notificationManager)
+        NotificationChannels.create(this)
     }
 
     override fun newImageLoader(context: Context): ImageLoader {

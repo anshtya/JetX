@@ -12,6 +12,7 @@ import com.anshtya.jetx.core.database.model.MessageWithAttachment
 import com.anshtya.jetx.core.network.service.AttachmentService
 import com.anshtya.jetx.core.network.service.MessageService
 import com.anshtya.jetx.core.network.util.toResult
+import com.anshtya.jetx.notifications.DefaultNotificationManager
 import com.anshtya.jetx.profile.data.ProfileRepository
 import com.anshtya.jetx.work.worker.MessageSendWorker
 import kotlinx.coroutines.flow.Flow
@@ -28,7 +29,8 @@ class MessagesRepositoryImpl @Inject constructor(
     private val messageService: MessageService,
     private val attachmentService: AttachmentService,
     private val authManager: AuthManager,
-    private val workManager: WorkManager
+    private val workManager: WorkManager,
+    private val defaultNotificationManager: DefaultNotificationManager
 ) : MessagesRepository {
     private val tag = this::class.simpleName
 
@@ -41,7 +43,7 @@ class MessagesRepositoryImpl @Inject constructor(
         recipientId: UUID,
         text: String?,
         attachmentId: UUID?
-    ): Result<Int> = try {
+    ): Result<Unit> = try {
         val networkAttachment = attachmentId?.let {
             attachmentService.getAttachment(it)
                 .toResult()
@@ -63,7 +65,9 @@ class MessagesRepositoryImpl @Inject constructor(
         ).getOrThrow()
         messageService.markMessageReceived(id).toResult().getOrThrow()
 
-        Result.success(messageId)
+        defaultNotificationManager.postChatNotification(messageId)
+
+        Result.success(Unit)
     } catch (e: Exception) {
         Log.e(tag, "Error receiving chat message - ${e.message}")
         Result.failure(e)
