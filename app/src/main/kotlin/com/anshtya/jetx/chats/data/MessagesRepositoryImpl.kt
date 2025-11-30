@@ -48,7 +48,7 @@ class MessagesRepositoryImpl @Inject constructor(
             attachmentService.getAttachment(it)
                 .toResult()
                 .getOrElse { throwable ->
-                    Log.e(tag, "Failed to get attachment - ${throwable.message}", throwable)
+                    Log.e(tag, "Failed to get attachment", throwable)
                     return Result.failure(throwable)
                 }
         }
@@ -69,7 +69,7 @@ class MessagesRepositoryImpl @Inject constructor(
 
         Result.success(Unit)
     } catch (e: Exception) {
-        Log.e(tag, "Error receiving chat message - ${e.message}")
+        Log.e(tag, "Error receiving chat message")
         Result.failure(e)
     }
 
@@ -109,7 +109,7 @@ class MessagesRepositoryImpl @Inject constructor(
         MessageSendWorker.scheduleWork(workManager, messageId)
         Result.success(Unit)
     } catch (e: Exception) {
-        Log.e(tag, "Error sending chat message - ${e.message}", e)
+        Log.e(tag, "Error sending chat message", e)
         Result.failure(e)
     }
 
@@ -119,7 +119,7 @@ class MessagesRepositoryImpl @Inject constructor(
         messageService.markMessagesSeen(unreadMessageIds)
             .toResult()
             .getOrElse {
-                Log.w(tag, "Failed to mark messages as seen - ${it.message}", it)
+                Log.w(tag, "Failed to mark messages as seen", it)
             }
     }
 
@@ -145,7 +145,7 @@ class MessagesRepositoryImpl @Inject constructor(
 
         Result.success(messageId)
     } catch (e: Exception) {
-        Log.e(tag, "Error saving chat message - ${e.message}", e)
+        Log.e(tag, "Error saving chat message", e)
         Result.failure(e)
     }
 

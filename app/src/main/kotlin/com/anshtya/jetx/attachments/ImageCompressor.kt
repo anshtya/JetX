@@ -42,9 +42,7 @@ class ImageCompressor @Inject constructor(
         return withContext(defaultDispatcher) {
             ensureActive()
             val bitmap = BitmapFactory.decodeByteArray(inputBytes, 0, inputBytes.size)
-            if (bitmap == null) {
-                throw IOException("Image could not be decoded")
-            }
+                ?: throw IOException("Image could not be decoded")
 
             val compressFormat = when (mimeType) {
                 "image/png" -> Bitmap.CompressFormat.PNG

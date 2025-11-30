@@ -40,7 +40,7 @@ class AuthRepositoryImplTest {
         coEvery { logoutUser(any()) } returns NetworkResult.Success(Unit)
     }
     private val logoutManager: LogoutManager = mockk {
-        coEvery { performLocalCleanup() } returns Result.success(Unit)
+        coEvery { performLocalCleanup() } just runs
     }
     private val profileRepository: ProfileRepository = mockk {
         coEvery { fetchAndSaveProfile(any()) } returns Result.success(Unit)

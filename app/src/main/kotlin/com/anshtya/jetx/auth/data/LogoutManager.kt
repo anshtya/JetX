@@ -1,5 +1,6 @@
 package com.anshtya.jetx.auth.data
 
+import android.util.Log
 import androidx.work.WorkManager
 import com.anshtya.jetx.core.coroutine.IoDispatcher
 import com.anshtya.jetx.core.database.JetXDatabase
@@ -27,8 +28,10 @@ class LogoutManager @Inject constructor(
     private val workManager: WorkManager,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
-    suspend fun performLocalCleanup(): Result<Unit> =
-        runCatching {
+    private val tag = this::class.simpleName
+
+    suspend fun performLocalCleanup() {
+        try {
             workManager.cancelAllWork()
             withContext(ioDispatcher) {
                 db.clearAllTables()
@@ -37,5 +40,8 @@ class LogoutManager @Inject constructor(
             store.user.clear()
             avatarManager.clearAll()
             webSocketManager.disconnect()
+        } catch (e: Exception) {
+            Log.e(tag, "Failed to clear local user data", e)
         }
+    }
 }

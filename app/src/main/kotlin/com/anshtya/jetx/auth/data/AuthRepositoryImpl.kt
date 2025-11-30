@@ -49,7 +49,7 @@ class AuthRepositoryImpl @Inject constructor(
         )
 
         profileRepository.fetchAndSaveProfile(authResponse.userId).onFailure {
-            Log.e(tag, "Failed to fetch profile: ${authResponse.userId}", it)
+            Log.e(tag, "Failed to fetch profile", it)
             return Result.failure(it)
         }
 
@@ -119,9 +119,7 @@ class AuthRepositoryImpl @Inject constructor(
             authManager.deleteSession()
 
             withContext(NonCancellable) {
-                logoutManager.performLocalCleanup().onFailure {
-                    Log.e(tag, "Failed to clear local user data", it)
-                }
+                logoutManager.performLocalCleanup()
             }
         }
 }

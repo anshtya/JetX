@@ -60,13 +60,9 @@ class AttachmentRepository @Inject constructor(
         uri: Uri
     ): Result<AttachmentMetadata> = try {
         val mimeType = uri.getMimeType(context)
-        if (mimeType == null) {
-            throw IllegalArgumentException("Unsupported attachment type")
-        }
+            ?: throw IllegalArgumentException("Unsupported attachment type")
         val attachmentType = AttachmentType.fromMimeType(mimeType)
-        if (attachmentType == null) {
-            throw IllegalArgumentException("Unsupported attachment type")
-        }
+            ?: throw IllegalArgumentException("Unsupported attachment type")
 
         var attachmentHeight: Int?
         var attachmentWidth: Int?
@@ -98,7 +94,7 @@ class AttachmentRepository @Inject constructor(
             )
         )
     } catch (e: Exception) {
-        Log.e(tag, "Error Attachment metadata - ${e.message}")
+        Log.e(tag, "Error retrieving attachment metadata", e)
         Result.failure(e)
     }
 
@@ -106,9 +102,7 @@ class AttachmentRepository @Inject constructor(
         uri: Uri
     ): Result<Uri> = try {
         val mimeType = uri.getMimeType(context)
-        if (mimeType == null) {
-            throw IllegalArgumentException("Unsupported attachment type")
-        }
+            ?: throw IllegalArgumentException("Unsupported attachment type")
 
         val attachmentType = AttachmentType.fromMimeType(mimeType)
         val uri = when (attachmentType) {
@@ -119,7 +113,7 @@ class AttachmentRepository @Inject constructor(
         }
         Result.success(uri)
     } catch (e: Exception) {
-        Log.e(tag, "Error saving attachment before upload - ${e.message}")
+        Log.e(tag, "Error saving attachment before upload", e)
         Result.failure(e)
     }
 
@@ -130,9 +124,7 @@ class AttachmentRepository @Inject constructor(
 
         val attachmentUri = attachmentFile.toUri()
         val mimeType = getMimeType(attachmentUri)
-        if (mimeType == null) {
-            throw IllegalArgumentException("Unsupported attachment type")
-        }
+            ?: throw IllegalArgumentException("Unsupported attachment type")
 
         val attachmentMetadata = getAttachmentMetadata(attachmentUri).getOrThrow()
 
@@ -147,7 +139,7 @@ class AttachmentRepository @Inject constructor(
         )
             .toResult()
             .getOrElse {
-                Log.e(tag, "Failed to get upload url - ${it.message}", it)
+                Log.e(tag, "Failed to get upload url", it)
                 return Result.failure(it)
             }.url
         s3.upload(
@@ -155,7 +147,7 @@ class AttachmentRepository @Inject constructor(
             byteArray = inputByteArray,
             contentType = mimeType,
         ).getOrElse {
-            Log.e(tag, "Failed to upload attachment - ${it.message}", it)
+            Log.e(tag, "Failed to upload attachment", it)
             return Result.failure(it)
         }
 
@@ -167,13 +159,13 @@ class AttachmentRepository @Inject constructor(
         )
             .toResult()
             .getOrElse {
-                Log.e(tag, "Failed to upload attachment - ${it.message}", it)
+                Log.e(tag, "Failed to upload attachment", it)
                 return Result.failure(it)
             }.id
 
         Result.success(id)
     } catch (e: Exception) {
-        Log.e(tag, "Error uploading attachment - ${e.message}")
+        Log.e(tag, "Error uploading attachment", e)
         Result.failure(e)
     }
 
@@ -206,7 +198,7 @@ class AttachmentRepository @Inject constructor(
         }
         Result.success(file.toUri())
     } catch (e: Exception) {
-        Log.e(tag, "Error saving image to storage - ${e.message}")
+        Log.e(tag, "Error saving image to storage", e)
         Result.failure(e)
     }
 
@@ -223,7 +215,7 @@ class AttachmentRepository @Inject constructor(
         }
         Result.success(file.toUri())
     } catch (e: Exception) {
-        Log.e(tag, "Error saving video to storage - ${e.message}")
+        Log.e(tag, "Error saving video to storage", e)
         Result.failure(e)
     }
 
@@ -241,7 +233,7 @@ class AttachmentRepository @Inject constructor(
             Result.success(outputPath.toUri())
         }
     } catch (e: Exception) {
-        Log.e(tag, "Error saving image before upload - ${e.message}")
+        Log.e(tag, "Error saving image before upload", e)
         Result.failure(e)
     }
 
@@ -257,7 +249,7 @@ class AttachmentRepository @Inject constructor(
             Result.success(outputPath.toUri())
         }
     } catch (e: Exception) {
-        Log.e(tag, "Error saving bitmap before upload - ${e.message}")
+        Log.e(tag, "Error saving bitmap before upload", e)
         Result.failure(e)
     }
 
@@ -310,7 +302,7 @@ class AttachmentRepository @Inject constructor(
                         result: ExportResult,
                         exception: ExportException
                     ) {
-                        Log.e(tag, "Transformer exception - ${exception.message}")
+                        Log.e(tag, "Transformer exception", exception)
                         continuation.resumeWithException(exception)
                     }
                 }
@@ -321,7 +313,7 @@ class AttachmentRepository @Inject constructor(
 
             Result.success(uri)
         } catch (e: Exception) {
-            Log.e(tag, "error in transformer - ${e.message}")
+            Log.e(tag, "Error in saving video before upload", e)
             Result.failure(e)
         }
     }

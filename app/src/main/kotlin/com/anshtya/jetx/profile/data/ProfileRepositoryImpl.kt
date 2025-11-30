@@ -58,7 +58,7 @@ class ProfileRepositoryImpl @Inject constructor(
                 uri = photo,
                 mimeType = mimeType
             ).getOrElse {
-                Log.e(tag, "Failed to compress avatar of user id: $userId", it)
+                Log.e(tag, "Failed to compress avatar", it)
                 return Result.failure(it)
             }
 
@@ -76,7 +76,7 @@ class ProfileRepositoryImpl @Inject constructor(
                 byteArray = imageByteArray,
                 contentType = mimeType
             ).getOrElse {
-                Log.e(tag, "Failed to upload avatar of user id: $userId", it)
+                Log.e(tag, "Failed to upload avatar", it)
                 return Result.failure(it)
             }
 
@@ -85,7 +85,6 @@ class ProfileRepositoryImpl @Inject constructor(
                 byteArray = imageByteArray,
                 ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)!!
             ).getOrElse {
-                Log.e(tag, "Failed to save avatar of user id: $userId", it)
                 return Result.failure(it)
             }
         } else {
@@ -156,7 +155,6 @@ class ProfileRepositoryImpl @Inject constructor(
                 },
                 ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(downloadedFile.mimeType)!!
             ).getOrElse {
-                Log.e(tag, "Failed to save avatar of user id: $userId", it)
                 return Result.failure(it)
             }.absolutePath
         } else {
@@ -234,7 +232,7 @@ class ProfileRepositoryImpl @Inject constructor(
             uri = photo,
             mimeType = mimeType
         ).getOrElse {
-            Log.e(tag, "Failed to compress avatar of user id: $userId", it)
+            Log.e(tag, "Failed to compress avatar", it)
             return Result.failure(it)
         }
 
@@ -243,7 +241,7 @@ class ProfileRepositoryImpl @Inject constructor(
         )
             .toResult()
             .getOrElse {
-                Log.e(tag, "Failed to upload avatar of user id: $userId", it)
+                Log.e(tag, "Failed to generate avatar upload url", it)
                 return Result.failure(it)
             }.url
         s3.upload(
@@ -251,7 +249,7 @@ class ProfileRepositoryImpl @Inject constructor(
             byteArray = photoByteArray,
             contentType = mimeType,
         ).getOrElse {
-            Log.e(tag, "Failed to upload avatar of user id: $userId", it)
+            Log.e(tag, "Failed to upload avatar", it)
             return Result.failure(it)
         }
 
@@ -260,7 +258,6 @@ class ProfileRepositoryImpl @Inject constructor(
             newByteArray = photoByteArray,
             ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)!!
         ).getOrElse {
-            Log.e(tag, "Failed to save avatar of user id: $userId", it)
             return Result.failure(it)
         }
         userProfileDao.updateProfilePicture(
@@ -277,13 +274,12 @@ class ProfileRepositoryImpl @Inject constructor(
         userProfileService.removeProfilePhoto()
             .toResult()
             .onFailure {
-                Log.e(tag, "Failed to remove avatar of user id: $userId", it)
+                Log.e(tag, "Failed to remove avatar", it)
                 return Result.failure(it)
             }
 
-        avatarManager.deleteAvatar(photoPath).getOrElse {
-            Log.e(tag, "Failed to delete avatar of user id: $userId", it)
-        }
+        avatarManager.deleteAvatar(photoPath)
+
         userProfileDao.updateProfilePicture(
             id = userId,
             profilePicture = null
