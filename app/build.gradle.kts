@@ -27,11 +27,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField(
-            type = "String",
-            name = "BASE_URL",
-            value = "\"http://127.0.0.1:8080/api/v1/\""
-        )
+        buildConfigField("String", "BASE_URL", "\"https://jetx-server.onrender.com/api/v1/\"")
     }
 
     buildTypes {
@@ -46,6 +42,10 @@ android {
                 "proguard-rules.pro"
             )
             isDebuggable = false
+        }
+        create("stagingRelease") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     kotlin {
