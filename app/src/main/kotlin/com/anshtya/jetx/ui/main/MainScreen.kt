@@ -22,8 +22,10 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.anshtya.jetx.attachments.ui.preview.MediaPreviewActivity
@@ -34,10 +36,24 @@ import com.anshtya.jetx.chats.ui.navigation.ChatsGraphRoute
 import com.anshtya.jetx.chats.ui.navigation.chatsGraph
 import com.anshtya.jetx.core.ui.components.scaffold.JetxScaffold
 import com.anshtya.jetx.util.Constants
+import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
 
+@Serializable
+data object MainScreenWithNavBar
+
+fun NavGraphBuilder.mainScreenWithNavBar(
+    onNavigateToSettings: () -> Unit,
+) {
+    composable<MainScreenWithNavBar> {
+        MainScreen(
+            onNavigateToSettings = onNavigateToSettings
+        )
+    }
+}
+
 @Composable
-fun MainScreen(
+private fun MainScreen(
     onNavigateToSettings: () -> Unit,
     navController: NavHostController = rememberNavController()
 ) {

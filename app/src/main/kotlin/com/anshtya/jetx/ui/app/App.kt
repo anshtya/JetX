@@ -16,11 +16,9 @@ import com.anshtya.jetx.onboarding.navigation.onboardingGraph
 import com.anshtya.jetx.profile.ui.CreateProfileRoute
 import com.anshtya.jetx.registration.navigation.RegistrationGraph
 import com.anshtya.jetx.registration.navigation.registrationGraph
-import com.anshtya.jetx.settings.navigation.navigateToSettingsGraph
-import com.anshtya.jetx.settings.navigation.settingsGraph
 import com.anshtya.jetx.ui.LoadingRoute
-import com.anshtya.jetx.ui.main.MainRoute
-import com.anshtya.jetx.ui.main.mainDestination
+import com.anshtya.jetx.ui.main.MainGraph
+import com.anshtya.jetx.ui.main.mainGraph
 
 @Composable
 fun App(
@@ -54,13 +52,7 @@ fun App(
             CreateProfileRoute()
         }
 
-        mainDestination(
-            onNavigateToSettings = navController::navigateToSettingsGraph
-        )
-
-        settingsGraph(
-            navController = navController
-        )
+        mainGraph(navController = navController)
     }
 
     LaunchedEffect(navState) {
@@ -81,7 +73,7 @@ fun App(
             }
 
             AppNavState.Authenticated -> {
-                navController.navigate(MainRoute, appNavOptions)
+                navController.navigate(MainGraph, appNavOptions)
             }
 
             AppNavState.Unauthenticated -> {
