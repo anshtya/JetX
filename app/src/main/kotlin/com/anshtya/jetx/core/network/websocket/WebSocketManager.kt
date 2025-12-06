@@ -73,7 +73,7 @@ class WebSocketManager @Inject constructor(
             Log.i(tag, "Connecting WebSocket")
             val userId = authManager.authState.value.currentUserIdOrNull()!!
             val request = Request.Builder()
-                .url("ws://${BuildConfig.BASE_URL.substringAfter("http://")}connect?userId=$userId")
+                .url("wss://${BuildConfig.BASE_URL.substringAfter("https://")}connect?userId=$userId")
                 .build()
             webSocket = client.newWebSocket(request, listener)
             isConnecting = false
