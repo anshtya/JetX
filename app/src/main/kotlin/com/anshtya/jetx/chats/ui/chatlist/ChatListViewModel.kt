@@ -1,8 +1,8 @@
 package com.anshtya.jetx.chats.ui.chatlist
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.chats.data.ChatsRepository
+import com.anshtya.jetx.chats.ui.ChatsBaseViewModel
 import com.anshtya.jetx.core.model.Chat
 import com.anshtya.jetx.core.network.model.response.UserProfileSearchItem
 import com.anshtya.jetx.core.network.websocket.WebSocketManager
@@ -30,14 +30,11 @@ class ChatListViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val defaultNotificationManager: DefaultNotificationManager,
     private val webSocketManager: WebSocketManager
-) : ViewModel() {
+) : ChatsBaseViewModel() {
     private var searchProfileJob: Job? = null
 
     private val _selectedFilter = MutableStateFlow(FilterOption.ALL)
     val selectedFilter = _selectedFilter.asStateFlow()
-
-    private val _selectedChats = MutableStateFlow<Set<Int>>(emptySet())
-    val selectedChats = _selectedChats.asStateFlow()
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
@@ -110,39 +107,16 @@ class ChatListViewModel @Inject constructor(
         _selectedFilter.update { filterOption }
     }
 
-    fun selectChat(id: Int) {
-        _selectedChats.update {
-            it.toMutableSet().apply { add(id) }
-        }
-    }
-
-    fun unselectChat(id: Int) {
-        _selectedChats.update {
-            it.toMutableSet().apply { remove(id) }
-        }
-    }
-
-    fun clearSelectedChats() {
-        _selectedChats.update { emptySet() }
-    }
-
     fun deleteChat() {
         viewModelScope.launch {
-            chatsRepository.deleteChats(_selectedChats.value.toList())
+            chatsRepository.deleteChats(mutableSelectedChats.value.toList())
             clearSelectedChats()
         }
     }
 
     fun archiveChat() {
         viewModelScope.launch {
-            chatsRepository.archiveChats(_selectedChats.value.toList())
-            clearSelectedChats()
-        }
-    }
-
-    fun unarchiveChat() {
-        viewModelScope.launch {
-            chatsRepository.unarchiveChats(_selectedChats.value.toList())
+            chatsRepository.archiveChats(mutableSelectedChats.value.toList())
             clearSelectedChats()
         }
     }

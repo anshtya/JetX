@@ -10,7 +10,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -22,39 +21,25 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.anshtya.jetx.attachments.ui.preview.MediaPreviewActivity
-import com.anshtya.jetx.calls.ui.navigation.calls
+import com.anshtya.jetx.calls.ui.navigation.callLogsScreen
 import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
 import com.anshtya.jetx.chats.ui.chat.toChatDestination
-import com.anshtya.jetx.chats.ui.navigation.ChatsGraphRoute
-import com.anshtya.jetx.chats.ui.navigation.chatsGraph
+import com.anshtya.jetx.chats.ui.navigation.ChatsDestination
+import com.anshtya.jetx.chats.ui.navigation.chatListScreen
 import com.anshtya.jetx.core.ui.components.scaffold.JetxScaffold
 import com.anshtya.jetx.util.Constants
-import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
 
-@Serializable
-data object MainScreenWithNavBar
-
-fun NavGraphBuilder.mainScreenWithNavBar(
-    onNavigateToSettings: () -> Unit,
-) {
-    composable<MainScreenWithNavBar> {
-        MainScreen(
-            onNavigateToSettings = onNavigateToSettings
-        )
-    }
-}
-
 @Composable
-private fun MainScreen(
+fun MainScreen(
     onNavigateToSettings: () -> Unit,
+    onNavigateToArchivedChatList: () -> Unit,
+    onNavigateToChat: (ChatUserArgs) -> Unit,
     navController: NavHostController = rememberNavController()
 ) {
     val topLevelDestinations = remember { TopLevelDestination.entries }
@@ -69,34 +54,25 @@ private fun MainScreen(
         onDispose { activity.removeOnNewIntentListener(listener) }
     }
 
-    val showBottomBar by remember {
-        derivedStateOf {
-            topLevelDestinations.any {
-               currentBackStackEntry?.destination?.hasRoute(it.route::class) == true
-            }
-        }
-    }
-
     JetxScaffold(
         bottomBar = {
-            if (showBottomBar) {
-                BottomNavigationBar(
-                    destinations = topLevelDestinations,
-                    currentDestination = currentBackStackEntry?.destination,
-                    onNavigateToDestination = navController::navigateToTopLevelDestination
-                )
-            }
+            BottomNavigationBar(
+                destinations = topLevelDestinations,
+                currentDestination = currentBackStackEntry?.destination,
+                onNavigateToDestination = navController::navigateToTopLevelDestination
+            )
         }
     ) {
         NavHost(
             navController = navController,
-            startDestination = ChatsGraphRoute
+            startDestination = ChatsDestination.ChatList
         ) {
-            chatsGraph(
-                navController = navController,
-                onNavigateToSettings = onNavigateToSettings
+            chatListScreen(
+                onNavigateToSettings = onNavigateToSettings,
+                onNavigateToArchivedChatList = onNavigateToArchivedChatList,
+                onNavigateToChat = onNavigateToChat
             )
-            calls()
+            callLogsScreen()
         }
 
         // Handle onCreate intent
@@ -143,7 +119,7 @@ private fun NavDestination?.isDestinationInHierarchy(
 
 private fun <T : Any> NavController.navigateToTopLevelDestination(route: T) {
     navigate(route) {
-        popUpTo(ChatsGraphRoute) {
+        popUpTo(graph.startDestinationId) {
             saveState = true
         }
         launchSingleTop = true

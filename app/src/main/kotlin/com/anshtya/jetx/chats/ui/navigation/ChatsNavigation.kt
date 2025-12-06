@@ -1,7 +1,5 @@
 package com.anshtya.jetx.chats.ui.navigation
 
-import androidx.compose.runtime.remember
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -11,51 +9,21 @@ import androidx.navigation.toRoute
 import com.anshtya.jetx.attachments.ui.MediaScreen
 import com.anshtya.jetx.chats.ui.archivedchatlist.ArchivedChatListRoute
 import com.anshtya.jetx.chats.ui.chat.ChatRoute
+import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
 import com.anshtya.jetx.chats.ui.chat.toChatDestination
 import com.anshtya.jetx.chats.ui.chatlist.ChatListRoute
-import com.anshtya.jetx.chats.ui.chatlist.ChatListViewModel
 import com.anshtya.jetx.util.Constants
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object ChatsGraphRoute
+data object ChatGraphRoute
 
-fun NavGraphBuilder.chatsGraph(
-    navController: NavController,
-    onNavigateToSettings: () -> Unit
+fun NavGraphBuilder.chatGraph(
+    navController: NavController
 ) {
-    navigation<ChatsGraphRoute>(
-        startDestination = ChatsDestination.ChatList
+    navigation<ChatGraphRoute>(
+        startDestination = ChatsDestination.Chat()
     ) {
-        composable<ChatsDestination.ChatList> { backStackEntry ->
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(ChatsGraphRoute)
-            }
-            ChatListRoute(
-                onNavigateToChat = { args ->
-                    navController.navigate(args.toChatDestination())
-                },
-                onNavigateToArchivedChats = {
-                    navController.navigate(ChatsDestination.ArchivedChatList)
-                },
-                onNavigateToSettings = onNavigateToSettings,
-                viewModel = hiltViewModel<ChatListViewModel>(parentEntry)
-            )
-        }
-
-        composable<ChatsDestination.ArchivedChatList> { backStackEntry ->
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(ChatsGraphRoute)
-            }
-            ArchivedChatListRoute(
-                onNavigateToChat = { args ->
-                    navController.navigate(args.toChatDestination())
-                },
-                onBackClick = navController::navigateUp,
-                viewModel = hiltViewModel<ChatListViewModel>(parentEntry)
-            )
-        }
-
         composable<ChatsDestination.Chat>(
             deepLinks = listOf(
                 navDeepLink<ChatsDestination.Chat>(
@@ -78,4 +46,38 @@ fun NavGraphBuilder.chatsGraph(
             )
         }
     }
+}
+
+fun NavGraphBuilder.chatListScreen(
+    onNavigateToSettings: () -> Unit,
+    onNavigateToArchivedChatList: () -> Unit,
+    onNavigateToChat: (ChatUserArgs) -> Unit
+) {
+    composable<ChatsDestination.ChatList> {
+        ChatListRoute(
+            onNavigateToChat = onNavigateToChat,
+            onNavigateToArchivedChats = onNavigateToArchivedChatList,
+            onNavigateToSettings = onNavigateToSettings
+        )
+    }
+}
+
+fun NavGraphBuilder.archivedChatListScreen(
+    onNavigateUp: () -> Unit,
+    onNavigateToChat: (ChatUserArgs) -> Unit
+) {
+    composable<ChatsDestination.ArchivedChatList> {
+        ArchivedChatListRoute(
+            onNavigateToChat = onNavigateToChat,
+            onBackClick = onNavigateUp
+        )
+    }
+}
+
+fun NavController.navigateToArchivedChatList() {
+    navigate(ChatsDestination.ArchivedChatList)
+}
+
+fun NavController.navigateToChat(args: ChatUserArgs) {
+    navigate(args.toChatDestination())
 }

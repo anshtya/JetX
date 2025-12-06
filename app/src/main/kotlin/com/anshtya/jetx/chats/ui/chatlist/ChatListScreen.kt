@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anshtya.jetx.R
 import com.anshtya.jetx.chats.ui.chat.ChatUserArgs
@@ -64,7 +65,7 @@ fun ChatListRoute(
     onNavigateToChat: (ChatUserArgs) -> Unit,
     onNavigateToArchivedChats: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    viewModel: ChatListViewModel
+    viewModel: ChatListViewModel = hiltViewModel()
 ) {
     val chatListState by viewModel.chatList.collectAsStateWithLifecycle()
     val archivedChatEmpty by viewModel.archivedChatsEmpty.collectAsStateWithLifecycle()
