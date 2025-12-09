@@ -51,29 +51,6 @@ class AvatarManager @Inject constructor(
         Result.failure(e)
     }
 
-    suspend fun updateAvatar(
-        userId: String,
-        newByteArray: ByteArray,
-        ext: String
-    ): Result<File> = try {
-        withContext(ioDispatcher) {
-            val avatarFile = FileUtil.createFile(
-                filePath = FileUtil.getAvatarDirectory(context),
-                name = userId,
-                ext = ext
-            )
-            ensureActive()
-            FileOutputStream(avatarFile, false).use { outputStream ->
-                outputStream.write(newByteArray)
-            }
-
-            Result.success(avatarFile)
-        }
-    } catch (e: IOException) {
-        Log.e(tag, "Failed to update avatar", e)
-        Result.failure(e)
-    }
-
     suspend fun deleteAvatar(
         path: String
     ) {

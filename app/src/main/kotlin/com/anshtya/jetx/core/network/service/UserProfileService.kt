@@ -8,6 +8,7 @@ import com.anshtya.jetx.core.network.model.body.GetUserProfileBody
 import com.anshtya.jetx.core.network.model.body.NameBody
 import com.anshtya.jetx.core.network.model.body.UsernameBody
 import com.anshtya.jetx.core.network.model.response.CheckUsernameResponse
+import com.anshtya.jetx.core.network.model.response.CreateUserProfileResponse
 import com.anshtya.jetx.core.network.model.response.FileResponse
 import com.anshtya.jetx.core.network.model.response.GetUserProfileResponse
 import com.anshtya.jetx.core.network.model.response.UserProfileSearchResponse
@@ -33,7 +34,7 @@ class UserProfileService @Inject constructor(
         username: String,
         fcmToken: String,
         photoExists: Boolean
-    ): NetworkResult<GetUserProfileResponse> {
+    ): NetworkResult<CreateUserProfileResponse> {
         return safeApiCall {
             userProfileApi.createProfile(
                 CreateProfileBody(

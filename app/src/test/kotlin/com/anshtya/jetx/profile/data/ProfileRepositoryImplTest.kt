@@ -5,7 +5,7 @@ import com.anshtya.jetx.auth.data.AuthManager
 import com.anshtya.jetx.auth.data.model.AuthState
 import com.anshtya.jetx.core.database.dao.UserProfileDao
 import com.anshtya.jetx.core.network.model.NetworkResult
-import com.anshtya.jetx.core.network.model.response.GetUserProfileResponse
+import com.anshtya.jetx.core.network.model.response.CreateUserProfileResponse
 import com.anshtya.jetx.core.network.service.UserProfileService
 import com.anshtya.jetx.core.preferences.JetxPreferencesStore
 import com.anshtya.jetx.core.preferences.store.AccountStore
@@ -37,7 +37,7 @@ class ProfileRepositoryImplTest {
     }
     private val userProfileService: UserProfileService = mockk {
         coEvery { createProfile(any(), any(), any(), any()) } returns NetworkResult.Success(
-            GetUserProfileResponse("", "", "", true)
+            CreateUserProfileResponse("", "", "")
         )
     }
     private val accountStore: AccountStore = mockk {

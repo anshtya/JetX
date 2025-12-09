@@ -6,6 +6,7 @@ import com.anshtya.jetx.core.network.model.body.GetUserProfileBody
 import com.anshtya.jetx.core.network.model.body.NameBody
 import com.anshtya.jetx.core.network.model.body.UsernameBody
 import com.anshtya.jetx.core.network.model.response.CheckUsernameResponse
+import com.anshtya.jetx.core.network.model.response.CreateUserProfileResponse
 import com.anshtya.jetx.core.network.model.response.FileResponse
 import com.anshtya.jetx.core.network.model.response.GetUserProfileResponse
 import com.anshtya.jetx.core.network.model.response.UserProfileSearchResponse
@@ -26,7 +27,7 @@ interface UserProfileApi {
     @POST("user/create")
     suspend fun createProfile(
         @Body body: CreateProfileBody
-    ): Response<GetUserProfileResponse>
+    ): Response<CreateUserProfileResponse>
 
     @POST("user/check_username")
     suspend fun checkUsername(
