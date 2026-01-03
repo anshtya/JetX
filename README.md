@@ -1,5 +1,5 @@
 # JetX
-A real-time chat application powered by [custom Spring Boot server](https://github.com/anshtya/JetX-Server).
+A real-time chat application powered by [Spring Boot application](https://github.com/anshtya/JetX-Server).
 
 ## Core Functionalities
 - Realtime message updates.
