@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.anshtya.jetx.core.coroutine.IoDispatcher
 import com.anshtya.jetx.util.FileUtil
+import com.anshtya.jetx.util.convertTo12HourTime
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ensureActive
@@ -36,7 +37,7 @@ class AvatarManager @Inject constructor(
         withContext(ioDispatcher) {
             val file = FileUtil.createFile(
                 filePath = FileUtil.getAvatarDirectory(context),
-                name = userId,
+                name = generateAvatarFileName(userId),
                 ext = ext
             )
             ensureActive()
@@ -74,5 +75,9 @@ class AvatarManager @Inject constructor(
         } catch (e: IOException) {
             Log.e(tag, "Failed to delete avatar directory", e)
         }
+    }
+
+    private fun generateAvatarFileName(userId: String): String {
+        return "${userId}_${convertTo12HourTime(System.currentTimeMillis())}"
     }
 }

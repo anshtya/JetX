@@ -185,11 +185,15 @@ class ProfileRepositoryImpl @Inject constructor(
         photo: Uri
     ): Result<Unit> = runCatching {
         val userId = authManager.authState.value.currentUserIdOrNull()!!
+        // Retrieving old photo for cleaning up later
+        val oldProfilePhoto = getProfile(userId).pictureUrl
         val photoPath = uploadProfilePhoto(photo, userId).getOrThrow()
         userProfileDao.updateProfilePicture(
             id = userId,
             profilePicture = photoPath
         )
+        // Delete old profile photo
+        oldProfilePhoto?.let { avatarManager.deleteAvatar(it) }
     }
 
     override suspend fun removeProfilePhoto(): Result<Unit> = runCatching {
