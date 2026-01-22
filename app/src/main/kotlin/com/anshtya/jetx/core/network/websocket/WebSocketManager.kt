@@ -15,8 +15,10 @@ import okhttp3.Request
 import okhttp3.WebSocket
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
-// TODO: needs more validation
+@OptIn(ExperimentalAtomicApi::class)
 @Singleton
 class WebSocketManager @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -28,15 +30,15 @@ class WebSocketManager @Inject constructor(
 
     private val connectivityManager: ConnectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    private var isConnecting = false
+
+    private var isConnecting = AtomicBoolean(false)
     private var webSocket: WebSocket? = null
+    private val lock = Any()
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
-            if (webSocket == null && !isConnecting) {
-                Log.i(tag, "Internet restored, reconnecting WebSocket")
-                openNewConnection()
-            }
+            Log.i(tag, "Internet restored, reconnecting WebSocket")
+            openNewConnection()
         }
 
         override fun onLost(network: Network) {
@@ -50,7 +52,7 @@ class WebSocketManager @Inject constructor(
         ) {
             super.onCapabilitiesChanged(network, capabilities)
             val hasInternet = capabilities.hasCapability(
-                NetworkCapabilities.NET_CAPABILITY_INTERNET
+                NetworkCapabilities.NET_CAPABILITY_VALIDATED
             )
             if (hasInternet && webSocket == null) {
                 Log.i(tag, "Capabilities changed, reconnecting WebSocket")
@@ -60,23 +62,33 @@ class WebSocketManager @Inject constructor(
     }
 
     fun connect() {
-        openNewConnection()
         val networkRequest = NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             .build()
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
     }
 
     private fun openNewConnection() {
-        if (webSocket == null) {
-            isConnecting = true
-            Log.i(tag, "Connecting WebSocket")
-            val userId = authManager.authState.value.currentUserIdOrNull()!!
-            val request = Request.Builder()
-                .url("wss://${BuildConfig.BASE_URL.substringAfter("https://")}connect?userId=$userId")
-                .build()
-            webSocket = client.newWebSocket(request, listener)
-            isConnecting = false
+        if (!isConnecting.compareAndSet(expectedValue = false, true)) {
+            Log.w(tag, "Connection already in progress")
+            return
+        }
+
+        synchronized(lock) {
+            try {
+                if (webSocket != null) return
+
+                Log.i(tag, "Connecting WebSocket")
+                val userId = authManager.authState.value.currentUserIdOrNull()!!
+                val request = Request.Builder()
+                    .url("wss://${BuildConfig.BASE_URL.substringAfter("https://")}connect?userId=$userId")
+                    .build()
+                webSocket = client.newWebSocket(request, listener)
+            } catch (e: Exception) {
+                Log.e(tag, "Error during WebSocket connection", e)
+            } finally {
+                isConnecting.store(false)
+            }
         }
     }
 

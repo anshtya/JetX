@@ -1,7 +1,7 @@
 package com.anshtya.jetx.core.network.websocket
 
 import android.util.Log
-import com.anshtya.jetx.core.coroutine.ExternalScope
+import com.anshtya.jetx.core.coroutine.DefaultScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import okhttp3.Response
@@ -13,7 +13,7 @@ import javax.inject.Singleton
 @Singleton
 class WebSocketMessageListener @Inject constructor(
     private val websocketMessageProcessor: WebsocketMessageProcessor,
-    @ExternalScope private val scope: CoroutineScope
+    @DefaultScope private val scope: CoroutineScope
 ) : WebSocketListener() {
     private val tag = this::class.simpleName
 
