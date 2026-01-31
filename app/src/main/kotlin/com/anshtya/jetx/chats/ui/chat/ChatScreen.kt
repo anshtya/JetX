@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -36,7 +37,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -125,8 +125,14 @@ private fun ChatScreen(
     val context = LocalContext.current
     val listState = rememberLazyListState()
 
+    val firstMessageId = chatMessages.firstOrNull()?.messageInfo?.id
+    LaunchedEffect(firstMessageId) {
+        if (firstMessageId != null) {
+            listState.scrollToItem(0)
+        }
+    }
+
     LaunchedEffect(chatMessages) {
-        listState.scrollToItem(0)
         if (chatMessages.isNotEmpty()) {
             val hasUnseenMessages = chatMessages.any {
                 it.messageInfo.senderId == recipientUser?.id && it.messageInfo.status == MessageStatus.RECEIVED
@@ -137,10 +143,8 @@ private fun ChatScreen(
         }
     }
 
-    val selectedMessagesCount = remember(selectedMessages) { selectedMessages.size }
-    val messagesSelected by remember(selectedMessagesCount > 0) {
-        mutableStateOf(selectedMessagesCount > 0)
-    }
+    val selectedMessagesCount = selectedMessages.size
+    val messagesSelected = selectedMessagesCount > 0
 
     BackHandler(messagesSelected) {
         onClearSelectedMessages()
@@ -166,9 +170,11 @@ private fun ChatScreen(
         )
     }
 
-    if (errorMessage != null) {
-        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-        onErrorShown()
+    LaunchedEffect(errorMessage) {
+        if (errorMessage != null) {
+            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+            onErrorShown()
+        }
     }
 
     var chatInputText by rememberSaveable { mutableStateOf("") }
@@ -229,56 +235,53 @@ private fun ChatScreen(
             contentPadding = PaddingValues(vertical = 2.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            chatMessages.forEachIndexed { index, message ->
+            itemsIndexed(
+                items = chatMessages,
+                key = { _, m -> m.messageInfo.id }
+            ) { index, message ->
                 val messageInfo = message.messageInfo
 
                 val previousIndex = (index - 1).takeIf { it >= 0 }
                 val previousMessageInfo = previousIndex?.let { chatMessages[it].messageInfo }
-                if (previousMessageInfo != null &&
-                    isNotSameDay(messageInfo.createdAt, previousMessageInfo.createdAt)
+                if (previousMessageInfo != null
+                    && isNotSameDay(messageInfo.createdAt, previousMessageInfo.createdAt)
                 ) {
-                    item(key = previousMessageInfo.createdAt.toLocalDate()) {
-                        DateHeader(
-                            date = previousMessageInfo.createdAt.getDateOrTime(getToday = true),
-                            modifier = Modifier.padding(vertical = 10.dp)
-                        )
-                    }
-                }
-
-                val authorChanged = previousMessageInfo != null &&
-                        previousMessageInfo.senderId != messageInfo.senderId
-                val isAuthor = messageInfo.senderId != recipientUser?.id
-
-                item(key = messageInfo.id) {
-                    MessageItem(
-                        id = messageInfo.id,
-                        text = messageInfo.text,
-                        time = messageInfo.createdAt.getDateOrTime(getTimeOnly = true),
-                        status = messageInfo.status,
-                        isAuthor = isAuthor,
-                        messagesSelected = messagesSelected,
-                        isSelected = selectedMessages.any { it == messageInfo.id },
-                        attachmentInfo = message.attachment,
-                        onSelect = onMessageSelect,
-                        onUnselect = onMessageUnselect,
-                        onAttachmentClick = onAttachmentClick,
-                        onAttachmentDownloadClick = onAttachmentDownloadClick,
-                        onCancelDownloadClick = onCancelDownloadClick,
-                        modifier = Modifier
-                            .padding(
-                                top = 2.dp,
-                                bottom = if (authorChanged) 8.dp else 2.dp
-                            )
+                    DateHeader(
+                        date = previousMessageInfo.createdAt.getDateOrTime(getToday = true),
+                        modifier = Modifier.padding(vertical = 10.dp)
                     )
                 }
 
-                if (index == chatMessages.size - 1) {
-                    item(key = messageInfo.createdAt.toLocalDate()) {
-                        DateHeader(
-                            date = messageInfo.createdAt.getDateOrTime(getToday = true),
-                            modifier = Modifier.padding(vertical = 10.dp)
+                val authorChanged =
+                    previousMessageInfo != null && previousMessageInfo.senderId != messageInfo.senderId
+                val isAuthor = messageInfo.senderId != recipientUser?.id
+
+                MessageItem(
+                    id = messageInfo.id,
+                    text = messageInfo.text,
+                    time = messageInfo.createdAt.getDateOrTime(getTimeOnly = true),
+                    status = messageInfo.status,
+                    isAuthor = isAuthor,
+                    messagesSelected = messagesSelected,
+                    isSelected = messageInfo.id in selectedMessages,
+                    attachmentInfo = message.attachment,
+                    onSelect = onMessageSelect,
+                    onUnselect = onMessageUnselect,
+                    onAttachmentClick = onAttachmentClick,
+                    onAttachmentDownloadClick = onAttachmentDownloadClick,
+                    onCancelDownloadClick = onCancelDownloadClick,
+                    modifier = Modifier
+                        .padding(
+                            top = 2.dp,
+                            bottom = if (authorChanged) 8.dp else 2.dp
                         )
-                    }
+                )
+
+                if (index == chatMessages.size - 1) {
+                    DateHeader(
+                        date = messageInfo.createdAt.getDateOrTime(getToday = true),
+                        modifier = Modifier.padding(vertical = 10.dp)
+                    )
                 }
             }
         }
@@ -296,9 +299,7 @@ private fun ChatTopAppBar(
     onStarClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val messageSelected by remember(selectedMessagesCount) {
-        derivedStateOf { selectedMessagesCount > 0 }
-    }
+    val messageSelected = selectedMessagesCount > 0
 
     JetxTopAppBar(
         title = {
