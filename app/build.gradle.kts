@@ -2,7 +2,6 @@ import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
@@ -14,7 +13,7 @@ plugins {
 
 android {
     namespace = "com.anshtya.jetx"
-    compileSdk = 36
+    compileSdk = 37
 
     buildFeatures {
         buildConfig = true
@@ -23,7 +22,7 @@ android {
     defaultConfig {
         applicationId = "com.anshtya.jetx"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
@@ -52,17 +51,18 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
-    kotlin {
-        compilerOptions {
-            jvmToolchain(21)
-            freeCompilerArgs.add("-Xannotation-default-target=first-only")
-        }
-    }
     buildFeatures {
         compose = true
     }
     testOptions {
         unitTests.isReturnDefaultValues = true
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmToolchain(21)
+        freeCompilerArgs.add("-Xannotation-default-target=first-only")
     }
 }
 
