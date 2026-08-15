@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -27,7 +29,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "BASE_URL", "\"https://jetx-server.onrender.com/api/v1/\"")
+        val serverUrl = gradleLocalProperties(rootDir, providers)
+            .getProperty("SERVER_URL") ?: ""
+        buildConfigField("String", "BASE_URL", "\"$serverUrl\"")
     }
 
     buildTypes {
