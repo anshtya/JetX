@@ -96,6 +96,16 @@
     <string name="permission_enable">%s permission can be enabled in App info</string>
     <string name="multiple_permission_enable">%s permissions can be enabled in App info</string>
 
+    <!--Onboarding Permissions-->
+    <string name="onboarding_permission_title">Permissions we need</string>
+    <string name="onboarding_permission_text">JetX needs a few permissions to work properly. You can always change these later in your device settings.</string>
+    <string name="permission_camera_title">Camera</string>
+    <string name="permission_camera_text">Take photos and record videos to share in chats</string>
+    <string name="permission_microphone_title">Microphone</string>
+    <string name="permission_microphone_text">Record audio for videos and voice messages</string>
+    <string name="permission_notifications_title">Notifications</string>
+    <string name="permission_notifications_text">Get notified about new messages</string>
+
     <!--Send-->
     <string name="send_to">Send to</string>
     <string name="recent_chats">Recent chats</string>
