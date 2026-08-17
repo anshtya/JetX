@@ -4,9 +4,15 @@ import android.content.Context
 import android.content.Intent
 import android.os.Parcelable
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -55,6 +61,9 @@ fun MainScreen(
     }
 
     JetxScaffold(
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets
+            .union(WindowInsets.displayCutout)
+            .exclude(WindowInsets.statusBars),
         bottomBar = {
             BottomNavigationBar(
                 destinations = topLevelDestinations,
