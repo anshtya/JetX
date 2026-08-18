@@ -90,7 +90,7 @@ class ProfileRepositoryImplTest {
     fun `createProfile failure doesn't creates profile`() = runTest {
         coEvery {
             userProfileService.createProfile(any(), any(), any(), false)
-        } returns NetworkResult.Failure.OtherError(Exception(""))
+        } returns NetworkResult.Failure.Unknown(Exception(""))
 
         val result = repository.createProfile("name", "username", null)
         assertTrue(result.isFailure)

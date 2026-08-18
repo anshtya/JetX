@@ -29,12 +29,11 @@ fun <T> NetworkResult<T>.toResult(): Result<T> {
  * @return An [Exception] containing the generated error message and original stack trace.
  */
 private fun NetworkResult.Failure.toError(): Exception {
-    val errorMessage = when (this) {
+    return when (this) {
         is NetworkResult.Failure.HttpError -> {
-            if (this.code() == 500) "Something went wrong"
-            else this.errorMessage()
+            val message = if (code == 500) "Something went wrong" else errorMessage
+            Exception(message)
         }
-        is NetworkResult.Failure.OtherError -> "Can't connect to server"
+        is NetworkResult.Failure.Unknown -> Exception("Can't connect to server", exception)
     }
-    return Exception(errorMessage, this.exception)
 }
