@@ -1,8 +1,11 @@
 package com.anshtya.jetx.core.network.util
 
+import com.anshtya.jetx.core.network.model.ErrorResult
 import com.anshtya.jetx.core.network.model.NetworkResult
-import retrofit2.HttpException
+import kotlinx.serialization.json.Json
+import okhttp3.ResponseBody
 import retrofit2.Response
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Executes a Retrofit API call safely and wraps the result in a [NetworkResult].
@@ -21,21 +24,33 @@ suspend fun <T> safeApiCall(
 ): NetworkResult<T> {
     return try {
         val response = apiCall()
-        if (response.isSuccessful) {
-            // Check for no content response
-            if (response.code() == 204) {
+        val body = response.body()
+
+        when {
+            response.isSuccessful && body != null -> NetworkResult.Success(body)
+            response.isSuccessful && response.code() == 204 -> {
                 @Suppress("UNCHECKED_CAST")
                 NetworkResult.Success(Unit as T)
-            } else {
-                response.body()?.let { NetworkResult.Success(it) }
-                    ?: NetworkResult.Failure.OtherError(
-                        IllegalStateException("Response body is null")
-                    )
             }
-        } else {
-            NetworkResult.Failure.HttpError(HttpException(response))
+            else -> NetworkResult.Failure.HttpError(
+                code = response.code(),
+                errorMessage = parseErrorMessage(response.errorBody())
+            )
         }
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
-        NetworkResult.Failure.OtherError(e)
+        NetworkResult.Failure.Unknown(e)
     }
+}
+
+private val json = Json { ignoreUnknownKeys = true }
+
+private fun parseErrorMessage(errorBody: ResponseBody?): String {
+    val message = errorBody?.let {
+        runCatching {
+            json.decodeFromString<ErrorResult>(it.string()).message
+        }.getOrNull()
+    }
+    return message ?: "An unknown error occurred"
 }
