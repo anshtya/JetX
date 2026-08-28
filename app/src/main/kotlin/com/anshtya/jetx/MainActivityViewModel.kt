@@ -2,8 +2,8 @@ package com.anshtya.jetx
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anshtya.jetx.core.preferences.JetxPreferencesStore
 import com.anshtya.jetx.core.preferences.model.ThemeOption
+import com.anshtya.jetx.settings.data.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,11 +13,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
-    store: JetxPreferencesStore
+    userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
-    val state: StateFlow<MainActivityState> = store.user.appUiProperties
-        .map { uiProperties ->
-            MainActivityState(theme = uiProperties.theme)
+    val state: StateFlow<MainActivityState> = userPreferencesRepository.theme
+        .map { theme ->
+            MainActivityState(theme = theme)
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

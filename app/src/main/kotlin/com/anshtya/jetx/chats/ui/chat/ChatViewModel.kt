@@ -8,6 +8,7 @@ import androidx.navigation.toRoute
 import androidx.work.WorkManager
 import com.anshtya.jetx.chats.data.ChatsRepository
 import com.anshtya.jetx.chats.data.MessagesRepository
+import com.anshtya.jetx.chats.domain.SendChatMessageUseCase
 import com.anshtya.jetx.chats.ui.navigation.ChatsDestination
 import com.anshtya.jetx.core.database.model.MessageWithAttachment
 import com.anshtya.jetx.notifications.DefaultNotificationManager
@@ -33,6 +34,7 @@ class ChatViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val chatsRepository: ChatsRepository,
     private val messagesRepository: MessagesRepository,
+    private val sendChatMessageUseCase: SendChatMessageUseCase,
     private val profileRepository: ProfileRepository,
     private val workManager: WorkManager,
     private val defaultNotificationManager: DefaultNotificationManager
@@ -103,7 +105,7 @@ class ChatViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             val recipientUser = _recipientUser.value!!
-            messagesRepository.sendChatMessage(
+            sendChatMessageUseCase(
                 recipientId = recipientUser.id,
                 text = message,
                 attachmentUri = attachmentUri

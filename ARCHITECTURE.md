@@ -55,7 +55,20 @@ Each feature (auth, profile, chats, messages) has an interface + implementation 
 - **Auth** — calls the network service, then stores or clears the session in `AuthManager`.
 - **Profile** — writes to both the remote API and local DB; exposes profile data as a `Flow` from the DB.
 - **Chats** — reads from the local DB only; remote sync is driven by the messaging layer.
-- **Messages** — on send, writes to DB immediately (optimistic) then hands off to `MessageSendWorker`; on receive, persists incoming data and marks delivery on the server.
+- **Messages** — narrow data access only: read messages from the DB, insert a message, mark it received/seen on the server. Sending/receiving orchestration lives in the domain layer (see below).
+
+---
+
+## Domain Layer
+
+Multi-step flows that span more than one repository (or a repository plus infra like `WorkManager` or notifications) live in `<feature>/domain/` as use cases — plain classes with a single `operator fun invoke(...)`, constructor-injected via Hilt like anything else. They exist to keep repositories narrow (one repository = one data type = one source of truth) instead of letting one repository reach into others.
+
+A ViewModel that only needs a single repository call still talks to the repository directly — a use case is introduced only when a ViewModel would otherwise have to coordinate several repositories/managers itself.
+
+- **`SendChatMessageUseCase`** (`chats/domain/`) — migrates an attachment into app storage, saves the sender's profile, inserts the message into `MessagesRepository`, and schedules `MessageSendWorker`. Coordinates `MessagesRepository`, `ChatsRepository`, `ProfileRepository`, `AttachmentRepository`, `AuthManager`, and `WorkManager`.
+- **`ReceiveChatMessageUseCase`** (`chats/domain/`) — fetches attachment metadata for an incoming message, saves the sender's profile, inserts the message, acknowledges receipt to the server, and posts a notification. Coordinates `MessagesRepository`, `ProfileRepository`, `AttachmentRepository`, and `DefaultNotificationManager`.
+
+Both are called from every entry point that can send/receive a message — `ChatViewModel`, `MediaPreviewViewModel`, and `ReplyReceiver` call `SendChatMessageUseCase`; `WebsocketMessageProcessor` and `MessageReceiveWorker` call `ReceiveChatMessageUseCase` — so the orchestration logic exists in exactly one place instead of being duplicated per caller.
 
 ---
 
@@ -68,9 +81,9 @@ ChatScreen
   ▼  user taps send
 ChatViewModel
   ▼
-MessagesRepository
+SendChatMessageUseCase
   ├─ migrate attachment to app-internal storage
-  ├─ insert message into DB (status = SENDING)  ← UI updates immediately
+  ├─ insert message into DB via MessagesRepository (status = SENDING)  ← UI updates immediately
   └─ schedule MessageSendWorker
        ▼
      Retrofit → server
@@ -86,8 +99,10 @@ The recipient receives the message via WebSocket, replies with a `MESSAGE_UPDATE
 WebSocketManager
   ▼  NEW_MESSAGE frame
 WebsocketMessageProcessor
+  ▼
+ReceiveChatMessageUseCase
   ├─ fetch attachment metadata from API (if any)
-  ├─ insert message into DB  ← UI updates via Flow
+  ├─ insert message into DB via MessagesRepository  ← UI updates via Flow
   ├─ mark message received on server
   └─ post notification
 

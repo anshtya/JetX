@@ -5,7 +5,7 @@ import androidx.core.net.toFile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anshtya.jetx.attachments.data.AttachmentRepository
-import com.anshtya.jetx.chats.data.MessagesRepository
+import com.anshtya.jetx.chats.domain.SendChatMessageUseCase
 import com.anshtya.jetx.core.coroutine.IoDispatcher
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -28,7 +28,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MediaPreviewViewModel @Inject constructor(
     private val attachmentRepository: AttachmentRepository,
-    private val messagesRepository: MessagesRepository,
+    private val sendChatMessageUseCase: SendChatMessageUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
     private val _chatIds = mutableListOf<Int>()
@@ -101,7 +101,7 @@ class MediaPreviewViewModel @Inject constructor(
                     async {
                         _sendItems.value.map { item ->
                             async {
-                                messagesRepository.sendChatMessage(
+                                sendChatMessageUseCase(
                                     chatId = chatId,
                                     text = item.caption.ifBlank { null },
                                     attachmentUri = item.uri
@@ -116,7 +116,7 @@ class MediaPreviewViewModel @Inject constructor(
             } else if (_recipientId != null) {
                 _sendItems.value.map { item ->
                     async {
-                        messagesRepository.sendChatMessage(
+                        sendChatMessageUseCase(
                             recipientId = _recipientId!!,
                             text = item.caption.ifBlank { null },
                             attachmentUri = item.uri
