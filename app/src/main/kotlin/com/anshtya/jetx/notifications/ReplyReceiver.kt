@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.RemoteInput
 import com.anshtya.jetx.chats.data.MessagesRepository
+import com.anshtya.jetx.chats.domain.SendChatMessageUseCase
 import com.anshtya.jetx.core.coroutine.ExternalScope
 import com.anshtya.jetx.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
@@ -16,6 +17,9 @@ import javax.inject.Inject
 class ReplyReceiver : BroadcastReceiver() {
     @Inject
     lateinit var messagesRepository: MessagesRepository
+
+    @Inject
+    lateinit var sendChatMessageUseCase: SendChatMessageUseCase
 
     @Inject
     @ExternalScope
@@ -31,7 +35,7 @@ class ReplyReceiver : BroadcastReceiver() {
         val finisher = goAsync()
         scope.launch {
             messagesRepository.markChatMessagesAsSeen(chatId)
-            messagesRepository.sendChatMessage(chatId, replyText, attachmentUri = null).getOrThrow()
+            sendChatMessageUseCase(chatId, replyText, attachmentUri = null).getOrThrow()
             finisher.finish()
         }
     }

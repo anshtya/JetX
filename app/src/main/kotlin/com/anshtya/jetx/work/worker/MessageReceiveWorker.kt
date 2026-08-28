@@ -10,7 +10,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.anshtya.jetx.chats.data.MessagesRepository
+import com.anshtya.jetx.chats.domain.ReceiveChatMessageUseCase
 import com.anshtya.jetx.core.database.dao.MessageDao
 import com.anshtya.jetx.core.network.service.MessageService
 import com.anshtya.jetx.core.network.util.toResult
@@ -22,7 +22,7 @@ class MessageReceiveWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val messageService: MessageService,
-    private val messagesRepository: MessagesRepository,
+    private val receiveChatMessageUseCase: ReceiveChatMessageUseCase,
     private val messageDao: MessageDao,
 ) : CoroutineWorker(appContext, workerParams) {
     private val tag = this::class.simpleName
@@ -46,7 +46,7 @@ class MessageReceiveWorker @AssistedInject constructor(
                         )
                     messageDao.insertMessage(savedMessage)
                 } else {
-                    messagesRepository.receiveChatMessage(
+                    receiveChatMessageUseCase(
                         id = message.id,
                         senderId = message.senderId,
                         recipientId = message.targetId,

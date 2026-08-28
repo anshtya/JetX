@@ -1,6 +1,6 @@
 package com.anshtya.jetx.core.network.websocket
 
-import com.anshtya.jetx.chats.data.MessagesRepository
+import com.anshtya.jetx.chats.domain.ReceiveChatMessageUseCase
 import com.anshtya.jetx.core.coroutine.DefaultDispatcher
 import com.anshtya.jetx.core.database.datasource.LocalMessagesDataSource
 import com.anshtya.jetx.core.database.model.MessageStatus
@@ -17,7 +17,7 @@ import javax.inject.Singleton
 @Singleton
 class WebsocketMessageProcessor @Inject constructor(
     private val localMessagesDataSource: LocalMessagesDataSource,
-    private val messagesRepository: MessagesRepository,
+    private val receiveChatMessageUseCase: ReceiveChatMessageUseCase,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) {
     private val json = Json {
@@ -35,7 +35,7 @@ class WebsocketMessageProcessor @Inject constructor(
                 val incomingMessage = withContext(defaultDispatcher) {
                     json.decodeFromJsonElement<NetworkMessage>(dataElement)
                 }
-                messagesRepository.receiveChatMessage(
+                receiveChatMessageUseCase(
                     id = incomingMessage.id,
                     senderId = incomingMessage.senderId,
                     recipientId = incomingMessage.targetId,
