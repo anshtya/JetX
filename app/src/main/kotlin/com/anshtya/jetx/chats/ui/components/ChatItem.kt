@@ -3,7 +3,6 @@ package com.anshtya.jetx.chats.ui.components
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -45,7 +44,6 @@ import com.anshtya.jetx.core.ui.ProfilePicture
 import com.anshtya.jetx.ui.theme.JetXTheme
 import com.anshtya.jetx.util.Constants.defaultPadding
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ChatItem(
     chat: Chat,
@@ -133,7 +131,7 @@ fun ChatItem(
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = chat.timestamp!!,
+                    text = chat.timestamp,
                     style = MaterialTheme.typography.bodySmall,
                     color = if (chat.unreadCount > 0) MaterialTheme.colorScheme.primary else Color.Gray,
                 )
@@ -146,7 +144,7 @@ fun ChatItem(
             ) {
                 if (chat.isSender) {
                     MessageStatusIcon(
-                        status = chat.messageStatus!!,
+                        status = chat.messageStatus,
                         modifier = Modifier
                             .size(24.dp)
                             .padding(end = 4.dp)
@@ -154,7 +152,7 @@ fun ChatItem(
                     Spacer(Modifier.width(2.dp))
                 }
                 Text(
-                    text = chat.message!!,
+                    text = chat.message,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
                     style = MaterialTheme.typography.bodyLarge,

@@ -12,10 +12,17 @@ class TokenStore(
         const val REFRESH_TOKEN = "refresh_token"
     }
 
-    fun getAuthToken(): AuthToken {
+    /**
+     * Returns the stored [AuthToken], or `null` if either token is missing.
+     */
+    fun getAuthToken(): AuthToken? {
+        val accessToken = encryptedSharedPreferences.getString(ACCESS_TOKEN, null)
+        val refreshToken = encryptedSharedPreferences.getString(REFRESH_TOKEN, null)
+        if (accessToken == null || refreshToken == null) return null
+
         return AuthToken(
-            accessToken = encryptedSharedPreferences.getString(ACCESS_TOKEN, null),
-            refreshToken = encryptedSharedPreferences.getString(REFRESH_TOKEN, null)
+            accessToken = accessToken,
+            refreshToken = refreshToken
         )
     }
 

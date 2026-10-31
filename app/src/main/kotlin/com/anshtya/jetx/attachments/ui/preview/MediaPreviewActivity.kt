@@ -65,8 +65,14 @@ class MediaPreviewActivity : ComponentActivity() {
             UUID::class.java
         )
 
-        if (uris != null && (chatIds != null || recipientId != null)) {
-            viewModel.processIncomingData(chatIds, recipientId,  uris)
+        val target = when {
+            !chatIds.isNullOrEmpty() -> SendTarget.Chats(chatIds)
+            recipientId != null -> SendTarget.Recipient(recipientId)
+            else -> null
+        }
+
+        if (uris != null && target != null) {
+            viewModel.processIncomingData(target, uris)
         } else {
             finish()
         }

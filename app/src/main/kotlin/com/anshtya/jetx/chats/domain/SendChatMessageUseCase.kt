@@ -51,7 +51,7 @@ class SendChatMessageUseCase @Inject constructor(
 
         val messageId = messagesRepository.insertMessage(
             id = UUID.randomUUID(),
-            senderId = authManager.authState.value.currentUserIdOrNull()!!,
+            senderId = authManager.authState.value.requireUserId(),
             recipientId = recipientId,
             text = text,
             attachmentFormat = if (attachmentStorageUri != null) {

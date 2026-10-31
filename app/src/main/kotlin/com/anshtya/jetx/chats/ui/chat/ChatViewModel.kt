@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -39,7 +38,7 @@ class ChatViewModel @Inject constructor(
     private val workManager: WorkManager,
     private val defaultNotificationManager: DefaultNotificationManager
 ) : ViewModel() {
-    private val chatArgs = savedStateHandle.toRoute<ChatsDestination.Chat>()
+    private val chatTarget = savedStateHandle.toRoute<ChatsDestination.Chat>().toChatTarget()
 
     private val chatId = MutableStateFlow<Int?>(null)
 
@@ -66,11 +65,14 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun initializeChatData() {
+        // Arguments that don't identify a conversation leave the screen empty.
+        val target = chatTarget ?: return
+
         viewModelScope.launch {
-            when {
-                chatArgs.chatId != null -> {
-                    chatId.update { chatArgs.chatId }
-                    val userId = chatsRepository.getChatRecipientId(chatArgs.chatId)
+            when (target) {
+                is ChatTarget.ExistingChat -> {
+                    chatId.update { target.chatId }
+                    val userId = chatsRepository.getChatRecipientId(target.chatId)
                     val user = profileRepository.getProfile(userId)
 
                     _recipientUser.update {
@@ -82,15 +84,14 @@ class ChatViewModel @Inject constructor(
                     }
                 }
 
-                chatArgs.recipientId != null -> {
-                    val recipientId = UUID.fromString(chatArgs.recipientId)
-                    chatId.update { chatsRepository.getChatId(recipientId) }
+                is ChatTarget.NewChat -> {
+                    chatId.update { chatsRepository.getChatId(target.recipientId) }
 
                     _recipientUser.update {
                         RecipientUser(
-                            id = recipientId,
-                            username = chatArgs.username!!,
-                            pictureUrl = chatArgs.pictureUrl
+                            id = target.recipientId,
+                            username = target.username,
+                            pictureUrl = target.pictureUrl
                         )
                     }
                 }
@@ -104,7 +105,8 @@ class ChatViewModel @Inject constructor(
         attachmentUri: Uri? = null
     ) {
         viewModelScope.launch {
-            val recipientUser = _recipientUser.value!!
+            // Not yet loaded (or the chat arguments were invalid): nobody to send to.
+            val recipientUser = _recipientUser.value ?: return@launch
             sendChatMessageUseCase(
                 recipientId = recipientUser.id,
                 text = message,
@@ -114,9 +116,11 @@ class ChatViewModel @Inject constructor(
                 return@launch
             }
             if (chatId.value == null) {
-                val id = chatsRepository.getChatId(recipientUser.id)!!
-                chatId.update { id }
-                defaultNotificationManager.setCurrentChat(id)
+                // The chat is created when the first message is saved.
+                chatsRepository.getChatId(recipientUser.id)?.let { id ->
+                    chatId.update { id }
+                    defaultNotificationManager.setCurrentChat(id)
+                }
             }
         }
     }

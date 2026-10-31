@@ -16,40 +16,31 @@ import javax.inject.Inject
 class CameraViewModel @Inject constructor(
     private val attachmentRepository: AttachmentRepository
 ) : ViewModel() {
-    var capturedMediaUri: Uri? = null
-
-    private val _navigateToPreview = MutableStateFlow(false)
-    val navigateToPreview = _navigateToPreview.asStateFlow()
+    /** The captured media to preview. `null` when there is nothing to navigate to. */
+    private val _previewUri = MutableStateFlow<Uri?>(null)
+    val previewUri = _previewUri.asStateFlow()
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage = _errorMessage.asStateFlow()
 
     fun onImageCapture(bitmap: Bitmap) {
         viewModelScope.launch {
-            val result = attachmentRepository.saveBitmapImageBeforeUpload(bitmap)
-            if (result.isSuccess) {
-                capturedMediaUri = result.getOrNull()
-                _navigateToPreview.update { true }
-            } else {
-                _errorMessage.update { "Failed to save image" }
-            }
+            attachmentRepository.saveBitmapImageBeforeUpload(bitmap)
+                .onSuccess { uri -> _previewUri.update { uri } }
+                .onFailure { _errorMessage.update { "Failed to save image" } }
         }
     }
 
     fun onVideoCapture(uri: Uri) {
         viewModelScope.launch {
-            val result = attachmentRepository.saveAttachmentBeforeUpload(uri)
-            if (result.isSuccess) {
-                capturedMediaUri = result.getOrNull()
-                _navigateToPreview.update { true }
-            } else {
-                _errorMessage.update { "Failed to save video" }
-            }
+            attachmentRepository.saveAttachmentBeforeUpload(uri)
+                .onSuccess { savedUri -> _previewUri.update { savedUri } }
+                .onFailure { _errorMessage.update { "Failed to save video" } }
         }
     }
 
     fun onNavigate() {
-        _navigateToPreview.update { false }
+        _previewUri.update { null }
     }
 
     fun onErrorShown() {

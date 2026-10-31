@@ -81,9 +81,9 @@ private fun SettingsScreen(
     onBackClick: () -> Unit,
 ) {
     var showThemeDialog by rememberSaveable { mutableStateOf(false) }
-    if (showThemeDialog) {
+    if (showThemeDialog && userSettings != null) {
         ThemeSelectDialog(
-            currentTheme = userSettings!!.theme,
+            currentTheme = userSettings.theme,
             onDismissDialog = { showThemeDialog = false },
             onThemeChange = onThemeChange
         )
