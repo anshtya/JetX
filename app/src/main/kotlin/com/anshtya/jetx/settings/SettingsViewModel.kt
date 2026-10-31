@@ -14,7 +14,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -35,9 +35,9 @@ class SettingsViewModel @Inject constructor(
     val errorMessage = _errorMessage.receiveAsFlow()
 
     val userProfile: StateFlow<UserProfile?> = authManager.authState
-        .filter { it is AuthState.Authenticated }
+        .filterIsInstance<AuthState.Authenticated>()
         .flatMapLatest { authState ->
-            profileRepository.getProfileFlow(authState.currentUserIdOrNull()!!)
+            profileRepository.getProfileFlow(authState.userId)
         }
         .filterNotNull()
         .stateIn(

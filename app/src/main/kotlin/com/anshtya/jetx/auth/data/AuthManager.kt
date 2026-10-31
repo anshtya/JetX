@@ -40,7 +40,7 @@ class AuthManager @Inject constructor(
 
     private suspend fun initialAuth() {
         val authToken = store.token.getAuthToken()
-        if (authToken.accessToken == null || authToken.refreshToken == null) {
+        if (authToken == null) {
             _authState.update { AuthState.Unauthenticated }
             return
         }
@@ -56,7 +56,13 @@ class AuthManager @Inject constructor(
             }.onFailure { throwable ->
                 Log.e(tag, "Failed to refresh session, reusing old session", throwable)
 
-                val userId = store.account.getUserId()!!
+                val userId = store.account.getUserId()
+                if (userId == null) {
+                    Log.e(tag, "Stored session has no user id")
+                    _authState.update { AuthState.Unauthenticated }
+                    return@onFailure
+                }
+
                 _authState.update {
                     AuthState.Authenticated(
                         userId = UUID.fromString(userId),
@@ -67,7 +73,7 @@ class AuthManager @Inject constructor(
     }
 
     suspend fun refreshSession(): Boolean {
-        val refreshToken = store.token.getAuthToken().refreshToken ?: return false
+        val refreshToken = store.token.getAuthToken()?.refreshToken ?: return false
         return authService.refreshToken(refreshToken)
             .toResult()
             .fold(

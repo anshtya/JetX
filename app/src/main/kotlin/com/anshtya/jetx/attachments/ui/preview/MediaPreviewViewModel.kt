@@ -31,8 +31,8 @@ class MediaPreviewViewModel @Inject constructor(
     private val sendChatMessageUseCase: SendChatMessageUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
-    private val _chatIds = mutableListOf<Int>()
-    private var _recipientId: UUID? = null
+    // Set by processIncomingData; null until the first intent has been handled.
+    private var sendTarget: SendTarget? = null
 
     private val _sendItems = MutableStateFlow(emptyList<SendItem>())
 
@@ -54,12 +54,10 @@ class MediaPreviewViewModel @Inject constructor(
         )
 
     fun processIncomingData(
-        chatIds: List<Int>?,
-        recipientId: UUID?,
+        target: SendTarget,
         uris: List<Uri>
     ) {
-        chatIds?.let { _chatIds.addAll(it) }
-        recipientId?.let { _recipientId = it }
+        sendTarget = target
 
         viewModelScope.launch {
             val preUploadUris = mutableListOf<Uri>()
@@ -95,34 +93,39 @@ class MediaPreviewViewModel @Inject constructor(
     }
 
     fun onSendClick() {
+        val target = sendTarget ?: return
         viewModelScope.launch {
-            if (_chatIds.isNotEmpty()) {
-                _chatIds.map { chatId ->
-                    async {
-                        _sendItems.value.map { item ->
-                            async {
-                                sendChatMessageUseCase(
-                                    chatId = chatId,
-                                    text = item.caption.ifBlank { null },
-                                    attachmentUri = item.uri
-                                ).onFailure {
-                                    _errorMessage.update { "Error sending message" }
-                                    return@async
+            when (target) {
+                is SendTarget.Chats -> {
+                    target.chatIds.map { chatId ->
+                        async {
+                            _sendItems.value.map { item ->
+                                async {
+                                    sendChatMessageUseCase(
+                                        chatId = chatId,
+                                        text = item.caption.ifBlank { null },
+                                        attachmentUri = item.uri
+                                    ).onFailure {
+                                        _errorMessage.update { "Error sending message" }
+                                        return@async
+                                    }
                                 }
-                            }
-                        }.awaitAll()
-                    }
-                }.awaitAll()
-            } else if (_recipientId != null) {
-                _sendItems.value.map { item ->
-                    async {
-                        sendChatMessageUseCase(
-                            recipientId = _recipientId!!,
-                            text = item.caption.ifBlank { null },
-                            attachmentUri = item.uri
-                        )
-                    }
-                }.awaitAll()
+                            }.awaitAll()
+                        }
+                    }.awaitAll()
+                }
+
+                is SendTarget.Recipient -> {
+                    _sendItems.value.map { item ->
+                        async {
+                            sendChatMessageUseCase(
+                                recipientId = target.recipientId,
+                                text = item.caption.ifBlank { null },
+                                attachmentUri = item.uri
+                            )
+                        }
+                    }.awaitAll()
+                }
             }
             _navigateToChat.update { true }
         }
@@ -146,6 +149,15 @@ class MediaPreviewViewModel @Inject constructor(
 sealed interface MediaPreviewUiState {
     data object Loading : MediaPreviewUiState
     data class DataLoaded(val data: List<SendItem>) : MediaPreviewUiState
+}
+
+/** Where the previewed media is sent. */
+sealed interface SendTarget {
+    /** Existing chats, e.g. when sharing from the send screen. */
+    data class Chats(val chatIds: List<Int>) : SendTarget
+
+    /** A single recipient, e.g. when sharing from a chat that may not exist yet. */
+    data class Recipient(val recipientId: UUID) : SendTarget
 }
 
 data class SendItem(

@@ -27,6 +27,7 @@ import androidx.camera.view.video.AudioConfig
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -56,10 +57,10 @@ fun CameraScreen(
     onNavigateToPreview: (Uri) -> Unit,
     viewModel: CameraViewModel = hiltViewModel()
 ) {
-    val navigateToPreview by viewModel.navigateToPreview.collectAsStateWithLifecycle()
-    LaunchedEffect(navigateToPreview) {
-        if (navigateToPreview) {
-            onNavigateToPreview(viewModel.capturedMediaUri!!)
+    val previewUri by viewModel.previewUri.collectAsStateWithLifecycle()
+    LaunchedEffect(previewUri) {
+        previewUri?.let {
+            onNavigateToPreview(it)
             viewModel.onNavigate()
         }
     }
@@ -69,9 +70,11 @@ fun CameraScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    errorMessage?.let {
-        scope.launch { snackbarHostState.showSnackbar(it) }
-        viewModel.onErrorShown()
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.onErrorShown()
+        }
     }
 
     val context = LocalContext.current
@@ -116,7 +119,11 @@ fun CameraScreen(
         requiredPermissions.filterNot { grantedPermissions.contains(it) }
     }
 
-    JetxScaffold {
+    JetxScaffold(
+        snackbarHost = {
+            SnackbarHost(snackbarHostState)
+        }
+    ) {
         if (permissionsChecked) {
             if (notGranted.isEmpty()) {
                 CameraLayout(

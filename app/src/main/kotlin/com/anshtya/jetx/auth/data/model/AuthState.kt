@@ -19,4 +19,8 @@ sealed class AuthState {
     fun currentAccessTokenOrNull(): String? {
         return if (this is Authenticated) accessToken else null
     }
+
+    fun requireUserId(): UUID {
+        return currentUserIdOrNull() ?: error("Expected an authenticated user but was $this")
+    }
 }

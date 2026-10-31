@@ -16,6 +16,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -88,7 +89,7 @@ class AuthManagerTest {
 
     @Test
     fun `initialAuth sets unauthenticated state when no auth tokens`() = runTest {
-        coEvery { tokenStore.getAuthToken() } returns AuthToken(null, null)
+        coEvery { tokenStore.getAuthToken() } returns null
         authManager = AuthManager(
             authService = service,
             store = store,
@@ -99,6 +100,58 @@ class AuthManagerTest {
 
         val authState = authManager.authState.first()
         assertTrue(authState is AuthState.Unauthenticated)
+    }
+
+    @Test
+    fun `initialAuth reuses stored session when refresh fails`() = runTest {
+        coEvery { tokenStore.getAuthToken() } returns AuthToken("access", "refresh")
+        coEvery { service.refreshToken(any()) } returns
+                NetworkResult.Failure.Unknown(Exception("offline"))
+        authManager = AuthManager(
+            authService = service,
+            store = store,
+            scope = TestScope()
+        )
+
+        advanceUntilIdle()
+
+        val authState = authManager.authState.first()
+        assertTrue(authState is AuthState.Authenticated)
+        assertEquals(uuid, (authState as AuthState.Authenticated).userId)
+        assertEquals("access", authState.accessToken)
+    }
+
+    @Test
+    fun `initialAuth sets unauthenticated when refresh fails and no user id is stored`() = runTest {
+        coEvery { tokenStore.getAuthToken() } returns AuthToken("access", "refresh")
+        coEvery { service.refreshToken(any()) } returns
+                NetworkResult.Failure.Unknown(Exception("offline"))
+        coEvery { accountStore.getUserId() } returns null
+        authManager = AuthManager(
+            authService = service,
+            store = store,
+            scope = TestScope()
+        )
+
+        advanceUntilIdle()
+
+        assertTrue(authManager.authState.first() is AuthState.Unauthenticated)
+    }
+
+    @Test
+    fun `refreshSession returns false when no auth token is stored`() = runTest {
+        coEvery { tokenStore.getAuthToken() } returns null
+
+        assertFalse(authManager.refreshSession())
+        coVerify(exactly = 0) { service.refreshToken(any()) }
+    }
+
+    @Test
+    fun `refreshSession returns true and stores session on success`() = runTest {
+        coEvery { tokenStore.getAuthToken() } returns AuthToken("access", "refresh")
+
+        assertTrue(authManager.refreshSession())
+        coVerify { tokenStore.storeAuthToken("access", "refresh") }
     }
 
     @Test
